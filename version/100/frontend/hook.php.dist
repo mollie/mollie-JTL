@@ -1,0 +1,15 @@
+<?php
+
+require_once __DIR__ . '/../class/Helper.php';
+try {
+    if (!\ws_mollie\Helper::init()) {
+        return;
+    }
+
+
+    // TODO
+
+
+} catch (Exception $e) {
+    \ws_mollie\Helper::logExc($e);
+}

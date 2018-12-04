@@ -1,0 +1,19 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: proske
+ * Date: 22.03.18
+ * Time: 17:21
+ */
+
+namespace ws_mollie\Foo;
+
+
+class Base
+{
+
+    public static function test(){
+        echo "OK";
+    }
+
+}

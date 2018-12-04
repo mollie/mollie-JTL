@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<jtlshop3plugin>
+    <Name>mollie</Name>
+    <Description>WebStollen Base Plugin</Description>
+    <Author>WebStollen</Author>
+    <URL>http://www.webstollen.de/</URL>
+    <XMLVersion>102</XMLVersion>
+    <PluginID>ws_mollie</PluginID>
+    <Install>
+        <Version nr="100">
+            <CreateDate>2017-12-18</CreateDate>
+        </Version>
+        <Adminmenu>
+
+            <!--Settingslink sort="998">
+                <Name>Einstellungen</Name>
+            </Settingslink-->
+
+            <Customlink sort="999">
+                <Name>Info</Name>
+                <Filename>info.php</Filename>
+            </Customlink>
+        </Adminmenu>
+    </Install>
+    <Shop4Version>404</Shop4Version>
+</jtlshop3plugin>
