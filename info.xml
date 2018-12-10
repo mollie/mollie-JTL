@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <jtlshop3plugin>
     <Name>mollie</Name>
-    <Description>WebStollen Base Plugin</Description>
+    <Description>Zahlungsart plugin für mollie.com</Description>
     <Author>WebStollen</Author>
     <URL>http://www.webstollen.de/</URL>
     <XMLVersion>102</XMLVersion>
@@ -12,15 +12,43 @@
         </Version>
         <Adminmenu>
 
-            <!--Settingslink sort="998">
+            <Settingslink sort="998">
                 <Name>Einstellungen</Name>
-            </Settingslink-->
+                <Setting type="text" initialValue="" sort="10" conf="Y">
+                    <Name>API Key:</Name>
+                    <Description>Füge hier deinen mollie API Key ein</Description>
+                    <ValueName>api_key</ValueName>
+                </Setting>
+
+            </Settingslink>
+
 
             <Customlink sort="999">
                 <Name>Info</Name>
                 <Filename>info.php</Filename>
             </Customlink>
         </Adminmenu>
+
+        <PaymentMethod>
+            <Method>
+                <Name>mollie</Name>
+                <Sort>1</Sort>
+                <SendMail>0</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>Mollie.php</ClassFile>
+                <ClassName>Mollie</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>mollie</Name>
+                    <ChargeName>mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit verschiedenen Zahlungsmethoden.</InfoText>
+                </MethodLanguage>
+            </Method>
+        </PaymentMethod>
     </Install>
-    <Shop4Version>404</Shop4Version>
+    <Shop4Version>405</Shop4Version>
 </jtlshop3plugin>

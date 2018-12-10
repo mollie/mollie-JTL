@@ -3,12 +3,13 @@
   "description": "mollie",
   "type": "project",
   "require": {
-    "roave/security-advisories": "dev-master"
+    "roave/security-advisories": "dev-master",
+    "mollie/mollie-api-php": "^2.2"
   },
   "license": "Proprietary",
   "authors": [
     {
-      "name": "Proske",
+      "name": "C. Proske",
       "email": "proske@webstollen.de"
     }
   ]
