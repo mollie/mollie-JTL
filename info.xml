@@ -223,6 +223,159 @@
                     <InfoText>Bezahlen Sie bequem mit Giropay.</InfoText>
                 </MethodLanguage>
             </Method>
+
+            <Method>
+                <Name>mollie iDEAL</Name>
+                <Sort>2</Sort>
+                <SendMail>0</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieIDEAL.php</ClassFile>
+                <ClassName>JTLMollieIDEAL</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>mollie Giropay</Name>
+                    <ChargeName>mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit iDEAL.</InfoText>
+                </MethodLanguage>
+            </Method>
+
+            <Method>
+                <Name>mollie ING Home'Pay</Name>
+                <Sort>2</Sort>
+                <SendMail>0</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieINGHomePay.php</ClassFile>
+                <ClassName>JTLMollieINGHomePay</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>mollie ING Home'Pay</Name>
+                    <ChargeName>mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit ING Home'Pay.</InfoText>
+                </MethodLanguage>
+            </Method>
+
+            <Method>
+                <Name>mollie KBC</Name>
+                <Sort>2</Sort>
+                <SendMail>0</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieKBC.php</ClassFile>
+                <ClassName>JTLMollieKBC</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>mollie KBC</Name>
+                    <ChargeName>mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit KBC.</InfoText>
+                </MethodLanguage>
+            </Method>
+
+            <Method>
+                <Name>mollie PayPal</Name>
+                <Sort>2</Sort>
+                <SendMail>0</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMolliePayPal.php</ClassFile>
+                <ClassName>JTLMolliePayPal</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>mollie PayPal</Name>
+                    <ChargeName>mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit PayPal.</InfoText>
+                </MethodLanguage>
+            </Method>
+
+            <Method>
+                <Name>mollie paysafecard</Name>
+                <Sort>2</Sort>
+                <SendMail>0</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMolliePaysafecard.php</ClassFile>
+                <ClassName>JTLMolliePaysafecard</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>mollie paysafecard</Name>
+                    <ChargeName>mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit paysafecard.</InfoText>
+                </MethodLanguage>
+            </Method>
+
+            <Method>
+                <Name>mollie SOFORT</Name>
+                <Sort>2</Sort>
+                <SendMail>0</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieSofort.php</ClassFile>
+                <ClassName>JTLMollieSofort</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>mollie SOFORT</Name>
+                    <ChargeName>mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit SOFORT.</InfoText>
+                </MethodLanguage>
+            </Method>
+
+            <Method>
+                <Name>mollie Klarna Pay Later</Name>
+                <Sort>2</Sort>
+                <SendMail>0</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieKlarnaPayLater.php</ClassFile>
+                <ClassName>JTLMollieKlarnaPayLater</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>mollie Klarna Pay Later</Name>
+                    <ChargeName>mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit Klarna Pay Later.</InfoText>
+                </MethodLanguage>
+            </Method>
+
+            <Method>
+                <Name>mollie Klarna Slice It</Name>
+                <Sort>2</Sort>
+                <SendMail>0</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieKlarnaSliceIt.php</ClassFile>
+                <ClassName>JTLMollieKlarnaSliceIt</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>mollie Klarna Slice It</Name>
+                    <ChargeName>mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit Klarna Slice It.</InfoText>
+                </MethodLanguage>
+            </Method>
+
             
         </PaymentMethod>
     </Install>
