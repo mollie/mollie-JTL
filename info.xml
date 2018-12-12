@@ -244,7 +244,7 @@
             </Method>
 
             <Method>
-                <Name>mollie ING Home'Pay</Name>
+                <Name>mollie ING HomePay</Name>
                 <Sort>2</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
@@ -256,9 +256,9 @@
                 <ClassName>JTLMollieINGHomePay</ClassName>
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
-                    <Name>mollie ING Home'Pay</Name>
+                    <Name>mollie ING HomePay</Name>
                     <ChargeName>mollie</ChargeName>
-                    <InfoText>Bezahlen Sie bequem mit ING Home'Pay.</InfoText>
+                    <InfoText>Bezahlen Sie bequem mit ING HomePay.</InfoText>
                 </MethodLanguage>
             </Method>
 

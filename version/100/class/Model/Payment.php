@@ -4,26 +4,39 @@ namespace ws_mollie\Model;
 
 use ws_mollie\Model\AbstractModel;
 
-class Payment extends AbstractModel {
-    
+class Payment extends AbstractModel
+{
+
     public const TABLE = 'xplugin_ws_mollie_payments';
-    
-    public static function updateFromPayment(\Mollie\Api\Resources\Payment $oMolliePayment, $kBestellung = null, $hash = null){
-        return \Shop::DB()->executeQueryPrepared('INSERT INTO ' . self::TABLE . ' (kID, kBestellung, cStatus, fAmount, cCurrency, cMethod, cHash, dCreatedAt, dPaidAt) VALUES (:kID, :kBestellung, :cStatus, :fAmount, :cCurrency, :cMethod, :cHash, :dCreatedAt, :dPaidAt) '
-            .' ON DUPLICATE KEY UPDATE kBestellung = :kBestellung1, cStatus = :cStatus1, cMethod = :cMethod1, dPaidAt = :dPaidAt1', [
+
+    public static function updateFromPayment(\Mollie\Api\Resources\Order $oMolliePayment, $kBestellung = null, $hash = null)
+    {
+        return \Shop::DB()->executeQueryPrepared('INSERT INTO ' . self::TABLE . ' (kID, kBestellung, cMode, cStatus, cHash, fAmount, cOrderNumber, cCurrency, cMethod, cLocale, bCancelable, cWebhookURL, cRedirectURL, cCheckoutURL, fAmountCaptured, fAmountRefunded, dCreatedAt) '
+            . 'VALUES (:kID, :kBestellung, :cMode, :cStatus, :cHash, :fAmount, :cOrderNumber, :cCurrency, :cMethod, :cLocale, :bCancelable, :cWebhookURL, :cRedirectURL, :cCheckoutURL, :fAmountCaptured, :fAmountRefunded, :dCreatedAt) '
+            . 'ON DUPLICATE KEY UPDATE kBestellung = :kBestellung1, cStatus = :cStatus1, cMethod = :cMethod1, bCancelable = :bCancelable1, fAmountCaptured = :fAmountCaptured1, fAmountRefunded = :fAmountRefunded1', [
             ':kID' => $oMolliePayment->id,
-            ':kBestellung' => $kBestellung,
-            ':kBestellung1' => $kBestellung,
+            ':kBestellung' => (int)$kBestellung ?: NULL,
+            ':kBestellung1' => (int)$kBestellung ?: NULL,
+            ':cMode' => $oMolliePayment->mode,
             ':cStatus' => $oMolliePayment->status,
             ':cStatus1' => $oMolliePayment->status,
+            ':cHash' => $hash,
             ':fAmount' => $oMolliePayment->amount->value,
+            ':cOrderNumber' => $oMolliePayment->orderNumber,
             ':cCurrency' => $oMolliePayment->amount->currency,
             ':cMethod' => $oMolliePayment->method,
             ':cMethod1' => $oMolliePayment->method,
-            ':cHash' => $hash,
+            ':cLocale' => $oMolliePayment->locale,
+            ':bCancelable' => $oMolliePayment->isCancelable,
+            ':bCancelable1' => $oMolliePayment->isCancelable,
+            ':cWebhookURL' => $oMolliePayment->webhookUrl,
+            ':cRedirectURL' => $oMolliePayment->redirectUrl,
+            ':cCheckoutURL' => $oMolliePayment->getCheckoutUrl(),
+            ':fAmountCaptured' => $oMolliePayment->amountCaptured,
+            ':fAmountCaptured1' => $oMolliePayment->amountCaptured,
+            ':fAmountRefunded' => $oMolliePayment->amountRefunded,
+            ':fAmountRefunded1' => $oMolliePayment->amountRefunded,
             ':dCreatedAt' => $oMolliePayment->createdAt ? date('Y-m-d H:i:s', strtotime($oMolliePayment->createdAt)) : null,
-            ':dPaidAt' => $oMolliePayment->paidAt ? date('Y-m-d H:i:s', strtotime($oMolliePayment->paidAt)) : null,
-            ':dPaidAt1' => $oMolliePayment->paidAt ? date('Y-m-d H:i:s', strtotime($oMolliePayment->paidAt)) : null,
         ], 3);
     }
 }
