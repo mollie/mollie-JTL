@@ -9,7 +9,11 @@
     <Install>
         <Version nr="100">
             <CreateDate>2017-12-18</CreateDate>
+            <SQL>100.sql</SQL>
         </Version>
+        <Hooks>
+            <Hook id="131">131_globalinclude.php</Hook>
+        </Hooks>
         <Adminmenu>
 
             <Settingslink sort="998">
@@ -39,8 +43,8 @@
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
-                <ClassFile>Mollie.php</ClassFile>
-                <ClassName>Mollie</ClassName>
+                <ClassFile>JTLMollie.php</ClassFile>
+                <ClassName>JTLMollie</ClassName>
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
                     <Name>mollie</Name>
@@ -48,6 +52,178 @@
                     <InfoText>Bezahlen Sie bequem mit verschiedenen Zahlungsmethoden.</InfoText>
                 </MethodLanguage>
             </Method>
+            
+            <Method>
+                <Name>mollie Kreditkarte</Name>
+                <Sort>2</Sort>
+                <SendMail>0</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieCreditCard.php</ClassFile>
+                <ClassName>JTLMollieCreditCard</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>mollie Kreditkarte</Name>
+                    <ChargeName>mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit Kreditkarte.</InfoText>
+                </MethodLanguage>
+            </Method>
+            
+            <Method>
+                <Name>mollie Bitcoin</Name>
+                <Sort>2</Sort>
+                <SendMail>0</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieBitcoin.php</ClassFile>
+                <ClassName>JTLMollieBitcoin</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>mollie Bitcoin</Name>
+                    <ChargeName>mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit Bitcoins.</InfoText>
+                </MethodLanguage>
+            </Method>
+            
+            <Method>
+                <Name>mollie Bancontact</Name>
+                <Sort>2</Sort>
+                <SendMail>0</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieBancontact.php</ClassFile>
+                <ClassName>JTLMollieBancontact</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>mollie Bancontact</Name>
+                    <ChargeName>mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit Bancontact.</InfoText>
+                </MethodLanguage>
+            </Method>
+            
+            <Method>
+                <Name>mollie Banktransfer</Name>
+                <Sort>2</Sort>
+                <SendMail>0</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieBanktransfer.php</ClassFile>
+                <ClassName>JTLMollieBanktransfer</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>mollie SEPA Überweisung</Name>
+                    <ChargeName>mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit SEPA Überweisung.</InfoText>
+                </MethodLanguage>
+            </Method>
+            
+            <Method>
+                <Name>mollie Belfius</Name>
+                <Sort>2</Sort>
+                <SendMail>0</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieBelfius.php</ClassFile>
+                <ClassName>JTLMollieBelfius</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>mollie SEPA Überweisung</Name>
+                    <ChargeName>mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit Belfius.</InfoText>
+                </MethodLanguage>
+            </Method>
+            
+            <Method>
+                <Name>mollie DirectDebit</Name>
+                <Sort>2</Sort>
+                <SendMail>0</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieDirectDebit.php</ClassFile>
+                <ClassName>JTLMollieDirectDebit</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>mollie SEPA Lastschrift</Name>
+                    <ChargeName>mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit SEPA Lastschrift.</InfoText>
+                </MethodLanguage>
+            </Method>
+            
+            <Method>
+                <Name>mollie EPS</Name>
+                <Sort>2</Sort>
+                <SendMail>0</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieEPS.php</ClassFile>
+                <ClassName>JTLMollieEPS</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>mollie EPS</Name>
+                    <ChargeName>mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit EPS.</InfoText>
+                </MethodLanguage>
+            </Method>
+            
+            <Method>
+                <Name>mollie Giftcard</Name>
+                <Sort>2</Sort>
+                <SendMail>0</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieGiftcard.php</ClassFile>
+                <ClassName>JTLMollieGiftcard</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>mollie Gift cards</Name>
+                    <ChargeName>mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit Gift cards.</InfoText>
+                </MethodLanguage>
+            </Method>
+            
+            <Method>
+                <Name>mollie Giropay</Name>
+                <Sort>2</Sort>
+                <SendMail>0</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieGiropay.php</ClassFile>
+                <ClassName>JTLMollieGiropay</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>mollie Giropay</Name>
+                    <ChargeName>mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit Giropay.</InfoText>
+                </MethodLanguage>
+            </Method>
+            
         </PaymentMethod>
     </Install>
     <Shop4Version>405</Shop4Version>

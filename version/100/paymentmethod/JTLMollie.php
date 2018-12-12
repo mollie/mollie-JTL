@@ -8,7 +8,9 @@
 
 require_once __DIR__ . '/../class/Helper.php';
 
-class Mollie extends PaymentMethod
+use Mollie\Api\Types\PaymentStatus as MolliePaymentStatus;
+
+class JTLMollie extends PaymentMethod
 {
 
     const MOLLIE_METHOD = "";
@@ -59,18 +61,25 @@ class Mollie extends PaymentMethod
      */
     public function preparePaymentProcess($order)
     {
+        
+        $hash = $this->generateHash($order);
         $data = [
             'amount' => [
                 'currency' => $order->Waehrung->cISO,
-                'value' => number_format($order->fGesamtsumme, 2, '.', ''),
+                'value' => number_format($order->fGesamtsummeKundenwaehrung, 2, '.', ''),
             ],
             'description' => 'Ihre Bestellung bei XXX: ' . $order->cBestellNr,
-            'redirectUrl' => $this->getReturnURL($order),
-            'webhookUrl' => $this->getNotificationURL($this->generateHash($order))
+            'redirectUrl' => (int)$this->duringCheckout ? Shop::getURL() . '/bestellabschluss.php?mollie=' .md5($hash) : $this->getReturnURL($order),
+            'webhookUrl' => $this->getNotificationURL($hash)
         ];
+        if(static::MOLLIE_METHOD !== ''){
+            $data['method'] = static::MOLLIE_METHOD;
+        }
         try {
             $oMolliePayment = static::API()->payments->create($data);
-            $this->doLog('Mollie Create Payment Redirect: ' . $oMolliePayment->getCheckoutUrl());
+            $_SESSION['oMolliePayment'] = $oMolliePayment;
+            $this->doLog('Mollie Create Payment Redirect: ' . $oMolliePayment->getCheckoutUrl() . "<br/><pre>" . print_r($oMolliePayment,1) . "</pre>", LOGLEVEL_DEBUG);
+            \ws_mollie\Model\Payment::updateFromPayment($oMolliePayment, $order->kBestellung, md5($hash));
             Shop::Smarty()->assign('oMolliePayment', $oMolliePayment);
             header('Location: ' . $oMolliePayment->getCheckoutUrl());
             exit();
@@ -87,7 +96,25 @@ class Mollie extends PaymentMethod
      */
     public function handleNotification($order, $hash, $args)
     {
-
+        \ws_mollie\Helper::autoload();
+        try{
+            $oMolliePayment = self::API()->payments->get($args['id']);
+            $this->doLog('Received Notification<br/><pre>' . print_r([$hash, $args, $oMolliePayment],1) . '</pre>', LOGLEVEL_DEBUG);
+            
+            \ws_mollie\Model\Payment::updateFromPayment($oMolliePayment, $order->kBestellung);
+            
+            if($oMolliePayment->status === MolliePaymentStatus::STATUS_PAID){
+                $oIncomingPayment          = new stdClass();
+                $oIncomingPayment->fBetrag = $order->fGesamtsummeKundenwaehrung;
+                $oIncomingPayment->cISO    = $order->Waehrung->cISO;
+                $oIncomingPayment->chinweis = $oMolliePayment->id;
+                $this->addIncomingPayment($order, $oIncomingPayment);
+                $this->setOrderStatusToPaid($order);
+            }
+            
+        }catch(\Exception $e){
+            $this->doLog($e->getMessage());
+        }
     }
 
     /**
@@ -99,6 +126,15 @@ class Mollie extends PaymentMethod
      */
     public function finalizeOrder($order, $hash, $args)
     {
+        try{
+            \ws_mollie\Helper::autoload();
+            $oMolliePayment = self::API()->payments->get($args['id']);
+            $this->doLog('Received Notification Finalize Order<br/><pre>' . print_r([$hash, $args, $oMolliePayment],1) . '</pre>', LOGLEVEL_DEBUG);
+            \ws_mollie\Model\Payment::updateFromPayment($oMolliePayment, $order->kBestellung);
+            return !in_array([MolliePaymentStatus::STATUS_FAILED, MolliePaymentStatus::STATUS_CANCELED, MolliePaymentStatus::STATUS_EXPIRED, MolliePaymentStatus::STATUS_OPEN],$oMolliePayment->status);
+        }catch(\Exception $e){
+            $this->doLog($e->getMessage());
+        }
         return false;
     }
 
@@ -117,6 +153,19 @@ class Mollie extends PaymentMethod
      */
     public function isSelectable()
     {
+        
+        if(static::MOLLIE_METHOD !== ''){
+            try {
+                $method = self::API()->methods->get(static::MOLLIE_METHOD, ['locale' => 'de_DE', 'include' => 'pricing,issuers']);
+                \Shop::DB()->executeQueryPrepared("UPDATE tzahlungsart SET cBild = :cBild WHERE cModulId = :cModulId", [':cBild' => $method->image->size2x, ':cModulId' => $this->cModulId], 3);
+                $this->cBild = $method->image->size2x;
+                var_dump($method->issuers);
+                return true;
+            }catch(Exception $e){
+                $this->doLog('Method ' . static::MOLLIE_METHOD . ' not selectable:' . $e->getMessage());
+                return false;
+            }
+        }
         return true;
     }
 
