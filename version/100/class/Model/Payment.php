@@ -11,9 +11,8 @@ class Payment extends AbstractModel
 
     public static function updateFromPayment(\Mollie\Api\Resources\Order $oMolliePayment, $kBestellung = null, $hash = null)
     {
-        return \Shop::DB()->executeQueryPrepared('INSERT INTO ' . self::TABLE . ' (kID, kBestellung, cMode, cStatus, cHash, fAmount, cOrderNumber, cCurrency, cMethod, cLocale, bCancelable, cWebhookURL, cRedirectURL, cCheckoutURL, fAmountCaptured, fAmountRefunded, dCreatedAt) '
-            . 'VALUES (:kID, :kBestellung, :cMode, :cStatus, :cHash, :fAmount, :cOrderNumber, :cCurrency, :cMethod, :cLocale, :bCancelable, :cWebhookURL, :cRedirectURL, :cCheckoutURL, :fAmountCaptured, :fAmountRefunded, :dCreatedAt) '
-            . 'ON DUPLICATE KEY UPDATE kBestellung = :kBestellung1, cStatus = :cStatus1, cMethod = :cMethod1, bCancelable = :bCancelable1, fAmountCaptured = :fAmountCaptured1, fAmountRefunded = :fAmountRefunded1', [
+        
+        $data = [
             ':kID' => $oMolliePayment->id,
             ':kBestellung' => (int)$kBestellung ?: NULL,
             ':kBestellung1' => (int)$kBestellung ?: NULL,
@@ -32,11 +31,18 @@ class Payment extends AbstractModel
             ':cWebhookURL' => $oMolliePayment->webhookUrl,
             ':cRedirectURL' => $oMolliePayment->redirectUrl,
             ':cCheckoutURL' => $oMolliePayment->getCheckoutUrl(),
+            ':cCheckoutURL1' => $oMolliePayment->getCheckoutUrl(),
             ':fAmountCaptured' => $oMolliePayment->amountCaptured,
             ':fAmountCaptured1' => $oMolliePayment->amountCaptured,
             ':fAmountRefunded' => $oMolliePayment->amountRefunded,
             ':fAmountRefunded1' => $oMolliePayment->amountRefunded,
             ':dCreatedAt' => $oMolliePayment->createdAt ? date('Y-m-d H:i:s', strtotime($oMolliePayment->createdAt)) : null,
-        ], 3);
+        ];
+        
+        
+        return \Shop::DB()->executeQueryPrepared('INSERT INTO ' . self::TABLE . ' (kID, kBestellung, cMode, cStatus, cHash, fAmount, cOrderNumber, cCurrency, cMethod, cLocale, bCancelable, cWebhookURL, cRedirectURL, cCheckoutURL, fAmountCaptured, fAmountRefunded, dCreatedAt) '
+            . 'VALUES (:kID, :kBestellung, :cMode, :cStatus, :cHash, :fAmount, :cOrderNumber, :cCurrency, :cMethod, :cLocale, :bCancelable, :cWebhookURL, :cRedirectURL, IF(:cCheckoutURL IS NULL, cCheckoutURL, :cCheckoutURL1), :fAmountCaptured, :fAmountRefunded, :dCreatedAt) '
+            . 'ON DUPLICATE KEY UPDATE kBestellung = :kBestellung1, cStatus = :cStatus1, cMethod = :cMethod1, bCancelable = :bCancelable1, fAmountCaptured = :fAmountCaptured1, fAmountRefunded = :fAmountRefunded1',
+            $data, 3);
     }
 }

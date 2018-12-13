@@ -69,9 +69,8 @@ class JTLMollie extends PaymentMethod
      * @param Bestellung $order
      * @return array
      */
-    protected function getOrderData(Bestellung $order)
+    protected function getOrderData(Bestellung $order, $hash)
     {
-        $hash = $this->generateHash($order);
         $data = [
             'locale' => 'de_DE', // TODO: mapping with language?
             'amount' => [
@@ -223,7 +222,8 @@ class JTLMollie extends PaymentMethod
     public function preparePaymentProcess($order)
     {
         try {
-            $oMolliePayment = self::API()->orders->create($this->getOrderData($order));
+            $hash = $this->generateHash($order);
+            $oMolliePayment = self::API()->orders->create($this->getOrderData($order, $hash));
             $_SESSION['oMolliePayment'] = $oMolliePayment;
             $this->doLog('Mollie Create Payment Redirect: ' . $oMolliePayment->getCheckoutUrl() . "<br/><pre>" . print_r($oMolliePayment, 1) . "</pre>", LOGLEVEL_DEBUG);
             \ws_mollie\Model\Payment::updateFromPayment($oMolliePayment, $order->kBestellung, md5($hash));
@@ -245,7 +245,7 @@ class JTLMollie extends PaymentMethod
     {
         \ws_mollie\Helper::autoload();
         try {
-            $oMolliePayment = self::API()->payments->get($args['id']);
+            $oMolliePayment = self::API()->orders->get($args['id']);
             $this->doLog('Received Notification<br/><pre>' . print_r([$hash, $args, $oMolliePayment], 1) . '</pre>', LOGLEVEL_DEBUG);
 
             \ws_mollie\Model\Payment::updateFromPayment($oMolliePayment, $order->kBestellung);
