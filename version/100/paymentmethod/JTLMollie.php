@@ -73,7 +73,7 @@ class JTLMollie extends PaymentMethod
     {
         $data = [
             'locale' => 'de_DE', // TODO: mapping with language?
-            'amount' => [
+            'amount' => (object)[
                 'currency' => $order->Waehrung->cISO,
                 'value' => number_format($order->fGesamtsummeKundenwaehrung, 2, '.', ''),
             ],
@@ -83,6 +83,7 @@ class JTLMollie extends PaymentMethod
             'redirectUrl' => (int)$this->duringCheckout ? Shop::getURL() . '/bestellabschluss.php?mollie=' . md5($hash) : $this->getReturnURL($order),
             'webhookUrl' => $this->getNotificationURL($hash)
         ];
+        
         if (static::MOLLIE_METHOD !== '') {
             $data['method'] = static::MOLLIE_METHOD;
         }
@@ -106,16 +107,16 @@ class JTLMollie extends PaymentMethod
                     $line->name = utf8_encode($oPosition->cName);
                     $line->quantity = $oPosition->nAnzahl;
                     $line->unitPrice = (object)[
-                        'value' => number_format($oPosition->fPreis * ((float)$oPosition->fMwSt / 100 + 1), 2, '.', ''),
+                        'value' => number_format($order->Waehrung->fFaktor * ($oPosition->fPreis * ((float)$oPosition->fMwSt / 100 + 1)), 2, '.', ''),
                         'currency' => $order->Waehrung->cISO,
                     ];
                     $line->totalAmount = (object)[
-                        'value' => number_format($oPosition->fPreis * $oPosition->nAnzahl * ((float)$oPosition->fMwSt / 100 + 1), 2, '.', ''),
+                        'value' => number_format($oPosition->nAnzahl * (float)$line->unitPrice->value, 2, '.', ''),
                         'currency' => $order->Waehrung->cISO,
                     ];
                     $line->vatRate = $oPosition->fMwSt;
                     $line->vatAmount = (object)[
-                        'value' => number_format($line->totalAmount->value - ($oPosition->fPreis * $oPosition->nAnzahl), 2, '.', ''),
+                        'value' => number_format($line->totalAmount->value - ($line->totalAmount->value / (1 + (float)$oPosition->fMwSt / 100)), 2, '.', ''),
                         'currency' => $order->Waehrung->cISO,
                     ];
                     $line->sku = $oPosition->cArtNr;
@@ -125,16 +126,16 @@ class JTLMollie extends PaymentMethod
                     $line->name = utf8_encode($oPosition->cName);
                     $line->quantity = $oPosition->nAnzahl;
                     $line->unitPrice = (object)[
-                        'value' => number_format($oPosition->fPreis * ((float)$oPosition->fMwSt / 100 + 1), 2, '.', ''),
+                        'value' => number_format($order->Waehrung->fFaktor * ($oPosition->fPreis * ((float)$oPosition->fMwSt / 100 + 1)), 2, '.', ''),
                         'currency' => $order->Waehrung->cISO,
                     ];
                     $line->totalAmount = (object)[
-                        'value' => number_format($oPosition->fPreis * $oPosition->nAnzahl * ((float)$oPosition->fMwSt / 100 + 1), 2, '.', ''),
+                        'value' => number_format($order->Waehrung->fFaktor * ($oPosition->fPreis * $oPosition->nAnzahl * ((float)$oPosition->fMwSt / 100 + 1)), 2, '.', ''),
                         'currency' => $order->Waehrung->cISO,
                     ];
                     $line->vatRate = $oPosition->fMwSt;
                     $line->vatAmount = (object)[
-                        'value' => number_format($line->totalAmount->value - ($oPosition->fPreis * $oPosition->nAnzahl), 2, '.', ''),
+                        'value' => number_format($line->totalAmount->value - ($line->totalAmount->value / (1 + (float)$oPosition->fMwSt/100)), 2, '.', ''),
                         'currency' => $order->Waehrung->cISO,
                     ];
                     break;
@@ -147,16 +148,16 @@ class JTLMollie extends PaymentMethod
                     $line->name = utf8_encode($oPosition->cName);
                     $line->quantity = $oPosition->nAnzahl;
                     $line->unitPrice = (object)[
-                        'value' => number_format($oPosition->fPreis * ((float)$oPosition->fMwSt / 100 + 1), 2, '.', ''),
+                        'value' => number_format($order->Waehrung->fFaktor * ($oPosition->fPreis * ((float)$oPosition->fMwSt / 100 + 1)), 2, '.', ''),
                         'currency' => $order->Waehrung->cISO,
                     ];
                     $line->totalAmount = (object)[
-                        'value' => number_format($oPosition->fPreis * $oPosition->nAnzahl * ((float)$oPosition->fMwSt / 100 + 1), 2, '.', ''),
+                        'value' => number_format($order->Waehrung->fFaktor * ($oPosition->fPreis * $oPosition->nAnzahl * ((float)$oPosition->fMwSt / 100 + 1)), 2, '.', ''),
                         'currency' => $order->Waehrung->cISO,
                     ];
                     $line->vatRate = $oPosition->fMwSt;
                     $line->vatAmount = (object)[
-                        'value' => number_format($line->totalAmount->value - ($oPosition->fPreis * $oPosition->nAnzahl), 2, '.', ''),
+                        'value' => number_format($line->totalAmount->value - ($line->totalAmount->value / (1 + (float)$oPosition->fMwSt/100)), 2, '.', ''),
                         'currency' => $order->Waehrung->cISO,
                     ];
                     break;
@@ -167,16 +168,16 @@ class JTLMollie extends PaymentMethod
                     $line->name = $oPosition->cName;
                     $line->quantity = $oPosition->nAnzahl;
                     $line->unitPrice = (object)[
-                        'value' => number_format($oPosition->fPreis * ((float)$oPosition->fMwSt / 100 + 1), 2, '.', ''),
+                        'value' => number_format($order->Waehrung->fFaktor * ($oPosition->fPreis * ((float)$oPosition->fMwSt / 100 + 1)), 2, '.', ''),
                         'currency' => $order->Waehrung->cISO,
                     ];
                     $line->totalAmount = (object)[
-                        'value' => number_format($oPosition->fPreis * $oPosition->nAnzahl * ((float)$oPosition->fMwSt / 100 + 1), 2, '.', ''),
+                        'value' => number_format($order->Waehrung->fFaktor * ($oPosition->fPreis * $oPosition->nAnzahl * ((float)$oPosition->fMwSt / 100 + 1)), 2, '.', ''),
                         'currency' => $order->Waehrung->cISO,
                     ];
                     $line->vatRate = $oPosition->fMwSt;
                     $line->vatAmount = (object)[
-                        'value' => number_format($line->totalAmount->value - ($oPosition->fPreis * $oPosition->nAnzahl), 2, '.', ''),
+                        'value' => number_format($line->totalAmount->value - ($line->totalAmount->value / (1 + (float)$oPosition->fMwSt/100)), 2, '.', ''),
                         'currency' => $order->Waehrung->cISO,
                     ];
                     break;
@@ -192,15 +193,15 @@ class JTLMollie extends PaymentMethod
             $line->name = 'Guthaben';
             $line->quantity = 1;
             $line->unitPrice = (object)[
-                'value' => number_format($order->fGuthaben, 2, '.', ''),
+                'value' => number_format($order->Waehrung->fFaktor * $order->fGuthaben, 2, '.', ''),
                 'currency' => $order->Waehrung->cISO,
             ];
             $line->unitPrice = (object)[
-                'value' => number_format($order->fGuthaben, 2, '.', ''),
+                'value' => number_format($order->Waehrung->fFaktor * $order->fGuthaben, 2, '.', ''),
                 'currency' => $order->Waehrung->cISO,
             ];
             $line->totalAmount = (object)[
-                'value' => number_format($order->fGuthaben, 2, '.', ''),
+                'value' => number_format($order->Waehrung->fFaktor * $order->fGuthaben, 2, '.', ''),
                 'currency' => $order->Waehrung->cISO,
             ];
             $line->vatRate = "0.00";
@@ -210,6 +211,40 @@ class JTLMollie extends PaymentMethod
             ];
             $data['lines'][] = $line;
         }
+        
+        // RUNDUNGSAUSGLEICH
+        $sum = .0;
+        foreach($data['lines'] as $line){
+            $sum += (float)$line->totalAmount->value;
+        }
+        if($sum <> (float)$data['amount']->value){
+            $diff = (round((float)$data['amount']->value - $sum,2));
+            if($diff !== 0){
+                $line = new stdClass();
+                $line->type = $diff > 0 ? \Mollie\Api\Types\OrderLineType::TYPE_SURCHARGE : \Mollie\Api\Types\OrderLineType::TYPE_DISCOUNT;
+                $line->name = 'Rundungsausgleich';
+                $line->quantity = 1;
+                $line->unitPrice = (object)[
+                    'value' => number_format($diff, 2, '.', ''),
+                    'currency' => $order->Waehrung->cISO,
+                ];
+                $line->unitPrice = (object)[
+                    'value' => number_format($diff, 2, '.', ''),
+                    'currency' => $order->Waehrung->cISO,
+                ];
+                $line->totalAmount = (object)[
+                    'value' => number_format($diff, 2, '.', ''),
+                    'currency' => $order->Waehrung->cISO,
+                ];
+                $line->vatRate = "0.00";
+                $line->vatAmount = (object)[
+                    'value' => number_format(0, 2, '.', ''),
+                    'currency' => $order->Waehrung->cISO,
+                ];
+                $data['lines'][] = $line;
+            }
+        }
+        
         return $data;
     }
 
@@ -254,7 +289,7 @@ class JTLMollie extends PaymentMethod
                 $oIncomingPayment = new stdClass();
                 $oIncomingPayment->fBetrag = $order->fGesamtsummeKundenwaehrung;
                 $oIncomingPayment->cISO = $order->Waehrung->cISO;
-                $oIncomingPayment->chinweis = $oMolliePayment->id;
+                $oIncomingPayment->cHinweis = $oMolliePayment->id;
                 $this->addIncomingPayment($order, $oIncomingPayment);
                 $this->setOrderStatusToPaid($order);
             }
@@ -278,7 +313,7 @@ class JTLMollie extends PaymentMethod
             $oMolliePayment = self::API()->orders->get($args['id'], ['embed' => 'payments']);
             $this->doLog('Received Notification Finalize Order<br/><pre>' . print_r([$hash, $args, $oMolliePayment], 1) . '</pre>', LOGLEVEL_DEBUG);
             \ws_mollie\Model\Payment::updateFromPayment($oMolliePayment, $order->kBestellung);
-            return !in_array([MolliePaymentStatus::STATUS_FAILED, MolliePaymentStatus::STATUS_CANCELED, MolliePaymentStatus::STATUS_EXPIRED, MolliePaymentStatus::STATUS_OPEN], $oMolliePayment->status);
+            return !in_array($oMolliePayment->status, [MolliePaymentStatus::STATUS_FAILED, MolliePaymentStatus::STATUS_CANCELED, MolliePaymentStatus::STATUS_EXPIRED, MolliePaymentStatus::STATUS_OPEN]);
         } catch (\Exception $e) {
             $this->doLog($e->getMessage());
         }
@@ -293,6 +328,79 @@ class JTLMollie extends PaymentMethod
         return true;
     }
 
+
+    public static function getLocale($cISOSprache, $country = null){
+        switch($cISOSprache){
+            case "ger":
+                if($country === "AT"){ return "de_AT"; }
+                if($country === "CH"){ return "de_CH"; }
+                return "de_DE";
+            case "eng":
+                return "en_US";
+            case "fre":
+                if($country === "BE"){ return "fr_BE"; }
+                return "fr_FR";
+            case "dut":
+                if($country === "BE"){ return "nl_BE"; }
+                return "nl_NL";
+            case "spa":
+                return "es_ES";
+            case "ita":
+                return "it_IT";
+            case "pol":
+                return "pl_PL";
+            case "hun":
+                return "hu_HU";
+            case "por":
+                return "pt_PT";
+            case "nor":
+                return "nb_NO";
+            case "swe":
+                return "sv_SE";
+            case "fin":
+                return "fi_FI";
+            case "dan":
+                return "da_DK";
+            case "ice":
+                return "is_IS";
+            default:
+                return "en_US";
+        }
+    }
+    
+    protected static $_possiblePaymentMethods = [];
+    protected static function PossiblePaymentMethods($method, $locale, $billingCountry, $currency, $amount){
+        $key = md5(serialize([$locale,$billingCountry,$amount,$currency]));
+        if(!array_key_exists($key, self::$_possiblePaymentMethods)){
+            self::$_possiblePaymentMethods[$key] = self::API()->methods->all(['amount' => ['currency' => $currency, 'value' => number_format($amount,2,'.','')], 'billingCountry' =>  $_SESSION['Kunde']->cLand, 'locale' => $locale, 'include' => 'pricing,issuers', 'resource' => 'orders']);
+        }
+        if($method !== null){
+            foreach(self::$_possiblePaymentMethods[$key] as $m){
+                if($m->id === $method){
+                    return $m;
+                }
+            }
+            return null;
+        }
+        return self::$_possiblePaymentMethods[$key];
+    }
+
+    protected function updatePaymentMethod($cISOSprache, $method){
+        if($this->cBild === ''){
+            \Shop::DB()->executeQueryPrepared("UPDATE tzahlungsart SET cBild = :cBild WHERE cModulId = :cModulId", [':cBild' => $method->image->size2x, ':cModulId' => $this->cModulId], 3);
+        }
+        if($za = \Shop::DB()->executeQueryPrepared('SELECT kZahlungsart FROM tzahlungsart WHERE cModulID = :cModulID',[':cModulID' => $this->moduleID],1)){
+            $x = \Shop::DB()->executeQueryPrepared("INSERT INTO tzahlungsartsprache (kZahlungsart, cISOSprache, cName, cGebuehrname, cHinweisText) VALUES (:kZahlungsart, :cISOSprache, :cName, :cGebuehrname, :cHinweisText) ON DUPLICATE KEY UPDATE cName = IF(cName = '',:cName1,cName);", [
+                ':kZahlungsart' => (int)$za->kZahlungsart,
+                ':cISOSprache' => $cISOSprache, 
+                ':cName' => $method->description, 
+                ':cGebuehrname' => '', 
+                ':cHinweisText' => '', 
+                'cName1' => $method->description,
+            ], 3);
+        }
+    }
+
     /**
      * determines, if the payment method can be selected in the checkout process
      *
@@ -301,12 +409,16 @@ class JTLMollie extends PaymentMethod
     public function isSelectable()
     {
 
+        $locale = self::getLocale($_SESSION['cISOSprache'], $_SESSION['Kunde']->cLand);
         if (static::MOLLIE_METHOD !== '') {
             try {
-                $method = self::API()->methods->get(static::MOLLIE_METHOD, ['locale' => 'de_DE', 'include' => 'pricing,issuers']);
-                \Shop::DB()->executeQueryPrepared("UPDATE tzahlungsart SET cBild = :cBild WHERE cModulId = :cModulId", [':cBild' => $method->image->size2x, ':cModulId' => $this->cModulId], 3);
-                $this->cBild = $method->image->size2x;
-                return true;
+                $method = self::PossiblePaymentMethods(static::MOLLIE_METHOD, $locale, $_SESSION['Kunde']->cLand, $_SESSION['Waehrung']->cISO, $_SESSION['Warenkorb']->gibGesamtsummeWaren() * $_SESSION['Waehrung']->fFaktor);
+                if($method !== null){
+                    $this->updatePaymentMethod($_SESSION['cISOSprache'], $method);
+                    $this->cBild = $method->image->size2x;
+                    return true;
+                }
+                return false;
             } catch (Exception $e) {
                 $this->doLog('Method ' . static::MOLLIE_METHOD . ' not selectable:' . $e->getMessage());
                 return false;

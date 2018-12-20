@@ -32,14 +32,12 @@ class Payment extends AbstractModel
             ':cRedirectURL' => $oMolliePayment->redirectUrl,
             ':cCheckoutURL' => $oMolliePayment->getCheckoutUrl(),
             ':cCheckoutURL1' => $oMolliePayment->getCheckoutUrl(),
-            ':fAmountCaptured' => $oMolliePayment->amountCaptured,
-            ':fAmountCaptured1' => $oMolliePayment->amountCaptured,
-            ':fAmountRefunded' => $oMolliePayment->amountRefunded,
-            ':fAmountRefunded1' => $oMolliePayment->amountRefunded,
+            ':fAmountCaptured' => $oMolliePayment->amountCaptured ? $oMolliePayment->amountCaptured->value : null,
+            ':fAmountCaptured1' => $oMolliePayment->amountCaptured ? $oMolliePayment->amountCaptured->value : null,
+            ':fAmountRefunded' => $oMolliePayment->amountRefunded ? $oMolliePayment->amountRefunded->value : null,
+            ':fAmountRefunded1' => $oMolliePayment->amountRefunded ? $oMolliePayment->amountRefunded->value : null,
             ':dCreatedAt' => $oMolliePayment->createdAt ? date('Y-m-d H:i:s', strtotime($oMolliePayment->createdAt)) : null,
         ];
-        
-        
         return \Shop::DB()->executeQueryPrepared('INSERT INTO ' . self::TABLE . ' (kID, kBestellung, cMode, cStatus, cHash, fAmount, cOrderNumber, cCurrency, cMethod, cLocale, bCancelable, cWebhookURL, cRedirectURL, cCheckoutURL, fAmountCaptured, fAmountRefunded, dCreatedAt) '
             . 'VALUES (:kID, :kBestellung, :cMode, :cStatus, :cHash, :fAmount, :cOrderNumber, :cCurrency, :cMethod, :cLocale, :bCancelable, :cWebhookURL, :cRedirectURL, IF(:cCheckoutURL IS NULL, cCheckoutURL, :cCheckoutURL1), :fAmountCaptured, :fAmountRefunded, :dCreatedAt) '
             . 'ON DUPLICATE KEY UPDATE kBestellung = :kBestellung1, cStatus = :cStatus1, cMethod = :cMethod1, bCancelable = :bCancelable1, fAmountCaptured = :fAmountCaptured1, fAmountRefunded = :fAmountRefunded1',
