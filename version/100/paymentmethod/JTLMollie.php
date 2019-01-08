@@ -257,17 +257,33 @@ class JTLMollie extends PaymentMethod
     public function preparePaymentProcess($order)
     {
         try {
+            $payment = \ws_mollie\Model\Payment::getPayment($order->kBestellung);
+            if($payment && in_array($payment->cStatus, [MolliePaymentStatus::STATUS_OPEN, 'created']) && $payment->cCheckoutURL){
+                if(!$this->duringCheckout){
+                    Session::getInstance()->cleanUp();
+                }
+                header('Location: ' . $payment->cCheckoutURL);
+                exit();
+            }
+        }catch(\Exception $e){
+            $this->doLog("Get Payment Error: " . $e->getMessage() . ". Create new ORDER...");
+        }
+        
+        try {
             $hash = $this->generateHash($order);
             $oMolliePayment = self::API()->orders->create($this->getOrderData($order, $hash));
             $_SESSION['oMolliePayment'] = $oMolliePayment;
             $this->doLog('Mollie Create Payment Redirect: ' . $oMolliePayment->getCheckoutUrl() . "<br/><pre>" . print_r($oMolliePayment, 1) . "</pre>", LOGLEVEL_DEBUG);
             \ws_mollie\Model\Payment::updateFromPayment($oMolliePayment, $order->kBestellung, md5($hash));
             Shop::Smarty()->assign('oMolliePayment', $oMolliePayment);
+            if(!$this->duringCheckout){
+                Session::getInstance()->cleanUp();
+            }
             header('Location: ' . $oMolliePayment->getCheckoutUrl());
             exit();
         } catch (\Mollie\Api\Exceptions\ApiException $e) {
             Shop::Smarty()->assign('oMollieException', $e);
-            $this->doLog("Create Payment Error: " . $e->getMessage() . '<br/>><pre>' . print_r($data, 1) . '</pre>');
+            $this->doLog("Create Payment Error: " . $e->getMessage() . '<br/><pre>' . print_r($data, 1) . '</pre>');
         }
     }
 
@@ -393,7 +409,7 @@ class JTLMollie extends PaymentMethod
             $x = \Shop::DB()->executeQueryPrepared("INSERT INTO tzahlungsartsprache (kZahlungsart, cISOSprache, cName, cGebuehrname, cHinweisText) VALUES (:kZahlungsart, :cISOSprache, :cName, :cGebuehrname, :cHinweisText) ON DUPLICATE KEY UPDATE cName = IF(cName = '',:cName1,cName);", [
                 ':kZahlungsart' => (int)$za->kZahlungsart,
                 ':cISOSprache' => $cISOSprache, 
-                ':cName' => $method->description, 
+                ':cName' => utf8_decode($method->description),
                 ':cGebuehrname' => '', 
                 ':cHinweisText' => '', 
                 'cName1' => $method->description,

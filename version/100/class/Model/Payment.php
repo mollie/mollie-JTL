@@ -43,4 +43,9 @@ class Payment extends AbstractModel
             . 'ON DUPLICATE KEY UPDATE kBestellung = :kBestellung1, cStatus = :cStatus1, cMethod = :cMethod1, bCancelable = :bCancelable1, fAmountCaptured = :fAmountCaptured1, fAmountRefunded = :fAmountRefunded1',
             $data, 3);
     }
+    
+    public static function getPayment($kBestellung){
+        return \Shop::DB()->executeQueryPrepared('SELECT * FROM ' . self::TABLE . ' WHERE kBestellung = :kBestellung', [':kBestellung' => $kBestellung], 1);
+    }
+    
 }
