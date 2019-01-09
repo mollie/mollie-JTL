@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <jtlshop3plugin>
     <Name>mollie</Name>
-    <Description>Zahlungsart plugin für mollie.com</Description>
+    <Description>Zahlungsartplugin für mollie.com</Description>
     <Author>WebStollen</Author>
     <URL>http://www.webstollen.de/</URL>
     <XMLVersion>102</XMLVersion>
@@ -15,6 +15,15 @@
             <Hook id="131">131_globalinclude.php</Hook>
         </Hooks>
         <Adminmenu>
+
+            <Customlink sort="10">
+                <Name>Bestellungen</Name>
+                <Filename>orders.php</Filename>
+            </Customlink>
+            <Customlink sort="20">
+                <Name>Zahlungsarten</Name>
+                <Filename>paymentmethods.php</Filename>
+            </Customlink>
 
             <Settingslink sort="998">
                 <Name>Einstellungen</Name>
@@ -66,7 +75,7 @@
                 <ClassName>JTLMollieCreditCard</ClassName>
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
-                    <Name>mollie Kreditkarte</Name>
+                    <Name>Kreditkarte</Name>
                     <ChargeName>mollie</ChargeName>
                     <InfoText>Bezahlen Sie bequem mit Kreditkarte.</InfoText>
                 </MethodLanguage>
@@ -85,7 +94,7 @@
                 <ClassName>JTLMollieBitcoin</ClassName>
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
-                    <Name>mollie Bitcoin</Name>
+                    <Name>Bitcoin</Name>
                     <ChargeName>mollie</ChargeName>
                     <InfoText>Bezahlen Sie bequem mit Bitcoins.</InfoText>
                 </MethodLanguage>
@@ -104,7 +113,7 @@
                 <ClassName>JTLMollieBancontact</ClassName>
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
-                    <Name>mollie Bancontact</Name>
+                    <Name>Bancontact</Name>
                     <ChargeName>mollie</ChargeName>
                     <InfoText>Bezahlen Sie bequem mit Bancontact.</InfoText>
                 </MethodLanguage>
@@ -123,7 +132,7 @@
                 <ClassName>JTLMollieBanktransfer</ClassName>
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
-                    <Name>mollie SEPA Überweisung</Name>
+                    <Name>SEPA Überweisung</Name>
                     <ChargeName>mollie</ChargeName>
                     <InfoText>Bezahlen Sie bequem mit SEPA Überweisung.</InfoText>
                 </MethodLanguage>
@@ -142,7 +151,7 @@
                 <ClassName>JTLMollieBelfius</ClassName>
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
-                    <Name>mollie SEPA Überweisung</Name>
+                    <Name>SEPA Überweisung</Name>
                     <ChargeName>mollie</ChargeName>
                     <InfoText>Bezahlen Sie bequem mit Belfius.</InfoText>
                 </MethodLanguage>
@@ -161,7 +170,7 @@
                 <ClassName>JTLMollieDirectDebit</ClassName>
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
-                    <Name>mollie SEPA Lastschrift</Name>
+                    <Name>SEPA Lastschrift</Name>
                     <ChargeName>mollie</ChargeName>
                     <InfoText>Bezahlen Sie bequem mit SEPA Lastschrift.</InfoText>
                 </MethodLanguage>
@@ -180,7 +189,7 @@
                 <ClassName>JTLMollieEPS</ClassName>
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
-                    <Name>mollie EPS</Name>
+                    <Name>EPS</Name>
                     <ChargeName>mollie</ChargeName>
                     <InfoText>Bezahlen Sie bequem mit EPS.</InfoText>
                 </MethodLanguage>
@@ -199,7 +208,7 @@
                 <ClassName>JTLMollieGiftcard</ClassName>
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
-                    <Name>mollie Gift cards</Name>
+                    <Name>Gift cards</Name>
                     <ChargeName>mollie</ChargeName>
                     <InfoText>Bezahlen Sie bequem mit Gift cards.</InfoText>
                 </MethodLanguage>
@@ -218,7 +227,7 @@
                 <ClassName>JTLMollieGiropay</ClassName>
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
-                    <Name>mollie Giropay</Name>
+                    <Name>Giropay</Name>
                     <ChargeName>mollie</ChargeName>
                     <InfoText>Bezahlen Sie bequem mit Giropay.</InfoText>
                 </MethodLanguage>
@@ -237,7 +246,7 @@
                 <ClassName>JTLMollieIDEAL</ClassName>
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
-                    <Name>mollie Giropay</Name>
+                    <Name>Giropay</Name>
                     <ChargeName>mollie</ChargeName>
                     <InfoText>Bezahlen Sie bequem mit iDEAL.</InfoText>
                 </MethodLanguage>
@@ -256,7 +265,7 @@
                 <ClassName>JTLMollieINGHomePay</ClassName>
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
-                    <Name>mollie ING HomePay</Name>
+                    <Name>ING HomePay</Name>
                     <ChargeName>mollie</ChargeName>
                     <InfoText>Bezahlen Sie bequem mit ING HomePay.</InfoText>
                 </MethodLanguage>
@@ -275,7 +284,7 @@
                 <ClassName>JTLMollieKBC</ClassName>
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
-                    <Name>mollie KBC</Name>
+                    <Name>KBC</Name>
                     <ChargeName>mollie</ChargeName>
                     <InfoText>Bezahlen Sie bequem mit KBC.</InfoText>
                 </MethodLanguage>
@@ -294,7 +303,7 @@
                 <ClassName>JTLMolliePayPal</ClassName>
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
-                    <Name>mollie PayPal</Name>
+                    <Name>PayPal</Name>
                     <ChargeName>mollie</ChargeName>
                     <InfoText>Bezahlen Sie bequem mit PayPal.</InfoText>
                 </MethodLanguage>
@@ -313,7 +322,7 @@
                 <ClassName>JTLMolliePaysafecard</ClassName>
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
-                    <Name>mollie paysafecard</Name>
+                    <Name>paysafecard</Name>
                     <ChargeName>mollie</ChargeName>
                     <InfoText>Bezahlen Sie bequem mit paysafecard.</InfoText>
                 </MethodLanguage>
@@ -332,7 +341,7 @@
                 <ClassName>JTLMollieSofort</ClassName>
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
-                    <Name>mollie SOFORT</Name>
+                    <Name>SOFORT</Name>
                     <ChargeName>mollie</ChargeName>
                     <InfoText>Bezahlen Sie bequem mit SOFORT.</InfoText>
                 </MethodLanguage>
@@ -351,7 +360,7 @@
                 <ClassName>JTLMollieKlarnaPayLater</ClassName>
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
-                    <Name>mollie Klarna Pay Later</Name>
+                    <Name>Klarna Pay Later</Name>
                     <ChargeName>mollie</ChargeName>
                     <InfoText>Bezahlen Sie bequem mit Klarna Pay Later.</InfoText>
                 </MethodLanguage>
@@ -370,7 +379,7 @@
                 <ClassName>JTLMollieKlarnaSliceIt</ClassName>
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
-                    <Name>mollie Klarna Slice It</Name>
+                    <Name>Klarna Slice It</Name>
                     <ChargeName>mollie</ChargeName>
                     <InfoText>Bezahlen Sie bequem mit Klarna Slice It.</InfoText>
                 </MethodLanguage>

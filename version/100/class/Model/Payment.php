@@ -11,7 +11,7 @@ class Payment extends AbstractModel
 
     public static function updateFromPayment(\Mollie\Api\Resources\Order $oMolliePayment, $kBestellung = null, $hash = null)
     {
-        
+
         $data = [
             ':kID' => $oMolliePayment->id,
             ':kBestellung' => (int)$kBestellung ?: NULL,
@@ -22,6 +22,7 @@ class Payment extends AbstractModel
             ':cHash' => $hash,
             ':fAmount' => $oMolliePayment->amount->value,
             ':cOrderNumber' => $oMolliePayment->orderNumber,
+            ':cOrderNumber1' => $oMolliePayment->orderNumber,
             ':cCurrency' => $oMolliePayment->amount->currency,
             ':cMethod' => $oMolliePayment->method,
             ':cMethod1' => $oMolliePayment->method,
@@ -40,12 +41,18 @@ class Payment extends AbstractModel
         ];
         return \Shop::DB()->executeQueryPrepared('INSERT INTO ' . self::TABLE . ' (kID, kBestellung, cMode, cStatus, cHash, fAmount, cOrderNumber, cCurrency, cMethod, cLocale, bCancelable, cWebhookURL, cRedirectURL, cCheckoutURL, fAmountCaptured, fAmountRefunded, dCreatedAt) '
             . 'VALUES (:kID, :kBestellung, :cMode, :cStatus, :cHash, :fAmount, :cOrderNumber, :cCurrency, :cMethod, :cLocale, :bCancelable, :cWebhookURL, :cRedirectURL, IF(:cCheckoutURL IS NULL, cCheckoutURL, :cCheckoutURL1), :fAmountCaptured, :fAmountRefunded, :dCreatedAt) '
-            . 'ON DUPLICATE KEY UPDATE kBestellung = :kBestellung1, cStatus = :cStatus1, cMethod = :cMethod1, bCancelable = :bCancelable1, fAmountCaptured = :fAmountCaptured1, fAmountRefunded = :fAmountRefunded1',
+            . 'ON DUPLICATE KEY UPDATE kBestellung = :kBestellung1, cOrderNumber = :cOrderNumber1, cStatus = :cStatus1, cMethod = :cMethod1, bCancelable = :bCancelable1, fAmountCaptured = :fAmountCaptured1, fAmountRefunded = :fAmountRefunded1',
             $data, 3);
     }
-    
-    public static function getPayment($kBestellung){
+
+    public static function getPayment($kBestellung)
+    {
         return \Shop::DB()->executeQueryPrepared('SELECT * FROM ' . self::TABLE . ' WHERE kBestellung = :kBestellung', [':kBestellung' => $kBestellung], 1);
     }
-    
+
+    public static function getPaymentMollie($kID)
+    {
+        return \Shop::DB()->executeQueryPrepared('SELECT * FROM ' . self::TABLE . ' WHERE kID = :kID', [':kID' => $kID], 1);
+    }
+
 }
