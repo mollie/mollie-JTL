@@ -55,4 +55,9 @@ class Payment extends AbstractModel
         return \Shop::DB()->executeQueryPrepared('SELECT * FROM ' . self::TABLE . ' WHERE kID = :kID', [':kID' => $kID], 1);
     }
 
+    public static function getPaymentHash($cHash)
+    {
+        return \Shop::DB()->executeQueryPrepared('SELECT * FROM ' . self::TABLE . ' WHERE cHash = :cHash', [':cHash' => $cHash], 1);
+    }
+
 }

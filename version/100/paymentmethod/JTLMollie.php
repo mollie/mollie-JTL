@@ -1,16 +1,12 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: spookee
- * Date: 10.12.18
- * Time: 14:03
- */
 
+require_once __DIR__ . '/../../../vendor/autoload.php';
 require_once __DIR__ . '/../class/Helper.php';
+require_once __DIR__ . '/../../../../../modules/PaymentMethod.class.php';
 
 use Mollie\Api\Types\PaymentStatus as MolliePaymentStatus;
 
-class JTLMollie extends PaymentMethod
+class JTLMollie extends \PaymentMethod
 {
 
     /**
@@ -81,7 +77,7 @@ class JTLMollie extends PaymentMethod
             'lines' => [],
             'billingAddress' => new stdClass(),
             'redirectUrl' => (int)$this->duringCheckout ? Shop::getURL() . '/bestellabschluss.php?mollie=' . md5($hash) : $this->getReturnURL($order),
-            'webhookUrl' => $this->getNotificationURL($hash)
+            'webhookUrl' => $this->getNotificationURL($hash) . '&hash=' . md5($hash),
         ];
 
         if (static::MOLLIE_METHOD !== '') {
@@ -312,28 +308,35 @@ class JTLMollie extends PaymentMethod
     {
         \ws_mollie\Helper::autoload();
         $logData = '#' . $order->kBestellung . "§" . $order->cBestellNr;
+        $this->doLog('Received Notification<br/><pre>' . print_r([$hash, $args], 1) . '</pre>', $logData, LOGLEVEL_DEBUG);
+
         try {
             $oMolliePayment = self::API()->orders->get($args['id']);
             $logData .= '$' . $oMolliePayment->id;
-            $this->doLog('Received Notification<br/><pre>' . print_r([$hash, $args, $oMolliePayment], 1) . '</pre>', $logData, LOGLEVEL_DEBUG);
+            $this->doLog('Got Mollie Payment: <br/><pre>' . print_r($oMolliePayment, 1) . '</pre>', $logData, LOGLEVEL_DEBUG);
 
             $oMolliePayment->orderNumber = $order->cBestellNr;
             \ws_mollie\Model\Payment::updateFromPayment($oMolliePayment, $order->kBestellung);
 
-            if ($oMolliePayment->status === MolliePaymentStatus::STATUS_PAID) {
-                $this->doLog('PaymentStatus: PAID => Zahlungseingang', $logData, LOGLEVEL_DEBUG);
-                $oIncomingPayment = new stdClass();
-                $oIncomingPayment->fBetrag = $order->fGesamtsummeKundenwaehrung;
-                $oIncomingPayment->cISO = $order->Waehrung->cISO;
-                $oIncomingPayment->cHinweis = $oMolliePayment->id;
-                $this->addIncomingPayment($order, $oIncomingPayment);
-                $this->setOrderStatusToPaid($order);
+            switch ($oMolliePayment->status) {
+                case MolliePaymentStatus::STATUS_PAID:
+                    $this->doLog('PaymentStatus: ' . $oMolliePayment->status . ' => Zahlungseingang (' . $oMolliePayment->amount->value . ')', $logData, LOGLEVEL_DEBUG);
+                    $oIncomingPayment = new stdClass();
+                    $oIncomingPayment->fBetrag = $oMolliePayment->amount->value;
+                    $oIncomingPayment->cISO = $oMolliePayment->amount->curreny;
+                    $oIncomingPayment->cHinweis = $oMolliePayment->id;
+                    $this->addIncomingPayment($order, $oIncomingPayment);
+                case MolliePaymentStatus::STATUS_AUTHORIZED:
+                    $this->doLog('PaymentStatus: ' . $oMolliePayment->status . ' => Bestellung bezahlt', $logData, LOGLEVEL_DEBUG);
+                    $this->setOrderStatusToPaid($order);
+                    break;
             }
 
         } catch (\Exception $e) {
             $this->doLog($e->getMessage(), $logData);
         }
     }
+
 
     /**
      * @param Bestellung $order
@@ -351,7 +354,7 @@ class JTLMollie extends PaymentMethod
             $logData .= '$' . $oMolliePayment->id;
             $this->doLog('Received Notification Finalize Order<br/><pre>' . print_r([$hash, $args, $oMolliePayment], 1) . '</pre>', $logData, LOGLEVEL_DEBUG);
             \ws_mollie\Model\Payment::updateFromPayment($oMolliePayment, $order->kBestellung);
-            return !in_array($oMolliePayment->status, [MolliePaymentStatus::STATUS_FAILED, MolliePaymentStatus::STATUS_CANCELED, MolliePaymentStatus::STATUS_EXPIRED, MolliePaymentStatus::STATUS_OPEN]);
+            return in_array($oMolliePayment->status, [MolliePaymentStatus::STATUS_PAID, MolliePaymentStatus::STATUS_AUTHORIZED, MolliePaymentStatus::STATUS_PENDING]);
         } catch (\Exception $e) {
             $this->doLog($e->getMessage(), $logData);
         }

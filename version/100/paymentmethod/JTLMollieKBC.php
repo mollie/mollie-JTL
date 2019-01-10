@@ -1,11 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: proske
- * Date: 2018-12-12
- * Time: 10:00
- */
-
+require_once __DIR__ . '/../../../vendor/autoload.php';
 require_once __DIR__ . '/JTLMollie.php';
 
 class JTLMollieKBC extends JTLMollie

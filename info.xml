@@ -13,6 +13,7 @@
         </Version>
         <Hooks>
             <Hook id="131">131_globalinclude.php</Hook>
+            <Hook id="144">144_notify.php</Hook>
         </Hooks>
         <Adminmenu>
 

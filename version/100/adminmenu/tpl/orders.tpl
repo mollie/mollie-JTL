@@ -7,7 +7,7 @@
     <br/>
 {/if}
 
-<table class="datatable" width="100%">
+<table class="datatable" width="100%" data-order='[[ 7, "desc" ]]'>
     <thead>
     <tr>
         <td>BestellNr.</td>

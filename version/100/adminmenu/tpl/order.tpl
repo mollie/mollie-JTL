@@ -111,7 +111,7 @@
             </td>
             <td>{$log->cModulId}</td>
             <td>
-                <div style="overflow: scroll; max-width: 800px; max-height: 400px;">
+                <div class="logentry" style="overflow: scroll; max-width: 800px; max-height: 400px;">
                     {$log->cLog}
                 </div>
             </td>
@@ -119,6 +119,20 @@
         </tr>
     {/foreach}
 </table>
+
+<style>
+    .logentry {
+        cursor: help;
+    }
+
+    .logentry pre {
+        display: none;
+    }
+
+    .logentry:hover pre, .logentry:focus pre {
+        display: block;
+    }
+</style>
 
 {*$logs|var_dump}
 {$payment|var_dump}
