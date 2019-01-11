@@ -418,8 +418,21 @@ class JTLMollie extends \PaymentMethod
         }
     }
 
+    /**
+     * @var array
+     */
     protected static $_possiblePaymentMethods = [];
 
+    /**
+     * @param $method
+     * @param $locale
+     * @param $billingCountry
+     * @param $currency
+     * @param $amount
+     * @return mixed|null
+     * @throws \Mollie\Api\Exceptions\ApiException
+     * @throws \Mollie\Api\Exceptions\IncompatiblePlatform
+     */
     protected static function PossiblePaymentMethods($method, $locale, $billingCountry, $currency, $amount)
     {
         $key = md5(serialize([$locale, $billingCountry, $amount, $currency]));
@@ -437,18 +450,27 @@ class JTLMollie extends \PaymentMethod
         return self::$_possiblePaymentMethods[$key];
     }
 
+    /**
+     * @param $cISOSprache
+     * @param $method
+     */
     protected function updatePaymentMethod($cISOSprache, $method)
     {
-        if ($this->cBild === '') {
-            \Shop::DB()->executeQueryPrepared("UPDATE tzahlungsart SET cBild = :cBild WHERE cModulId = :cModulId", [':cBild' => $method->image->size2x, ':cModulId' => $this->cModulId], 3);
+        if (ws_mollie\Helper::getSetting('paymentmethod_sync') === 'N') {
+            return;
+        }
+        $size = ws_mollie\Helper::getSetting('paymentmethod_sync');
+        if ((!isset($this->cBild) || $this->cBild === '') && isset($method->image->$size)) {
+            \Shop::DB()->executeQueryPrepared("UPDATE tzahlungsart SET cBild = :cBild WHERE cModulId = :cModulId", [':cBild' => $method->image->$size, ':cModulId' => $this->cModulId], 3);
         }
         if ($za = \Shop::DB()->executeQueryPrepared('SELECT kZahlungsart FROM tzahlungsart WHERE cModulID = :cModulID', [':cModulID' => $this->moduleID], 1)) {
-            $x = \Shop::DB()->executeQueryPrepared("INSERT INTO tzahlungsartsprache (kZahlungsart, cISOSprache, cName, cGebuehrname, cHinweisText) VALUES (:kZahlungsart, :cISOSprache, :cName, :cGebuehrname, :cHinweisText) ON DUPLICATE KEY UPDATE cName = IF(cName = '',:cName1,cName);", [
+            \Shop::DB()->executeQueryPrepared("INSERT INTO tzahlungsartsprache (kZahlungsart, cISOSprache, cName, cGebuehrname, cHinweisText) VALUES (:kZahlungsart, :cISOSprache, :cName, :cGebuehrname, :cHinweisText) ON DUPLICATE KEY UPDATE cName = IF(cName = '',:cName1,cName), cHinweisTextShop = IF(cHinweisTextShop = '' || cHinweisTextShop IS NULL,:cHinweisTextShop,cHinweisTextShop);", [
                 ':kZahlungsart' => (int)$za->kZahlungsart,
                 ':cISOSprache' => $cISOSprache,
                 ':cName' => utf8_decode($method->description),
                 ':cGebuehrname' => '',
                 ':cHinweisText' => '',
+                ':cHinweisTextShop' => utf8_decode($method->description),
                 'cName1' => $method->description,
             ], 3);
         }

@@ -33,6 +33,19 @@
                     <Description>Füge hier deinen mollie API Key ein</Description>
                     <ValueName>api_key</ValueName>
                 </Setting>
+                <Setting type="selectbox" initialValue="S" sort="20" conf="Y">
+                    <Name>Zahlungsart Daten syncronisiernen</Name>
+                    <Description>Lädt Name / Bild für die jeweilige Sprache automatisch von mollie, und speichert diese
+                        in der Datenbank
+                    </Description>
+                    <ValueName>paymentmethod_sync</ValueName>
+                    <SelectboxOptions>
+                        <Option value="N" sort="1">Nein</Option>
+                        <Option value="size1x" sort="2">Ja, Bildgröße 1x</Option>
+                        <Option value="size2x" sort="3">Ja, Bildgröße 2x</Option>
+                        <Option value="svg" sort="4">Ja, Bild SVG</Option>
+                    </SelectboxOptions>
+                </Setting>
 
             </Settingslink>
 
@@ -62,13 +75,13 @@
                     <InfoText>Bezahlen Sie bequem mit verschiedenen Zahlungsmethoden.</InfoText>
                 </MethodLanguage>
             </Method>
-            
+
             <Method>
                 <Name>mollie Kreditkarte</Name>
                 <Sort>2</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
-                <TSCode>OTHER</TSCode>
+                <TSCode>CREDIT_CARD</TSCode>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -81,10 +94,10 @@
                     <InfoText>Bezahlen Sie bequem mit Kreditkarte.</InfoText>
                 </MethodLanguage>
             </Method>
-            
+
             <Method>
                 <Name>mollie Bitcoin</Name>
-                <Sort>2</Sort>
+                <Sort>3</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
@@ -100,10 +113,10 @@
                     <InfoText>Bezahlen Sie bequem mit Bitcoins.</InfoText>
                 </MethodLanguage>
             </Method>
-            
+
             <Method>
                 <Name>mollie Bancontact</Name>
-                <Sort>2</Sort>
+                <Sort>4</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
@@ -119,10 +132,10 @@
                     <InfoText>Bezahlen Sie bequem mit Bancontact.</InfoText>
                 </MethodLanguage>
             </Method>
-            
+
             <Method>
                 <Name>mollie Banktransfer</Name>
-                <Sort>2</Sort>
+                <Sort>5</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
@@ -138,10 +151,10 @@
                     <InfoText>Bezahlen Sie bequem mit SEPA Überweisung.</InfoText>
                 </MethodLanguage>
             </Method>
-            
+
             <Method>
                 <Name>mollie Belfius</Name>
-                <Sort>2</Sort>
+                <Sort>6</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
@@ -157,13 +170,13 @@
                     <InfoText>Bezahlen Sie bequem mit Belfius.</InfoText>
                 </MethodLanguage>
             </Method>
-            
+
             <Method>
                 <Name>mollie DirectDebit</Name>
-                <Sort>2</Sort>
+                <Sort>7</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
-                <TSCode>OTHER</TSCode>
+                <TSCode>DIRECT_DEBIT</TSCode>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -176,7 +189,7 @@
                     <InfoText>Bezahlen Sie bequem mit SEPA Lastschrift.</InfoText>
                 </MethodLanguage>
             </Method>
-            
+
             <Method>
                 <Name>mollie EPS</Name>
                 <Sort>2</Sort>
@@ -195,10 +208,10 @@
                     <InfoText>Bezahlen Sie bequem mit EPS.</InfoText>
                 </MethodLanguage>
             </Method>
-            
+
             <Method>
                 <Name>mollie Giftcard</Name>
-                <Sort>2</Sort>
+                <Sort>8</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
@@ -214,13 +227,13 @@
                     <InfoText>Bezahlen Sie bequem mit Gift cards.</InfoText>
                 </MethodLanguage>
             </Method>
-            
+
             <Method>
                 <Name>mollie Giropay</Name>
-                <Sort>2</Sort>
+                <Sort>9</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
-                <TSCode>OTHER</TSCode>
+                <TSCode>GIROPAY</TSCode>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -236,7 +249,7 @@
 
             <Method>
                 <Name>mollie iDEAL</Name>
-                <Sort>2</Sort>
+                <Sort>10</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
@@ -255,7 +268,7 @@
 
             <Method>
                 <Name>mollie ING HomePay</Name>
-                <Sort>2</Sort>
+                <Sort>11</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
@@ -274,7 +287,7 @@
 
             <Method>
                 <Name>mollie KBC</Name>
-                <Sort>2</Sort>
+                <Sort>12</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
@@ -293,10 +306,10 @@
 
             <Method>
                 <Name>mollie PayPal</Name>
-                <Sort>2</Sort>
+                <Sort>13</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
-                <TSCode>OTHER</TSCode>
+                <TSCode>PAYPAL</TSCode>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -312,7 +325,7 @@
 
             <Method>
                 <Name>mollie paysafecard</Name>
-                <Sort>2</Sort>
+                <Sort>14</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
@@ -331,10 +344,10 @@
 
             <Method>
                 <Name>mollie SOFORT</Name>
-                <Sort>2</Sort>
+                <Sort>15</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
-                <TSCode>OTHER</TSCode>
+                <TSCode>DIRECT_E_BANKING</TSCode>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -350,10 +363,10 @@
 
             <Method>
                 <Name>mollie Klarna Pay Later</Name>
-                <Sort>2</Sort>
+                <Sort>16</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
-                <TSCode>OTHER</TSCode>
+                <TSCode>INVOICE</TSCode>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -369,10 +382,10 @@
 
             <Method>
                 <Name>mollie Klarna Slice It</Name>
-                <Sort>2</Sort>
+                <Sort>17</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
-                <TSCode>OTHER</TSCode>
+                <TSCode>FINANCING</TSCode>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -386,7 +399,7 @@
                 </MethodLanguage>
             </Method>
 
-            
+
         </PaymentMethod>
     </Install>
     <Shop4Version>405</Shop4Version>
