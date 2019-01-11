@@ -3,15 +3,13 @@
 /**
  * Da Webhook nicht 100% sicher vor dem Redirekt ausgeführt wird:
  * - IF Bestellung bereits abgesclossen ? => Update Payment, stop skript
- * - ELSE weiter
+ * - ELSE weiter mit der
  */
 
 if (array_key_exists('hash', $_REQUEST)) {
     require_once __DIR__ . '/../class/Helper.php';
     try {
-        if (!\ws_mollie\Helper::init()) {
-            //    return;
-        }
+        \ws_mollie\Helper::init();
 
         $pza = Shop::DB()->select('tpluginzahlungsartklasse', 'cClassName', 'JTLMollie');
         if (!$pza) {
@@ -47,12 +45,10 @@ if (array_key_exists('hash', $_REQUEST)) {
                     $oPaymentMethod->setOrderStatusToPaid($oBestellung);
                     break;
             }
+            // stop notify.php script
             exit();
         }
-
-
     } catch (Exception $e) {
         \ws_mollie\Helper::logExc($e);
     }
-
 }

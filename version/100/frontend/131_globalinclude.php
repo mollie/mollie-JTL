@@ -8,20 +8,15 @@ if (strpos($_SERVER['PHP_SELF'], 'bestellabschluss') === false) {
 
 require_once __DIR__ . '/../class/Helper.php';
 try {
-    if (!\ws_mollie\Helper::init()) {
-        //    return;
-    }
+    \ws_mollie\Helper::init();
+
     ob_start();
     if (array_key_exists('mollie', $_REQUEST)) {
         $payment = \Shop::DB()->executeQueryPrepared("SELECT * FROM " . \ws_mollie\Model\Payment::TABLE . " WHERE cHash = :cHash", [':cHash' => $_REQUEST['mollie']], 1);
         if ((int)$payment->kBestellung) {
 
+            \ws_mollie\Mollie::getOrderCompletedRedirect($payment->kBestellung, true);
 
-            $bestellid = \Shop::DB()->executeQueryPrepared("SELECT * FROM tbestellid WHERE kBestellung = :kBestellung", [':kBestellung' => $payment->kBestellung], 1);
-            if ($bestellid) {
-                header('Location: ' . SHop::getURL() . '/bestellabschluss.php?i=' . $bestellid->cId);
-                exit();
-            }
         } elseif ($payment) {
 
             $mollie = new \Mollie\Api\MollieApiClient();
@@ -39,29 +34,12 @@ try {
 
                 $order->orderNumber = $oBestellung->cBestellNr;
                 \ws_mollie\Model\Payment::updateFromPayment($order, $oBestellung->kBestellung);
+                \ws_mollie\Mollie::getOrderCompletedRedirect($oBestellung->kBestellung, true);
 
-                $bestellid = (isset($oBestellung->kBestellung) && $oBestellung->kBestellung > 0)
-                    ? Shop::DB()->select('tbestellid', 'kBestellung', $oBestellung->kBestellung)
-                    : false;
-
-                if ($bestellid) {
-
-                    $session->cleanUp();
-                    $linkHelper = LinkHelper::getInstance();
-
-                    $orderCompleteURL = $linkHelper->getStaticRoute('bestellabschluss.php', true);
-                    $successPaymentURL = (!empty($bestellid->cId)) ?
-                        ($orderCompleteURL . '?i=' . $bestellid->cId)
-                        : Shop::getURL();
-                    header('Location: ' . $successPaymentURL, 302);
-                    exit();
-                }
             }
         }
     }
-
     ob_end_flush();
-
 } catch (Exception $e) {
     \ws_mollie\Helper::logExc($e);
 }
