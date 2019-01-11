@@ -36,9 +36,9 @@ if (array_key_exists('hash', $_REQUEST)) {
                 case \Mollie\Api\Types\PaymentStatus::STATUS_PAID:
                     $oPaymentMethod->doLog('PaymentStatus: ' . $order->status . ' => Zahlungseingang (' . $order->amount->value . ')', $logData, LOGLEVEL_DEBUG);
                     $oIncomingPayment = new stdClass();
-                    $oIncomingPayment->fBetrag = $oMolliePayment->amount->value;
-                    $oIncomingPayment->cISO = $oMolliePayment->amount->curreny;
-                    $oIncomingPayment->cHinweis = $oMolliePayment->id;
+                    $oIncomingPayment->fBetrag = $order->amount->value;
+                    $oIncomingPayment->cISO = $order->amount->curreny;
+                    $oIncomingPayment->cHinweis = $order->id;
                     $oPaymentMethod->addIncomingPayment($oBestellung, $oIncomingPayment);
                 case \Mollie\Api\Types\PaymentStatus::STATUS_AUTHORIZED:
                     $oPaymentMethod->doLog('PaymentStatus: ' . $order->status . ' => Bestellung bezahlt', $logData, LOGLEVEL_DEBUG);
