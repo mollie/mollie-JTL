@@ -34,10 +34,54 @@ abstract class Mollie
             header('Location: ' . $url);
             exit();
         }
-
         return $url;
-
-
     }
+
+    protected static $_jtlmollie;
+
+    public static function JTLMollie()
+    {
+        if (self::$_jtlmollie === null) {
+            $pza = \Shop::DB()->select('tpluginzahlungsartklasse', 'cClassName', 'JTLMollie');
+            if (!$pza) {
+                throw new \Exception("Mollie Zahlungsart nicht in DB gefunden!");
+            }
+            require_once __DIR__ . '/../paymentmethod/JTLMollie.php';
+            self::$_jtlmollie = new \JTLMollie($pza->cModulId);
+        }
+        return self::$_jtlmollie;
+    }
+
+
+    /**
+     * Returns amount of sent items for SKU
+     * @param $sku
+     * @param \Bestellung $oBestellung
+     * @return float|int
+     */
+    public static function getBestellPosSent($sku, \Bestellung $oBestellung)
+    {
+        if ($sku === null) {
+            return 1;
+        }
+        /** @var \WarenkorbPos $oPosition */
+        foreach ($oBestellung->Positionen as $oPosition) {
+            if ($oPosition->cArtNr === $sku) {
+                $sent = 0;
+                /** @var \Lieferschein $oLieferschein */
+                foreach ($oBestellung->oLieferschein_arr as $oLieferschein) {
+                    /** @var \Lieferscheinpos $oLieferscheinPos */
+                    foreach ($oLieferschein->oLieferscheinPos_arr as $oLieferscheinPos) {
+                        if ($oLieferscheinPos->getBestellPos() == $oPosition->kBestellpos) {
+                            $sent += $oLieferscheinPos->getAnzahl();
+                        }
+                    }
+                }
+                return $sent;
+            }
+        }
+        return false;
+    }
+
 
 }

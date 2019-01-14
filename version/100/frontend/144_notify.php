@@ -30,17 +30,18 @@ if (array_key_exists('hash', $_REQUEST)) {
             \ws_mollie\Model\Payment::updateFromPayment($order, $payment->kBestellung);
 
             $logData = '#' . $payment->kBestellung . '$' . $payment->kID . "§" . $oBestellung->cBestellNr;
-            $oPaymentMethod->doLog('Received Notification<br/><pre>' . print_r([$order, $payment], 1) . '</pre>', $logData, LOGLEVEL_DEBUG);
+            $oPaymentMethod->doLog('Received Notification<br/><pre>' . print_r([$order, $payment], 1) . '</pre>', $logData);
 
             switch ($order->status) {
-                case \Mollie\Api\Types\PaymentStatus::STATUS_PAID:
+                case \Mollie\Api\Types\OrderStatus::STATUS_COMPLETED:
+                case \Mollie\Api\Types\OrderStatus::STATUS_PAID:
                     $oPaymentMethod->doLog('PaymentStatus: ' . $order->status . ' => Zahlungseingang (' . $order->amount->value . ')', $logData, LOGLEVEL_DEBUG);
                     $oIncomingPayment = new stdClass();
                     $oIncomingPayment->fBetrag = $order->amount->value;
                     $oIncomingPayment->cISO = $order->amount->curreny;
                     $oIncomingPayment->cHinweis = $order->id;
                     $oPaymentMethod->addIncomingPayment($oBestellung, $oIncomingPayment);
-                case \Mollie\Api\Types\PaymentStatus::STATUS_AUTHORIZED:
+                case \Mollie\Api\Types\OrderStatus::STATUS_AUTHORIZED:
                     $oPaymentMethod->doLog('PaymentStatus: ' . $order->status . ' => Bestellung bezahlt', $logData, LOGLEVEL_DEBUG);
                     $oPaymentMethod->setOrderStatusToPaid($oBestellung);
                     break;
