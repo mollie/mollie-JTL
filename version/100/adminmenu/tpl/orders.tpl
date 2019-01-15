@@ -41,7 +41,7 @@
                 {elseif $payment->cStatus == 'paid'}
                     <span class="label label-success">bezahlt</span>
                 {elseif $payment->cStatus == 'authorized'}
-                    <span class="label label-success">authorisiert</span>
+                    <span class="label label-success">autorisiert</span>
                 {elseif $payment->cStatus == 'shipping'}
                     <span class="label label-warning">versendet</span>
                 {elseif $payment->cStatus == 'completed'}

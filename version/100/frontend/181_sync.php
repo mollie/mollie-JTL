@@ -5,7 +5,7 @@ try {
 
     $status = (int)$args_arr['status'];
     /** @var Bestellung $oBestellung */
-    $oBestellung = new Bestellung($args_arr['oBestellung']->kBestellung, false);
+    $oBestellung = new Bestellung($args_arr['oBestellung']->kBestellung, true);
 
     if ($oBestellung->kBestellung && $payment = \ws_mollie\Model\Payment::getPayment($oBestellung->kBestellung)) {
 
@@ -40,13 +40,14 @@ try {
                      * @var \Mollie\Api\Resources\OrderLine $line
                      */
                     foreach ($order->lines as $i => $line) {
-                        if (($quantity = \ws_mollie\Mollie::getBestellPosSent($line->sku, $oBestellung)) !== false) {
+                        if (($quantity = \ws_mollie\Mollie::getBestellPosSent($line->sku, $oBestellung)) !== false && ($quantity - $line->quantityShipped) > 0) {
+                            $x = $quantity - $line->quantityShipped;
                             $lines[] = (object)[
                                 'id' => $line->id,
-                                'quantity' => $quantity,
+                                'quantity' => $x,
                                 'amount' => (object)[
                                     'currency' => $line->totalAmount->currency,
-                                    'value' => number_format($quantity * $line->unitPrice->value, 2),
+                                    'value' => number_format($x * $line->unitPrice->value, 2),
                                 ],
                             ];
                         }

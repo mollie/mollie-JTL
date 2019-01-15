@@ -58,6 +58,7 @@ abstract class Mollie
      * @param $sku
      * @param \Bestellung $oBestellung
      * @return float|int
+     * @throws \Exception
      */
     public static function getBestellPosSent($sku, \Bestellung $oBestellung)
     {

@@ -213,9 +213,9 @@ class JTLMollie extends \PaymentMethod
         foreach ($data['lines'] as $line) {
             $sum += (float)$line->totalAmount->value;
         }
-        if ($sum <> (float)$data['amount']->value) {
+        if (abs($sum - (float)$data['amount']->value) > 0) {
             $diff = (round((float)$data['amount']->value - $sum, 2));
-            if ($diff !== 0) {
+            if ($diff != 0) {
                 $line = new stdClass();
                 $line->type = $diff > 0 ? \Mollie\Api\Types\OrderLineType::TYPE_SURCHARGE : \Mollie\Api\Types\OrderLineType::TYPE_DISCOUNT;
                 $line->name = 'Rundungsausgleich';

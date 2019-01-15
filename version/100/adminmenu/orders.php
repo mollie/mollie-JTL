@@ -27,7 +27,7 @@ try {
                 $mollie->setApiKey(\ws_mollie\Helper::getSetting("api_key"));
                 $order = $mollie->orders->get($_REQUEST['id']);
                 if ($order->status !== \Mollie\Api\Types\OrderStatus::STATUS_AUTHORIZED && $order->status !== \Mollie\Api\Types\OrderStatus::STATUS_SHIPPING) {
-                    $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Nur authorisierte Zahlungen können erfasst werden!'];
+                    $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Nur autorisierte Zahlungen können erfasst werden!'];
                     break;
                 }
 
@@ -65,20 +65,20 @@ try {
                         if ($line->quantity <= $line->quantityShipped) {
                             continue;
                         }
-                        if (($quantity = \ws_mollie\Mollie::getBestellPosSent($line->sku, $oBestellung)) !== false && $quantity > 0) {
+                        if (($quantity = \ws_mollie\Mollie::getBestellPosSent($line->sku, $oBestellung)) !== false && $quantity - $line->quantityShipped > 0) {
+                            $x = $quantity - $line->quantityShipped;
                             $lines[] = (object)[
                                 'id' => $line->id,
-                                'quantity' => $quantity,
+                                'quantity' => $x,
                                 'amount' => (object)[
                                     'currency' => $line->totalAmount->currency,
-                                    'value' => number_format($quantity * $line->unitPrice->value, 2),
+                                    'value' => number_format($x * $line->unitPrice->value, 2),
                                 ],
                             ];
                         }
                     }
                     if (count($lines)) {
                         $options = ['lines' => $lines];
-                        var_dump($lines);
                         $shipment = $mollie->shipments->createFor($order, $options);
                         \ws_mollie\Mollie::JTLMollie()->doLog('Partially Shipment created<br/><pre>' . print_r(['options' => $options, 'shipment' => $shipment], 1) . '</pre>', $logData);
                     } else {
