@@ -18,6 +18,13 @@
     {/if}
 </h2>
 
+{if count($ordersMsgs)}
+    {foreach from=$ordersMsgs item=alert}
+        <div class="alert alert-{$alert->type}">{$alert->text}</div>
+    {/foreach}
+    <br/>
+{/if}
+
 <table class="table" width="100%">
     <tr>
         <th>Mollie ID:</th>
@@ -48,9 +55,34 @@
 </table>
 
 <h4>Positionen:</h4>
+
+<div style="float: right">
+    {if ($order->status === 'authorized' || $order->status === 'shipping') && (int)$oBestellung->cStatus >= 3}
+        <a href="plugin.php?kPlugin={$oPlugin->kPlugin}&action=capture&id={$order->id}"
+           onclick="return confirm('Bestellung wird bei Mollie als versandt markiert. Zahlung wirklich erfassen?');"
+           class="btn btn-info"><i
+                    class="fa fa-thumbs-up"></i>
+            Zahlung erfassen<sup>1</sup>
+        </a>
+    {/if}
+    {if $order->amount->value > $order->amountRefunded->value && $order->amountCaptured->value > 0}
+        <a href="plugin.php?kPlugin={$oPlugin->kPlugin}&action=refund&id={$order->id}"
+           onclick="return confirm('Zahlung wirklich zurück erstatten?');" class="btn btn-warning"><i
+                    class="fa fa-thumbs-down"></i> Rückerstatten<sup>2</sup>
+        </a>
+    {/if}
+    {if $order->isCancelable}
+        <a href="plugin.php?kPlugin={$oPlugin->kPlugin}&action=cancel&id={$order->id}"
+           onclick="return confirm('Zahlung wirklich stornieren?');" class="btn btn-danger"><i
+                    class="fa fa-trash"></i> Stornieren<sup>3</sup>
+        </a>
+    {/if}
+</div>
+
 <table class="table table-condensed table-striped" width="100%">
     <thead>
     <tr>
+        <th>Status</th>
         <th>SKU</th>
         <th>Name</th>
         <th>Typ</th>
@@ -59,6 +91,7 @@
         <th>Steuer</th>
         <th>Netto</th>
         <th>Brutto</th>
+        <th>&nbsp;</th>
     </tr>
     </thead>
     <tbody>
@@ -71,6 +104,27 @@
         {assign var="netto" value=$netto+$line->totalAmount->value-$line->vatAmount->value}
         {assign var="brutto" value=$brutto+$line->totalAmount->value}
         <tr>
+            <td>
+                {if $line->status == 'created'}
+                    <span class="label label-info">erstellt</span>
+                {elseif $line->status == 'pending'}
+                    <span class="label label-warning">austehend</span>
+                {elseif $line->status == 'paid'}
+                    <span class="label label-success">bezahlt</span>
+                {elseif $line->status == 'authorized'}
+                    <span class="label label-success">autorisiert</span>
+                {elseif $line->status == 'shipping'}
+                    <span class="label label-warning">versendet</span>
+                {elseif $line->status == 'completed'}
+                    <span class="label label-success">abgeschlossen</span>
+                {elseif $line->status == 'expired'}
+                    <span class="label label-danger">abgelaufen</span>
+                {elseif $line->status == 'canceled'}
+                    <span class="label label-danger">storniert</span>
+                {else}
+                    <span class="label label-danger">Unbekannt: {$line->status}</span>
+                {/if}
+            </td>
             <td>{$line->sku}</td>
             <td>{$line->name|utf8_decode}</td>
             <td>{$line->type}</td>
@@ -79,6 +133,27 @@
             <td class="text-right">{$line->vatAmount->value|number_format:2:',':''} {$line->vatAmount->currency}</td>
             <td class="text-right">{($line->totalAmount->value - $line->vatAmount->value)|number_format:2:',':''} {$line->vatAmount->currency}</td>
             <td class="text-right">{$line->totalAmount->value|number_format:2:',':''} {$line->totalAmount->currency}</td>
+            <td>
+                {*if $line->quantity > $line->quantityShipped}
+                    <a onclick="return confirm('Position wirklich zurück erfassen?');" title="Rückersatttung"
+                       href="plugin.php?kPlugin={$oPlugin->kPlugin}&action=captureline&id={$line->id}order={$order->id}">
+                        <i class="fa fa-thumbs-up"></i>
+                    </a>
+                {/if}
+                {if $line->quantity > $line->quantityRefunded}
+                    <a onclick="return confirm('Position wirklich zurück erstatten?');" title="Rückersatttung"
+                       href="plugin.php?kPlugin={$oPlugin->kPlugin}&action=refundline&id={$line->id}order={$order->id}">
+                        <i class="fa fa-thumbs-down"></i>
+                    </a>
+                {/if}
+                {if $line->isCancelable}
+                    <a onclick="return confirm('Position wirklich stornieren?');" title="Stornieren"
+                       href="plugin.php?kPlugin={$oPlugin->kPlugin}&action=cancelline&id={$line->id}order={$order->id}">
+                        <i class="fa fa-trash"></i>
+                    </a>
+                {/if*}
+                {*$line|var_dump*}
+            </td>
         </tr>
     {/foreach}
     </tbody>
@@ -88,10 +163,16 @@
         <td class="text-right">{$vat|number_format:2:',':''} {$order->amount->currency}</td>
         <td class="text-right">{$netto|number_format:2:',':''} {$order->amount->currency}</td>
         <td class="text-right">{$brutto|number_format:2:',':''} {$order->amount->currency}</td>
+        <td>&nbsp;</td>
     </tr>
     </tfoot>
 </table>
 
+<div style="font-size: 10px">
+    <sup>1</sup> = Bestellung wird bei Mollie als versandt markiert. WAWI wird <b>nicht</b> informiert.<br/>
+    <sup>2</sup> = Bezahlter Betrag wird dem Kunden rückerstattet. WAWI wird <b>nicht</b> informiert.<br/>
+    <sup>3</sup> = Bestellung wird bei Mollie storniert. WAWI wird <b>nicht</b> informiert.<br/>
+</div>
 
 <h4>Log</h4>
 

@@ -213,9 +213,9 @@ class JTLMollie extends \PaymentMethod
         foreach ($data['lines'] as $line) {
             $sum += (float)$line->totalAmount->value;
         }
-        if ($sum <> (float)$data['amount']->value) {
+        if (abs($sum - (float)$data['amount']->value) > 0) {
             $diff = (round((float)$data['amount']->value - $sum, 2));
-            if ($diff !== 0) {
+            if ($diff != 0) {
                 $line = new stdClass();
                 $line->type = $diff > 0 ? \Mollie\Api\Types\OrderLineType::TYPE_SURCHARGE : \Mollie\Api\Types\OrderLineType::TYPE_DISCOUNT;
                 $line->name = 'Rundungsausgleich';
@@ -255,7 +255,7 @@ class JTLMollie extends \PaymentMethod
         $logData = '#' . $order->kBestellung . "§" . $order->cBestellNr;
         try {
             $payment = \ws_mollie\Model\Payment::getPayment($order->kBestellung);
-            if ($payment && in_array($payment->cStatus, [MolliePaymentStatus::STATUS_OPEN, 'created']) && $payment->cCheckoutURL) {
+            if ($payment && in_array($payment->cStatus, [\Mollie\Api\Types\OrderStatus::STATUS_CREATED]) && $payment->cCheckoutURL) {
                 $logData .= '$' . $payment->kID;
                 if (!$this->duringCheckout) {
                     Session::getInstance()->cleanUp();
@@ -319,14 +319,15 @@ class JTLMollie extends \PaymentMethod
             \ws_mollie\Model\Payment::updateFromPayment($oMolliePayment, $order->kBestellung);
 
             switch ($oMolliePayment->status) {
-                case MolliePaymentStatus::STATUS_PAID:
+                case \Mollie\Api\Types\OrderStatus::STATUS_PAID:
+                case \Mollie\Api\Types\OrderStatus::STATUS_COMPLETED:
                     $this->doLog('PaymentStatus: ' . $oMolliePayment->status . ' => Zahlungseingang (' . $oMolliePayment->amount->value . ')', $logData, LOGLEVEL_DEBUG);
                     $oIncomingPayment = new stdClass();
                     $oIncomingPayment->fBetrag = $oMolliePayment->amount->value;
                     $oIncomingPayment->cISO = $oMolliePayment->amount->curreny;
                     $oIncomingPayment->cHinweis = $oMolliePayment->id;
                     $this->addIncomingPayment($order, $oIncomingPayment);
-                case MolliePaymentStatus::STATUS_AUTHORIZED:
+                case \Mollie\Api\Types\OrderStatus::STATUS_AUTHORIZED:
                     $this->doLog('PaymentStatus: ' . $oMolliePayment->status . ' => Bestellung bezahlt', $logData, LOGLEVEL_DEBUG);
                     $this->setOrderStatusToPaid($order);
                     break;
@@ -354,7 +355,7 @@ class JTLMollie extends \PaymentMethod
             $logData .= '$' . $oMolliePayment->id;
             $this->doLog('Received Notification Finalize Order<br/><pre>' . print_r([$hash, $args, $oMolliePayment], 1) . '</pre>', $logData, LOGLEVEL_DEBUG);
             \ws_mollie\Model\Payment::updateFromPayment($oMolliePayment, $order->kBestellung);
-            return in_array($oMolliePayment->status, [MolliePaymentStatus::STATUS_PAID, MolliePaymentStatus::STATUS_AUTHORIZED, MolliePaymentStatus::STATUS_PENDING]);
+            return in_array($oMolliePayment->status, [\Mollie\Api\Types\OrderStatus::STATUS_PAID, \Mollie\Api\Types\OrderStatus::STATUS_AUTHORIZED, \PayPal\Api\Order::STATUS_PENDING, \Mollie\Api\Types\OrderStatus::STATUS_COMPLETED]);
         } catch (\Exception $e) {
             $this->doLog($e->getMessage(), $logData);
         }

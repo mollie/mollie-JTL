@@ -7,12 +7,13 @@
     <br/>
 {/if}
 
-<table class="datatable" width="100%" data-order='[[ 7, "desc" ]]'>
+<table class="datatable" width="100%" data-order='[[ 8, "desc" ]]'>
     <thead>
     <tr>
         <td>BestellNr.</td>
         <th>ID</th>
-        <td>Status</td>
+        <td>Mollie Status</td>
+        <td>JTL Status</td>
         <td>Betrag</td>
         <td>Währung</td>
         <td>Locale</td>
@@ -23,24 +24,59 @@
     <tbody>
     {foreach from=$payments item=payment}
         <tr>
-            <td>{$payment->cOrderNumber}</td>
+            <td>
+                <a href="plugin.php?kPlugin={$oPlugin->kPlugin}&action=order&id={$payment->kID}">{$payment->cOrderNumber}</a>
+                {if $payment->cMode == 'test'}
+                    <span class="label label-danger">TEST</span>
+                {/if}
+            </td>
             <td>
                 <a href="plugin.php?kPlugin={$oPlugin->kPlugin}&action=order&id={$payment->kID}">{$payment->kID}</a>
             </td>
             <td class="text-center" data-order="{$payment->cStatus}">
-                {if $payment->cStatus == 'paid'}
-                    <span class="label label-success">bezahlt</span>
-                {elseif $payment->cStatus == 'created'}
+                {if $payment->cStatus == 'created'}
                     <span class="label label-info">erstellt</span>
+                {elseif $payment->cStatus == 'pending'}
+                    <span class="label label-warning">austehend</span>
+                {elseif $payment->cStatus == 'paid'}
+                    <span class="label label-success">bezahlt</span>
+                {elseif $payment->cStatus == 'authorized'}
+                    <span class="label label-success">autorisiert</span>
+                {elseif $payment->cStatus == 'shipping'}
+                    <span class="label label-warning">versendet</span>
+                {elseif $payment->cStatus == 'completed'}
+                    <span class="label label-success">abgeschlossen</span>
+                {elseif $payment->cStatus == 'expired'}
+                    <span class="label label-danger">abgelaufen</span>
+                {elseif $payment->cStatus == 'canceled'}
+                    <span class="label label-danger">storniert</span>
                 {else}
-                    {$payment->cStatus}
+                    <span class="label label-danger">Unbekannt: {$payment->cStatus}</span>
+                {/if}
+
+            </td>
+            <td>
+                {if (int)$payment->oBestellung->cStatus == 1}
+                    <span class="label label-info">OFFEN</span>
+                {elseif (int)$payment->oBestellung->cStatus == 2}
+                    <span class="label label-info">IN BEARBEITUNG</span>
+                {elseif (int)$payment->oBestellung->cStatus == 3}
+                    <span class="label label-success">BEZAHLT</span>
+                {elseif (int)$payment->oBestellung->cStatus == 4}
+                    <span class="label label-success">VERSANDT</span>
+                {elseif (int)$payment->oBestellung->cStatus == 5}
+                    <span class="label label-warning">TEILVERSANDT</span>
+                {elseif (int)$payment->oBestellung->cStatus == -1}
+                    <span class="label label-danger">STORNO</span>
+                {else}
+                    <span class="label label-danger">n/a</span>
                 {/if}
             </td>
             <td class="text-right">{$payment->fAmount|number_format:2:',':''}</td>
             <td>{$payment->cCurrency}</td>
             <td>{$payment->cLocale}</td>
             <td>{$payment->cMethod}</td>
-            <td title="{$payment->dCreatedAt}"
+            <td title="{$payment->dCreatedAt}" class="text-right"
                 data-order="{$payment->dCreatedAt|strtotime}">{"d. M Y H:i"|date:($payment->dCreatedAt|strtotime)}</td>
         </tr>
     {/foreach}

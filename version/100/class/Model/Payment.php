@@ -47,17 +47,29 @@ class Payment extends AbstractModel
 
     public static function getPayment($kBestellung)
     {
-        return \Shop::DB()->executeQueryPrepared('SELECT * FROM ' . self::TABLE . ' WHERE kBestellung = :kBestellung', [':kBestellung' => $kBestellung], 1);
+        $payment = \Shop::DB()->executeQueryPrepared('SELECT * FROM ' . self::TABLE . ' WHERE kBestellung = :kBestellung', [':kBestellung' => $kBestellung], 1);
+        if ($payment && $payment->kBestellung) {
+            $payment->oBestellung = new \Bestellung($payment->kBestellung, false);
+        }
+        return $payment;
     }
 
     public static function getPaymentMollie($kID)
     {
-        return \Shop::DB()->executeQueryPrepared('SELECT * FROM ' . self::TABLE . ' WHERE kID = :kID', [':kID' => $kID], 1);
+        $payment = \Shop::DB()->executeQueryPrepared('SELECT * FROM ' . self::TABLE . ' WHERE kID = :kID', [':kID' => $kID], 1);
+        if ($payment && $payment->kBestellung) {
+            $payment->oBestellung = new \Bestellung($payment->kBestellung, false);
+        }
+        return $payment;
     }
 
     public static function getPaymentHash($cHash)
     {
-        return \Shop::DB()->executeQueryPrepared('SELECT * FROM ' . self::TABLE . ' WHERE cHash = :cHash', [':cHash' => $cHash], 1);
+        $payment = \Shop::DB()->executeQueryPrepared('SELECT * FROM ' . self::TABLE . ' WHERE cHash = :cHash', [':cHash' => $cHash], 1);
+        if ($payment && $payment->kBestellung) {
+            $payment->oBestellung = new \Bestellung($payment->kBestellung, false);
+        }
+        return $payment;
     }
 
 }
