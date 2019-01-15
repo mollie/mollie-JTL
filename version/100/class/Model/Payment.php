@@ -7,7 +7,7 @@ use ws_mollie\Model\AbstractModel;
 class Payment extends AbstractModel
 {
 
-    public const TABLE = 'xplugin_ws_mollie_payments';
+    const TABLE = 'xplugin_ws_mollie_payments';
 
     public static function updateFromPayment(\Mollie\Api\Resources\Order $oMolliePayment, $kBestellung = null, $hash = null)
     {
