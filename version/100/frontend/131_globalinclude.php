@@ -48,8 +48,6 @@ try {
                     require_once PFAD_ROOT . 'includes/mailTools.php';
                     $oBestellung = fakeBestellung();
                     $oBestellung = finalisiereBestellung();
-                    $order->orderNumber = $oBestellung->cBestellNr;
-
                     \ws_mollie\Mollie::JTLMollie()->doLog('Bestellung finalized => redirect<br/><pre>' . print_r($order, 1) . '</pre>', $logData, LOGLEVEL_DEBUG);
                     \ws_mollie\Mollie::handleOrder($order, $oBestellung->kBestellung);
                     \ws_mollie\Mollie::getOrderCompletedRedirect($oBestellung->kBestellung, true);

@@ -4,18 +4,20 @@ try {
     \ws_mollie\Helper::init();
     $status = (int)$args_arr['status'];
     /** @var Bestellung $oBestellung */
-    $oBestellung = (int)$args_arr['oBestellung'];
+    $oBestellung = $args_arr['oBestellung'];
     // Order got paid with mollie:
     if ($oBestellung->kBestellung && $payment = \ws_mollie\Model\Payment::getPayment($oBestellung->kBestellung)) {
         $logData = '#' . $payment->kBestellung . '$' . $payment->kID . "§" . $oBestellung->cBestellNr;
         \ws_mollie\Mollie::JTLMollie()->doLog("WAWI Abgleich: HOOK_BESTELLUNGEN_XML_BESTELLSTATUS", $logData);
         try {
             $order = JTLMollie::API()->orders->get($payment->kID);
-            \ws_mollie\Mollie::handleOrder($order);
+            $order->orderNumber = $oBestellung->cBestellNr;
+            \ws_mollie\Mollie::handleOrder($order, $oBestellung->kBestellung);
             if ($order->isCreated() || $order->isPaid() || $order->isAuthorized() || $order->isShipping() || $order->isPending()) {
                 \ws_mollie\Mollie::JTLMollie()->doLog("Create Shippment: <br/><pre>" . print_r($args_arr, 1) . '</pre>', $logData, LOGLEVEL_DEBUG);
                 $options = \ws_mollie\Mollie::getShipmentOptions($order, $oBestellung->kBestellung, $status);
                 if ($options && array_key_exists('lines', $options) && is_array($options['lines'])) {
+                    require_once __DIR__ . '/../paymentmethod/JTLMollie.php';
                     $shipment = JTLMollie::API()->shipments->createFor($order, $options);
                     \ws_mollie\Mollie::JTLMollie()->doLog('Shipment created<br/><pre>' . print_r(['options' => $options, 'shipment' => $shipment], 1) . '</pre>', $logData, LOGLEVEL_NOTICE);
                     return;

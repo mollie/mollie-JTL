@@ -6,15 +6,11 @@ try {
         echo "Kein gültige Lizenz?";
         return;
     }
-
+    require_once __DIR__ . '/../paymentmethod/JTLMollie.php';
     global $oPlugin;
-
     $ordersMsgs = [];
-
     if (array_key_exists('action', $_REQUEST)) {
         switch ($_REQUEST['action']) {
-
-
             case 'refund':
                 if (!array_key_exists('id', $_REQUEST)) {
                     $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Keine ID angeben!'];
@@ -26,14 +22,12 @@ try {
                     break;
                 }
 
-                $mollie = new \Mollie\Api\MollieApiClient();
-                $mollie->setApiKey(\ws_mollie\Helper::getSetting("api_key"));
-                $order = $mollie->orders->get($_REQUEST['id']);
+                $order = JTLMollie::API()->orders->get($_REQUEST['id']);
                 if ($order->status == \Mollie\Api\Types\OrderStatus::STATUS_CANCELED) {
                     $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Bestellung bereits storniert'];
                     break;
                 }
-                $refund = $mollie->orderRefunds->createFor($order, ['lines' => []]);
+                $refund = JTLMollie::API()->orderRefunds->createFor($order, ['lines' => []]);
                 \ws_mollie\Mollie::JTLMollie()->doLog("Order refunded: <br/><pre>" . print_r($refund, 1) . "</pre>", '$' . $payment->kID . '#' . $payment->kBestellung . '§' . $payment->cOrderNumber, LOGLEVEL_NOTICE);
 
                 goto order;
@@ -49,14 +43,12 @@ try {
                     $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Order nicht gefunden!'];
                     break;
                 }
-                $mollie = new \Mollie\Api\MollieApiClient();
-                $mollie->setApiKey(\ws_mollie\Helper::getSetting("api_key"));
-                $order = $mollie->orders->get($_REQUEST['id']);
+                $order = JTLMollie::API()->orders->get($_REQUEST['id']);
                 if ($order->status == \Mollie\Api\Types\OrderStatus::STATUS_CANCELED) {
                     $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Bestellung bereits storniert'];
                     break;
                 }
-                $cancel = $mollie->orders->cancel($order->id);
+                $cancel = JTLMollie::API()->orders->cancel($order->id);
                 \ws_mollie\Mollie::JTLMollie()->doLog("Order canceled: <br/><pre>" . print_r($cancel, 1) . "</pre>", '$' . $payment->kID . '#' . $payment->kBestellung . '§' . $payment->cOrderNumber, LOGLEVEL_NOTICE);
                 goto order;
                 break;
@@ -71,9 +63,7 @@ try {
                     $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Order nicht gefunden!'];
                     break;
                 }
-                $mollie = new \Mollie\Api\MollieApiClient();
-                $mollie->setApiKey(\ws_mollie\Helper::getSetting("api_key"));
-                $order = $mollie->orders->get($_REQUEST['id']);
+                $order = JTLMollie::API()->orders->get($_REQUEST['id']);
                 if ($order->status !== \Mollie\Api\Types\OrderStatus::STATUS_AUTHORIZED && $order->status !== \Mollie\Api\Types\OrderStatus::STATUS_SHIPPING) {
                     $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Nur autorisierte Zahlungen können erfasst werden!'];
                     break;
@@ -97,7 +87,7 @@ try {
                 }
 
                 // CAPTURE ALL
-                $shipment = $mollie->shipments->createFor($order, $options);
+                $shipment = JTLMollie::API()->shipments->createFor($order, $options);
                 $ordersMsgs[] = (object)['type' => 'success', 'text' => 'Zahlung wurde erfolgreich erfasst!'];
                 \ws_mollie\Mollie::JTLMollie()->doLog('Shipment created<br/><pre>' . print_r(['options' => $options, 'shipment' => $shipment], 1) . '</pre>', $logData);
                 goto order;
@@ -109,10 +99,7 @@ try {
                     break;
                 }
 
-                $mollie = new \Mollie\Api\MollieApiClient();
-                $mollie->setApiKey(\ws_mollie\Helper::getSetting("api_key"));
-
-                $order = $mollie->orders->get($_REQUEST['id']);
+                $order = JTLMollie::API()->orders->get($_REQUEST['id']);
                 $payment = \ws_mollie\Model\Payment::getPaymentMollie($_REQUEST['id']);
                 if ($payment) {
                     $oBestellung = new Bestellung($payment->kBestellung, false);
@@ -126,9 +113,9 @@ try {
                 }
 
                 $logs = Shop::DB()->executeQueryPrepared("SELECT * FROM tzahlungslog WHERE cLogData LIKE :kBestellung OR cLogData LIKE :cBestellNr OR cLogData LIKE :MollieID ORDER BY dDatum DESC", [
-                    ':kBestellung' => '%#' . $payment->kBestellung . '%',
-                    ':cBestellNr' => '%§' . $payment->cOrderNumber . '%',
-                    ':MollieID' => '%$' . $payment->kID . '%',
+                    ':kBestellung' => '%#' . ($payment->kBestellung ?: '##') . '%',
+                    ':cBestellNr' => '%§' . ($payment->cOrderNumber ?: '§§') . '%',
+                    ':MollieID' => '%$' . ($payment->kID ?: '$$') . '%',
                 ], 2);
 
                 Shop::Smarty()->assign('payment', $payment)
@@ -142,7 +129,7 @@ try {
     }
 
 
-    $payments = Shop::DB()->executeQueryPrepared("SELECT * FROM xplugin_ws_mollie_payments", [], 2);
+    $payments = Shop::DB()->executeQueryPrepared("SELECT * FROM xplugin_ws_mollie_payments WHERE kBestellung IS NOT NULL AND cStatus != 'created'", [], 2);
     foreach ($payments as $i => $payment) {
         $payments[$i]->oBestellung = new Bestellung($payment->kBestellung, false);
     }

@@ -15,9 +15,7 @@ if (array_key_exists('hash', $_REQUEST)) {
         if ($payment && $payment->kBestellung) {
             require_once __DIR__ . '/../paymentmethod/JTLMollie.php';
             $order = JTLMollie::API()->orders->get($payment->kID);
-            $oBestellung = new Bestellung($payment->kBestellung);
-            $order->orderNumber = $oBestellung->cBestellNr;
-            $logData = '#' . $payment->kBestellung . '$' . $payment->kID . "§" . $oBestellung->cBestellNr;
+            $logData = '#' . $payment->kBestellung . '$' . $payment->kID;
             \ws_mollie\Mollie::JTLMollie()->doLog('Received Notification<br/><pre>' . print_r([$order, $payment], 1) . '</pre>', $logData);
             \ws_mollie\Mollie::handleOrder($order, $payment->kBestellung);
             // exit to stop execution of notify.php

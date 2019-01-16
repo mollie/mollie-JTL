@@ -155,47 +155,40 @@ abstract class Mollie
      * @return bool
      * @throws \Exception
      */
-    public static function handleOrder(Order $order, $kBestellung = null)
+    public static function handleOrder(Order $order, $kBestellung)
     {
-
         $logData = '$' . $order->id . '#' . $kBestellung . "§" . $order->orderNumber;
 
-        // 1. Save to DB
-        \ws_mollie\Model\Payment::updateFromPayment($order, $kBestellung);
-
-        if ($kBestellung) {
-            $oBestellung = new \Bestellung($kBestellung);
-            if ($oBestellung->kBestellung) {
-
-                // 2. Check PaymentStatus
-                switch ($order->status) {
-                    case OrderStatus::STATUS_PAID:
-                    case OrderStatus::STATUS_COMPLETED:
-                        $oIncomingPayment = new \stdClass();
-                        $oIncomingPayment->fBetrag = $order->amount->value;
-                        $oIncomingPayment->cISO = $order->amount->curreny;
-                        $oIncomingPayment->cHinweis = $order->id;
-                        Mollie::JTLMollie()->addIncomingPayment($oBestellung, $oIncomingPayment);
-                        Mollie::JTLMollie()->setOrderStatusToPaid($oBestellung);
-                        Mollie::JTLMollie()->doLog('PaymentStatus: ' . $order->status . ' => Zahlungseingang (' . $order->amount->value . ')', $logData, LOGLEVEL_DEBUG);
-                        break;
-                    case OrderStatus::STATUS_SHIPPING:
-                    case OrderStatus::STATUS_AUTHORIZED:
-                    case OrderStatus::STATUS_PENDING:
-                        Mollie::JTLMollie()->setOrderStatusToPaid($oBestellung);
-                        Mollie::JTLMollie()->doLog('PaymentStatus: ' . $order->status . ' => Bestellung bezahlt', $logData, LOGLEVEL_NOTICE);
-                        break;
-                    case OrderStatus::STATUS_CANCELED:
-                    case OrderStatus::STATUS_EXPIRED:
-                        Mollie::JTLMollie()->doLog('PaymentStatus: ' . $order->status, $logData, LOGLEVEL_ERROR);
-                        break;
-
-                }
-                return true;
+        $oBestellung = new \Bestellung($kBestellung);
+        if ($oBestellung->kBestellung) {
+            $order->orderNumber = $oBestellung->cBestellNr;
+            \ws_mollie\Model\Payment::updateFromPayment($order, $kBestellung);
+            // 2. Check PaymentStatus
+            switch ($order->status) {
+                case OrderStatus::STATUS_PAID:
+                case OrderStatus::STATUS_COMPLETED:
+                    $oIncomingPayment = new \stdClass();
+                    $oIncomingPayment->fBetrag = $order->amount->value;
+                    $oIncomingPayment->cISO = $order->amount->curreny;
+                    $oIncomingPayment->cHinweis = $order->id;
+                    Mollie::JTLMollie()->addIncomingPayment($oBestellung, $oIncomingPayment);
+                    Mollie::JTLMollie()->setOrderStatusToPaid($oBestellung);
+                    Mollie::JTLMollie()->doLog('PaymentStatus: ' . $order->status . ' => Zahlungseingang (' . $order->amount->value . ')', $logData, LOGLEVEL_DEBUG);
+                    break;
+                case OrderStatus::STATUS_SHIPPING:
+                case OrderStatus::STATUS_AUTHORIZED:
+                case OrderStatus::STATUS_PENDING:
+                    Mollie::JTLMollie()->setOrderStatusToPaid($oBestellung);
+                    Mollie::JTLMollie()->doLog('PaymentStatus: ' . $order->status . ' => Bestellung bezahlt', $logData, LOGLEVEL_NOTICE);
+                    break;
+                case OrderStatus::STATUS_CANCELED:
+                case OrderStatus::STATUS_EXPIRED:
+                    Mollie::JTLMollie()->doLog('PaymentStatus: ' . $order->status, $logData, LOGLEVEL_ERROR);
+                    break;
             }
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
 }

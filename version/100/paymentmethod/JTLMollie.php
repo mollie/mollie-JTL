@@ -63,6 +63,19 @@ class JTLMollie extends \PaymentMethod
 
     /**
      * @param Bestellung $order
+     * @return PaymentMethod|void
+     */
+    public function setOrderStatusToPaid($order)
+    {
+        // If paid already, do nothing
+        if ((int)$order->cStatus >= BESTELLUNG_STATUS_BEZAHLT) {
+            return;
+        }
+        parent::setOrderStatusToPaid($order);
+    }
+
+    /**
+     * @param Bestellung $order
      * @return array
      */
     protected function getOrderData(Bestellung $order, $hash)
@@ -312,7 +325,6 @@ class JTLMollie extends \PaymentMethod
 
         try {
             $oMolliePayment = self::API()->orders->get($args['id']);
-            $oMolliePayment->orderNumber = $order->cBestellNr;
             \ws_mollie\Mollie::handleOrder($oMolliePayment, $order->kBestellung);
         } catch (\Exception $e) {
             $this->doLog('handleNotification: ' . $e->getMessage(), $logData);
