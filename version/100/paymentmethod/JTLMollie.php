@@ -308,33 +308,14 @@ class JTLMollie extends \PaymentMethod
     {
         \ws_mollie\Helper::autoload();
         $logData = '#' . $order->kBestellung . "§" . $order->cBestellNr;
-        $this->doLog('Received Notification<br/><pre>' . print_r([$hash, $args], 1) . '</pre>', $logData, LOGLEVEL_DEBUG);
+        $this->doLog('Received Notification<br/><pre>' . print_r([$hash, $args], 1) . '</pre>', $logData, LOGLEVEL_NOTICE);
 
         try {
             $oMolliePayment = self::API()->orders->get($args['id']);
-            $logData .= '$' . $oMolliePayment->id;
-            $this->doLog('Got Mollie Payment: <br/><pre>' . print_r($oMolliePayment, 1) . '</pre>', $logData, LOGLEVEL_DEBUG);
-
             $oMolliePayment->orderNumber = $order->cBestellNr;
-            \ws_mollie\Model\Payment::updateFromPayment($oMolliePayment, $order->kBestellung);
-
-            switch ($oMolliePayment->status) {
-                case \Mollie\Api\Types\OrderStatus::STATUS_PAID:
-                case \Mollie\Api\Types\OrderStatus::STATUS_COMPLETED:
-                    $this->doLog('PaymentStatus: ' . $oMolliePayment->status . ' => Zahlungseingang (' . $oMolliePayment->amount->value . ')', $logData, LOGLEVEL_DEBUG);
-                    $oIncomingPayment = new stdClass();
-                    $oIncomingPayment->fBetrag = $oMolliePayment->amount->value;
-                    $oIncomingPayment->cISO = $oMolliePayment->amount->curreny;
-                    $oIncomingPayment->cHinweis = $oMolliePayment->id;
-                    $this->addIncomingPayment($order, $oIncomingPayment);
-                case \Mollie\Api\Types\OrderStatus::STATUS_AUTHORIZED:
-                    $this->doLog('PaymentStatus: ' . $oMolliePayment->status . ' => Bestellung bezahlt', $logData, LOGLEVEL_DEBUG);
-                    $this->setOrderStatusToPaid($order);
-                    break;
-            }
-
+            \ws_mollie\Mollie::handleOrder($oMolliePayment, $order->kBestellung);
         } catch (\Exception $e) {
-            $this->doLog($e->getMessage(), $logData);
+            $this->doLog('handleNotification: ' . $e->getMessage(), $logData);
         }
     }
 
