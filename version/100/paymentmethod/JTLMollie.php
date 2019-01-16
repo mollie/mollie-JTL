@@ -76,6 +76,7 @@ class JTLMollie extends \PaymentMethod
 
     /**
      * @param Bestellung $order
+     * @param $hash
      * @return array
      */
     protected function getOrderData(Bestellung $order, $hash)
@@ -89,6 +90,7 @@ class JTLMollie extends \PaymentMethod
             'orderNumber' => $order->cBestellNr,
             'lines' => [],
             'billingAddress' => new stdClass(),
+            'shippingAddress' => new stdClass(),
             'redirectUrl' => (int)$this->duringCheckout ? Shop::getURL() . '/bestellabschluss.php?mollie=' . md5($hash) : $this->getReturnURL($order),
             'webhookUrl' => $this->getNotificationURL($hash) . '&hash=' . md5($hash),
         ];
@@ -97,7 +99,7 @@ class JTLMollie extends \PaymentMethod
             $data['method'] = static::MOLLIE_METHOD;
         }
         $data['billingAddress']->organizationName = utf8_encode($order->oRechnungsadresse->cFirma);
-        $data['billingAddress']->title = $order->oRechnungsadresse->cAnrede === 'm' ? 'Herr' : 'Frau'; // TODO: Sprachvariable
+        $data['billingAddress']->title = utf8_encode($order->oRechnungsadresse->cAnrede === 'm' ? Shop::Lang()->get('mr') : Shop::Lang()->get('mrs'));
         $data['billingAddress']->givenName = utf8_encode($order->oRechnungsadresse->cVorname);
         $data['billingAddress']->familyName = utf8_encode($order->oRechnungsadresse->cNachname);
         $data['billingAddress']->email = $order->oRechnungsadresse->cMail;
@@ -105,6 +107,18 @@ class JTLMollie extends \PaymentMethod
         $data['billingAddress']->postalCode = $order->oRechnungsadresse->cPLZ;
         $data['billingAddress']->city = utf8_encode($order->oRechnungsadresse->cOrt);
         $data['billingAddress']->country = $order->oRechnungsadresse->cLand;
+
+        //if ((int)$order->kLieferadresse) {
+        $data['shippingAddress']->organizationName = utf8_encode($order->Lieferadresse->cFirma);
+        $data['shippingAddress']->title = utf8_encode($order->Lieferadresse->cAnrede === 'm' ? Shop::Lang()->get('mr') : Shop::Lang()->get('mrs'));
+        $data['shippingAddress']->givenName = utf8_encode($order->Lieferadresse->cVorname);
+        $data['shippingAddress']->familyName = utf8_encode($order->Lieferadresse->cNachname);
+        $data['shippingAddress']->email = $order->oRechnungsadresse->cMail;
+        $data['shippingAddress']->streetAndNumber = utf8_encode($order->Lieferadresse->cStrasse . ' ' . $order->Lieferadresse->cHausnummer);
+        $data['shippingAddress']->postalCode = $order->Lieferadresse->cPLZ;
+        $data['shippingAddress']->city = utf8_encode($order->Lieferadresse->cOrt);
+        $data['shippingAddress']->country = $order->Lieferadresse->cLand;
+        //}
 
         /** @var WarenkorbPos $oPosition */
         foreach ($order->Positionen as $oPosition) {
