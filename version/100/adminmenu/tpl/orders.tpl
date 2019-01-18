@@ -1,5 +1,4 @@
-{*$payments|var_dump*}
-
+<!--suppress HtmlUnknownTarget -->
 {if count($ordersMsgs)}
     {foreach from=$ordersMsgs item=alert}
         <div class="alert alert-{$alert->type}">{$alert->text}</div>
@@ -56,17 +55,17 @@
 
             </td>
             <td>
-                {if (int)$payment->oBestellung->cStatus == 1}
+                {if $payment->oBestellung->cStatus|intval == 1}
                     <span class="label label-info">OFFEN</span>
-                {elseif (int)$payment->oBestellung->cStatus == 2}
+                {elseif $payment->oBestellung->cStatus|intval == 2}
                     <span class="label label-info">IN BEARBEITUNG</span>
-                {elseif (int)$payment->oBestellung->cStatus == 3}
+                {elseif $payment->oBestellung->cStatus|intval == 3}
                     <span class="label label-success">BEZAHLT</span>
-                {elseif (int)$payment->oBestellung->cStatus == 4}
+                {elseif $payment->oBestellung->cStatus|intval == 4}
                     <span class="label label-success">VERSANDT</span>
-                {elseif (int)$payment->oBestellung->cStatus == 5}
+                {elseif $payment->oBestellung->cStatus|intval == 5}
                     <span class="label label-warning">TEILVERSANDT</span>
-                {elseif (int)$payment->oBestellung->cStatus == -1}
+                {elseif $payment->oBestellung->cStatus|intval == -1}
                     <span class="label label-danger">STORNO</span>
                 {else}
                     <span class="label label-danger">n/a</span>
@@ -85,10 +84,10 @@
 
 <script src="//cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
 <script>
-    var cssId = 'datatables';  // you could encode the css path itself to generate id..
+    const cssId = 'datatables';  // you could encode the css path itself to generate id..
     if (!document.getElementById(cssId)) {
-        var head = document.getElementsByTagName('head')[0];
-        var link = document.createElement('link');
+        const head = document.getElementsByTagName('head')[0];
+        const link = document.createElement('link');
         link.id = cssId;
         link.rel = 'stylesheet';
         link.type = 'text/css';

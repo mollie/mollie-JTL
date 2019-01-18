@@ -1,17 +1,18 @@
+<!--suppress HtmlUnknownTarget -->
 <h2>
     <a href="plugin.php?kPlugin={$oPlugin->kPlugin}">&laquo;</a>
     Bestellung: {$oBestellung->cBestellNr} -
-    {if (int)$oBestellung->cStatus == 1}
+    {if $oBestellung->cStatus|intval == 1}
         <span class="label label-info">OFFEN</span>
-    {elseif (int)$oBestellung->cStatus == 2}
+    {elseif $oBestellung->cStatus|intval == 2}
         <span class="label label-info">IN BEARBEITUNG</span>
-    {elseif (int)$oBestellung->cStatus == 3}
+    {elseif $oBestellung->cStatus|intval == 3}
         <span class="label label-success">BEZAHLT</span>
-    {elseif (int)$oBestellung->cStatus == 4}
+    {elseif $oBestellung->cStatus|intval == 4}
         <span class="label label-success">VERSANDT</span>
-    {elseif (int)$oBestellung->cStatus == 5}
+    {elseif $oBestellung->cStatus|intval == 5}
         <span class="label label-warning">TEILVERSANDT</span>
-    {elseif (int)$oBestellung->cStatus == -1}
+    {elseif $oBestellung->cStatus|intval == -1}
         <span class="label label-danger">STORNO</span>
     {else}
         <span class="label label-danger">n/a</span>
@@ -57,7 +58,7 @@
 <h4>Positionen:</h4>
 
 <div style="float: right">
-    {if ($order->status === 'authorized' || $order->status === 'shipping') && (int)$oBestellung->cStatus >= 3}
+    {if ($order->status === 'authorized' || $order->status === 'shipping') && $oBestellung->cStatus|intval >= 3}
         <a href="plugin.php?kPlugin={$oPlugin->kPlugin}&action=capture&id={$order->id}"
            onclick="return confirm('Bestellung wird bei Mollie als versandt markiert. Zahlung wirklich erfassen?');"
            class="btn btn-info"><i
@@ -129,7 +130,7 @@
             <td>{$line->name|utf8_decode}</td>
             <td>{$line->type}</td>
             <td>{$line->quantity}</td>
-            <td>{(float)$line->vatRate}%</td>
+            <td>{$line->vatRate|floatval}%</td>
             <td class="text-right">{$line->vatAmount->value|number_format:2:',':''} {$line->vatAmount->currency}</td>
             <td class="text-right">{($line->totalAmount->value - $line->vatAmount->value)|number_format:2:',':''} {$line->vatAmount->currency}</td>
             <td class="text-right">{$line->totalAmount->value|number_format:2:',':''} {$line->totalAmount->currency}</td>

@@ -1,4 +1,5 @@
-CREATE TABLE `xplugin_ws_mollie_payments` (
+CREATE TABLE `xplugin_ws_mollie_payments`
+(
   `kID`             VARCHAR(32)             NOT NULL,
   `kBestellung`     INT(11)                 NULL,
   `cMode`           VARCHAR(16)             NULL,

@@ -2,6 +2,7 @@
 
 namespace ws_mollie\Model;
 
-abstract class AbstractModel {
+abstract class AbstractModel
+{
 
 }

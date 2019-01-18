@@ -26,7 +26,9 @@ try {
 
             // GET NEWEST PAYMENT:
             $_payment = null;
+            /** @noinspection PhpUndefinedFieldInspection */
             if (isset($order->_embedded->payments) && is_array($order->_embedded->payments)) {
+                /** @noinspection PhpUndefinedFieldInspection */
                 foreach ($order->_embedded->payments as $p) {
                     if (!$_payment) {
                         $_payment = $p;
@@ -44,7 +46,9 @@ try {
                 if ($_payment && !in_array($_payment->status, [\Mollie\Api\Types\PaymentStatus::STATUS_EXPIRED, \Mollie\Api\Types\PaymentStatus::STATUS_CANCELED, \Mollie\Api\Types\PaymentStatus::STATUS_OPEN, \Mollie\Api\Types\PaymentStatus::STATUS_FAILED, \Mollie\Api\Types\PaymentStatus::STATUS_CANCELED])) {
                     \ws_mollie\Mollie::JTLMollie()->doLog('Bestellung open => finalize', $logData);
                     $session = Session::getInstance();
+                    /** @noinspection PhpIncludeInspection */
                     require_once PFAD_ROOT . 'includes/bestellabschluss_inc.php';
+                    /** @noinspection PhpIncludeInspection */
                     require_once PFAD_ROOT . 'includes/mailTools.php';
                     $oBestellung = fakeBestellung();
                     $oBestellung = finalisiereBestellung();

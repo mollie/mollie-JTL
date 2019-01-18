@@ -2,8 +2,6 @@
 
 namespace ws_mollie\Model;
 
-use ws_mollie\Model\AbstractModel;
-
 class Payment extends AbstractModel
 {
 

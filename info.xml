@@ -17,7 +17,6 @@
             <Hook id="181">181_sync.php</Hook>
         </Hooks>
         <Adminmenu>
-
             <Customlink sort="10">
                 <Name>Bestellungen</Name>
                 <Filename>orders.php</Filename>
@@ -47,16 +46,12 @@
                         <Option value="svg" sort="4">Ja, Bild SVG</Option>
                     </SelectboxOptions>
                 </Setting>
-
             </Settingslink>
-
-
             <Customlink sort="999">
                 <Name>Info</Name>
                 <Filename>info.php</Filename>
             </Customlink>
         </Adminmenu>
-
         <PaymentMethod>
             <Method>
                 <Name>mollie</Name>

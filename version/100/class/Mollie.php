@@ -11,6 +11,7 @@ namespace ws_mollie;
 
 use Mollie\Api\Resources\Order;
 use Mollie\Api\Types\OrderStatus;
+use ws_mollie\Model\Payment;
 
 abstract class Mollie
 {
@@ -42,6 +43,10 @@ abstract class Mollie
 
     protected static $_jtlmollie;
 
+    /**
+     * @return \JTLMollie
+     * @throws \Exception
+     */
     public static function JTLMollie()
     {
         if (self::$_jtlmollie === null) {
@@ -162,7 +167,7 @@ abstract class Mollie
         $oBestellung = new \Bestellung($kBestellung);
         if ($oBestellung->kBestellung) {
             $order->orderNumber = $oBestellung->cBestellNr;
-            \ws_mollie\Model\Payment::updateFromPayment($order, $kBestellung);
+            Payment::updateFromPayment($order, $kBestellung);
             // 2. Check PaymentStatus
             switch ($order->status) {
                 case OrderStatus::STATUS_PAID:

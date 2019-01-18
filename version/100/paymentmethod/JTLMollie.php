@@ -4,8 +4,6 @@ require_once __DIR__ . '/../../../vendor/autoload.php';
 require_once __DIR__ . '/../class/Helper.php';
 require_once __DIR__ . '/../../../../../modules/PaymentMethod.class.php';
 
-use Mollie\Api\Types\PaymentStatus as MolliePaymentStatus;
-
 class JTLMollie extends \PaymentMethod
 {
 
@@ -29,6 +27,10 @@ class JTLMollie extends \PaymentMethod
      */
     protected static $_mollie;
 
+    /**
+     * @var string
+     */
+    public $cBild;
 
     public function __construct($moduleID, $nAgainCheckout = 0)
     {
@@ -309,7 +311,7 @@ class JTLMollie extends \PaymentMethod
             exit();
         } catch (\Mollie\Api\Exceptions\ApiException $e) {
             Shop::Smarty()->assign('oMollieException', $e);
-            $this->doLog("Create Payment Error: " . $e->getMessage() . '<br/><pre>' . print_r($data, 1) . '</pre>', $logData);
+            $this->doLog("Create Payment Error: " . $e->getMessage() . '<br/><pre>' . print_r($e->getTrace(), 1) . '</pre>', $logData);
         }
     }
 
@@ -362,7 +364,7 @@ class JTLMollie extends \PaymentMethod
             $logData .= '$' . $oMolliePayment->id;
             $this->doLog('Received Notification Finalize Order<br/><pre>' . print_r([$hash, $args, $oMolliePayment], 1) . '</pre>', $logData, LOGLEVEL_DEBUG);
             \ws_mollie\Model\Payment::updateFromPayment($oMolliePayment, $order->kBestellung);
-            return in_array($oMolliePayment->status, [\Mollie\Api\Types\OrderStatus::STATUS_PAID, \Mollie\Api\Types\OrderStatus::STATUS_AUTHORIZED, \PayPal\Api\Order::STATUS_PENDING, \Mollie\Api\Types\OrderStatus::STATUS_COMPLETED]);
+            return in_array($oMolliePayment->status, [\Mollie\Api\Types\OrderStatus::STATUS_PAID, \Mollie\Api\Types\OrderStatus::STATUS_AUTHORIZED, \Mollie\Api\Types\OrderStatus::STATUS_PENDING, \Mollie\Api\Types\OrderStatus::STATUS_COMPLETED]);
         } catch (\Exception $e) {
             $this->doLog($e->getMessage(), $logData);
         }
@@ -495,7 +497,9 @@ class JTLMollie extends \PaymentMethod
         $locale = self::getLocale($_SESSION['cISOSprache'], $_SESSION['Kunde']->cLand);
         if (static::MOLLIE_METHOD !== '') {
             try {
-                $method = self::PossiblePaymentMethods(static::MOLLIE_METHOD, $locale, $_SESSION['Kunde']->cLand, $_SESSION['Waehrung']->cISO, $_SESSION['Warenkorb']->gibGesamtsummeWaren() * $_SESSION['Waehrung']->fFaktor);
+                /** @var Warenkorb $wk */
+                $wk = $_SESSION['Warenkorb'];
+                $method = self::PossiblePaymentMethods(static::MOLLIE_METHOD, $locale, $_SESSION['Kunde']->cLand, $_SESSION['Waehrung']->cISO, $wk->gibGesamtsummeWaren() * $_SESSION['Waehrung']->fFaktor);
                 if ($method !== null) {
                     $this->updatePaymentMethod($_SESSION['cISOSprache'], $method);
                     $this->cBild = $method->image->size2x;

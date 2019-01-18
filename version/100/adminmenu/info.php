@@ -31,12 +31,6 @@ try {
         '  </div>' .
         '</div>';
 
-    if (\ws_mollie\Helper::_licCache()->disabled) {
-        echo "<div class='alert alert-danger'>Die Pluginlizenz und das Plugin wurden deaktiviert. "
-            . "<a href='?kPlugin=" . \ws_mollie\Helper::oPlugin()->kPlugin . "&_licActivate=" . \ws_mollie\Helper::oPlugin()->cPluginID . "'>"
-            . "Klicke hier um die Lizenz erneut zu &uuml;berpr&uuml;fen.</a></div>";
-    }
-
 } catch (Exception $e) {
     echo "<div class='alert alert-danger'>Fehler: {$e->getMessage()}</div>";
     \ws_mollie\Helper::logExc($e);

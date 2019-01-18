@@ -14,18 +14,19 @@
 
 {if $methods && $methods|count}
     <table class="table table-striped table-condensed">
-        <head>
-            <tr>
-                <th>Bild</th>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Preise</th>
-            </tr>
-        </head>
+        <thead>
+        <tr>
+            <th>Bild</th>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Preise</th>
+        </tr>
+        </thead>
         <tbody>
         {foreach from=$methods item=method}
             <tr>
-                <td><img src="{$method->image->svg}" height="50"/></td>
+                <td><img alt="{$method->description|utf8_decode}" title="{$method->description|utf8_decode}"
+                         src="{$method->image->svg}" height="50"/></td>
                 <td>{$method->id}</td>
                 <td>{$method->description|utf8_decode}</td>
                 <td>
