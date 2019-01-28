@@ -25,16 +25,16 @@ try {
             $logData = '$' . $order->id . '#' . $payment->kBestellung . "§" . $payment->cOrderNumber;
 
             // GET NEWEST PAYMENT:
+            /** @var \Mollie\Api\Resources\Paymentt $_payment */
             $_payment = null;
-            /** @noinspection PhpUndefinedFieldInspection */
-            if (isset($order->_embedded->payments) && is_array($order->_embedded->payments)) {
-                /** @noinspection PhpUndefinedFieldInspection */
-                foreach ($order->_embedded->payments as $p) {
+            if ($order->payments()) {
+                /** @var \Mollie\Api\Resources\Payment $p */
+                foreach ($order->payments() as $p) {
                     if (!$_payment) {
                         $_payment = $p;
                         continue;
                     }
-                    if (strtotime($p->createdAt) > strtotime($payment->createdAt)) {
+                    if (strtotime($p->createdAt) > strtotime($_payment->createdAt)) {
                         $_payment = $p;
                     }
                 }
