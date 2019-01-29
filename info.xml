@@ -15,6 +15,7 @@
             <Hook id="131">131_globalinclude.php</Hook>
             <Hook id="144">144_notify.php</Hook>
             <Hook id="181">181_sync.php</Hook>
+            <Hook id="140">140_smarty.php</Hook>
         </Hooks>
         <Adminmenu>
             <Customlink sort="10">
@@ -44,6 +45,16 @@
                         <Option value="size1x" sort="2">Ja, Bildgröße 1x</Option>
                         <Option value="size2x" sort="3">Ja, Bildgröße 2x</Option>
                         <Option value="svg" sort="4">Ja, Bild SVG</Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="selectbox" initialValue="N" sort="30" conf="Y">
+                    <Name>Checkout Styles laden</Name>
+                    <Description>Lädt Stylesheets für das Evo Template, um den Checkout zu verschönern.</Description>
+                    <ValueName>load_styles</ValueName>
+                    <SelectboxOptions>
+                        <Option value="N" sort="1">Nein</Option>
+                        <Option value="Y" sort="2">Ja, nur Mollie</Option>
+                        <Option value="A" sort="3">Ja, alle</Option>
                     </SelectboxOptions>
                 </Setting>
             </Settingslink>
