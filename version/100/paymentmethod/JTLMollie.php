@@ -51,6 +51,34 @@ class JTLMollie extends \PaymentMethod
         }
         return self::$_mollie;
     }
+    
+     /**
+     * @param Bestellung $order
+     * @param Object     $payment (Key, Zahlungsanbieter, Abgeholt, Zeit is set here)
+     * @return $this
+     */
+    public function addIncomingPayment($order, $payment)
+    {
+        $model = (object)array_merge([
+            'kBestellung'       => (int)$order->kBestellung,
+            'cZahlungsanbieter' => empty($order->cZahlungsartName) ? $this->name : $order->cZahlungsartName,
+            'fBetrag'           => 0,
+            'fZahlungsgebuehr'  => 0,
+            'cISO'              => $_SESSION['Waehrung']->cISO,
+            'cEmpfaenger'       => '',
+            'cZahler'           => '',
+            'dZeit'             => 'now()',
+            'cHinweis'          => '',
+            'cAbgeholt'         => 'N'
+        ], (array)$payment);
+        if(isset($model->kZahlungseingang) && $model->kZahlungseingang > 0){
+			Shop::DB()->update('tzahlungseingang', 'kZahlungseingang', $model->kZahlungseingang, $model);
+        }else{
+	        Shop::DB()->insert('tzahlungseingang', $model);   
+        }
+
+        return $this;
+    }
 
     /**
      * @return \ws_mollie\Helper

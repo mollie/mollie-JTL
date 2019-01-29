@@ -20,9 +20,9 @@ try {
                     require_once __DIR__ . '/../paymentmethod/JTLMollie.php';
                     $shipment = JTLMollie::API()->shipments->createFor($order, $options);
                     \ws_mollie\Mollie::JTLMollie()->doLog('Shipment created<br/><pre>' . print_r(['options' => $options, 'shipment' => $shipment], 1) . '</pre>', $logData, LOGLEVEL_NOTICE);
-                    return;
+                }else{
+	                \ws_mollie\Mollie::JTLMollie()->doLog('181_sync: options don\'t contain lines<br><pre>' . print_r([$order, $options], 1) . '</pre>', $logData, LOGLEVEL_ERROR);   
                 }
-                \ws_mollie\Mollie::JTLMollie()->doLog('181_sync: options don\'t contain lines<br><pre>' . print_r([$order, $options], 1) . '</pre>', $logData, LOGLEVEL_ERROR);
             }
         } catch (Exception $e) {
             \ws_mollie\Mollie::JTLMollie()->doLog('Fehler: ' . $e->getMessage() . '<br><pre>' . print_r($e->getTrace(), 1) . '</pre>', $logData, LOGLEVEL_ERROR);

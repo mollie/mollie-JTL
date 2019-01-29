@@ -168,11 +168,16 @@ abstract class Mollie
         if ($oBestellung->kBestellung) {
             $order->orderNumber = $oBestellung->cBestellNr;
             Payment::updateFromPayment($order, $kBestellung);
+            
+            $oIncomingPayment = \Shop::DB()->executeQueryPrepared("SELECT * FROM tzahlungseingang WHERE cHinweis = :cHinweis AND kBestellung = :kBestellung", [':cHinweis' => $order->id, ':kBestellung' => $oBestellung->kBestellung], 1);
+            if(!$oIncomingPayment){
+	            $oIncomingPayment = new \stdClass();
+            }
+            
             // 2. Check PaymentStatus
             switch ($order->status) {
                 case OrderStatus::STATUS_PAID:
                 case OrderStatus::STATUS_COMPLETED:
-                    $oIncomingPayment = new \stdClass();
                     $oIncomingPayment->fBetrag = $order->amount->value;
                     $oIncomingPayment->cISO = $order->amount->curreny;
                     $oIncomingPayment->cHinweis = $order->id;
