@@ -1,0 +1,16 @@
+{
+  "name": "webstollen/ws_mollie",
+  "description": "mollie",
+  "type": "project",
+  "require": {
+    "roave/security-advisories": "dev-master",
+    "mollie/mollie-api-php": "^2.2"
+  },
+  "license": "Proprietary",
+  "authors": [
+    {
+      "name": "C. Proske",
+      "email": "proske@webstollen.de"
+    }
+  ]
+}
