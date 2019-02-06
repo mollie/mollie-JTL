@@ -141,4 +141,4 @@ There is no need to set a redirect URL or webhook. The module automatically does
 # Support #
 
 Do you have problems with the installation or do you think the module contains a bug? Open a Ticket
-to info@mollie.com with a accurate description of the problem.
+at [ws-url.de/help](https://ws-url.de/help) with a accurate description of the problem.
