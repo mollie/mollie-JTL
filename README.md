@@ -7,7 +7,7 @@ Download the [Mollie](https://www.mollie.com/) module for JTL-Shop. Mollie is a 
 
 Receive payments from European customers with ease. Mollie provides payment methods at higly competitive rates. Only pay per transaction and no hidden fees.
 
-Choose the best payment provider available for your online PrestaShop store. Create your merchant account at [Mollie.com](https://www.mollie.com/). 
+Choose the best payment provider available for your online JTL-Shop. Create your merchant account at [Mollie.com](https://www.mollie.com/). 
 Download and install the Mollie PrestaShop payment module and start receiving online payments now!
 
 ## Made and maintained by [WebStollen](https://www.webstollen.de/). ##
