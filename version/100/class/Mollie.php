@@ -8,7 +8,6 @@
 
 namespace ws_mollie;
 
-
 use Mollie\Api\Resources\Order;
 use Mollie\Api\Types\OrderStatus;
 use ws_mollie\Model\Payment;
@@ -170,8 +169,8 @@ abstract class Mollie
             Payment::updateFromPayment($order, $kBestellung);
             
             $oIncomingPayment = \Shop::DB()->executeQueryPrepared("SELECT * FROM tzahlungseingang WHERE cHinweis = :cHinweis AND kBestellung = :kBestellung", [':cHinweis' => $order->id, ':kBestellung' => $oBestellung->kBestellung], 1);
-            if(!$oIncomingPayment){
-	            $oIncomingPayment = new \stdClass();
+            if (!$oIncomingPayment) {
+                $oIncomingPayment = new \stdClass();
             }
             
             // 2. Check PaymentStatus
@@ -200,5 +199,4 @@ abstract class Mollie
         }
         return false;
     }
-
 }
