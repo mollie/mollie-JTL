@@ -12,6 +12,9 @@
             <SQL>100.sql</SQL>
             <CreateDate>2019-02-11</CreateDate>
         </Version>
+        <Version nr="101">
+            <CreateDate>2019-02-11</CreateDate>
+        </Version>
         <Hooks>
             <Hook id="131">131_globalinclude.php</Hook>
             <Hook id="144">144_notify.php</Hook>
