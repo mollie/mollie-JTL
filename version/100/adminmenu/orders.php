@@ -33,7 +33,7 @@ try {
                 goto order;
                 break;
 
-            case 'cancel';
+            case 'cancel':
                 if (!array_key_exists('id', $_REQUEST)) {
                     $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Keine ID angeben!'];
                     break;
@@ -140,7 +140,6 @@ try {
         ->assign('hasAPIKey', trim(\ws_mollie\Helper::getSetting("api_key")) !== '');
 
     Shop::Smarty()->display($oPlugin->cAdminmenuPfad . '/tpl/orders.tpl');
-
 } catch (Exception $e) {
     echo "<div class='alert alert-danger'>" .
         "{$e->getMessage()}<br/>" .

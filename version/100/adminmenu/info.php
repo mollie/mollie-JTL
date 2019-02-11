@@ -47,7 +47,6 @@ try {
         if ((int)\ws_mollie\Helper::oPlugin()->nVersion < (int)$latestRelease->version) {
             Shop::Smarty()->assign('update', $latestRelease);
         }
-
     } catch (\Exception $e) {
     }
 

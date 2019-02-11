@@ -4,16 +4,14 @@ namespace ws_mollie\Model;
 
 class Payment extends AbstractModel
 {
-
     const TABLE = 'xplugin_ws_mollie_payments';
 
     public static function updateFromPayment(\Mollie\Api\Resources\Order $oMolliePayment, $kBestellung = null, $hash = null)
     {
-
         $data = [
             ':kID' => $oMolliePayment->id,
-            ':kBestellung' => (int)$kBestellung ?: NULL,
-            ':kBestellung1' => (int)$kBestellung ?: NULL,
+            ':kBestellung' => (int)$kBestellung ?: null,
+            ':kBestellung1' => (int)$kBestellung ?: null,
             ':cMode' => $oMolliePayment->mode,
             ':cStatus' => $oMolliePayment->status,
             ':cStatus1' => $oMolliePayment->status,
@@ -37,10 +35,13 @@ class Payment extends AbstractModel
             ':fAmountRefunded1' => $oMolliePayment->amountRefunded ? $oMolliePayment->amountRefunded->value : null,
             ':dCreatedAt' => $oMolliePayment->createdAt ? date('Y-m-d H:i:s', strtotime($oMolliePayment->createdAt)) : null,
         ];
-        return \Shop::DB()->executeQueryPrepared('INSERT INTO ' . self::TABLE . ' (kID, kBestellung, cMode, cStatus, cHash, fAmount, cOrderNumber, cCurrency, cMethod, cLocale, bCancelable, cWebhookURL, cRedirectURL, cCheckoutURL, fAmountCaptured, fAmountRefunded, dCreatedAt) '
+        return \Shop::DB()->executeQueryPrepared(
+            'INSERT INTO ' . self::TABLE . ' (kID, kBestellung, cMode, cStatus, cHash, fAmount, cOrderNumber, cCurrency, cMethod, cLocale, bCancelable, cWebhookURL, cRedirectURL, cCheckoutURL, fAmountCaptured, fAmountRefunded, dCreatedAt) '
             . 'VALUES (:kID, :kBestellung, :cMode, :cStatus, :cHash, :fAmount, :cOrderNumber, :cCurrency, :cMethod, :cLocale, :bCancelable, :cWebhookURL, :cRedirectURL, IF(:cCheckoutURL IS NULL, cCheckoutURL, :cCheckoutURL1), :fAmountCaptured, :fAmountRefunded, :dCreatedAt) '
             . 'ON DUPLICATE KEY UPDATE kBestellung = :kBestellung1, cOrderNumber = :cOrderNumber1, cStatus = :cStatus1, cMethod = :cMethod1, bCancelable = :bCancelable1, fAmountCaptured = :fAmountCaptured1, fAmountRefunded = :fAmountRefunded1',
-            $data, 3);
+            $data,
+            3
+        );
     }
 
     public static function getPayment($kBestellung)
@@ -69,5 +70,4 @@ class Payment extends AbstractModel
         }
         return $payment;
     }
-
 }

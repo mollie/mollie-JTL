@@ -72,8 +72,7 @@ namespace ws_mollie {
             */
             public static function selfupdate()
             {
-                
-                if(function_exists('opcache_reset')){
+                if (function_exists('opcache_reset')) {
                     opcache_reset();
                 }
                 
@@ -185,7 +184,6 @@ namespace ws_mollie {
                 ini_set('xdebug.default_enable', defined('WS_XDEBUG_ENABLED'));
                 self::autoload();
                 if (null === self::$_licence) {
-
                     if (array_key_exists('_licActivate', $_REQUEST) && $_REQUEST['_licActivate'] === __NAMESPACE__) {
                         self::_licActivate(self::_licCache());
                     }
@@ -272,7 +270,7 @@ namespace ws_mollie {
             {
                 if ($force === true) {
                     self::$oPlugin = new \Plugin(self::oPlugin(false)->kPlugin, true);
-                } else if (null === self::$oPlugin) {
+                } elseif (null === self::$oPlugin) {
                     self::$oPlugin = \Plugin::getPluginById(__NAMESPACE__);
                 }
                 return self::$oPlugin;
@@ -294,7 +292,6 @@ namespace ws_mollie {
                     }
                 }
                 return false;
-
             }
 
             /**
@@ -350,7 +347,6 @@ namespace ws_mollie {
                     }
                 }
                 return false;
-
             }
 
             /**
@@ -373,7 +369,6 @@ namespace ws_mollie {
             private static function _licLive($oL)
             {
                 try {
-
                     if (!function_exists('curl_init')) {
                         throw new \Exception(__NAMESPACE__ . ': cURL needs to be installed!');
                     }
@@ -410,7 +405,6 @@ namespace ws_mollie {
                     }
                     /** @noinspection UnserializeExploitsInspection */
                     if ($response = json_decode($data)) {
-
                         $checksum = md5(base64_encode($response->data->validUntil . $response->data->nextCheck . ($response->data->testLicence ? 'Y' : 'N')));
 
                         if (!$response || !isset($response->data) || $response->data === false || !isset($response->checksum) || $response->checksum !== $checksum) {
@@ -428,15 +422,14 @@ namespace ws_mollie {
                         }
                         $oL->fails = 0;
                         self::_licSave($oL, true);
-
                     } else {
                         throw new \Exception(__NAMESPACE__ . ': Could not decode licence info: ' . print_r($response, 1));
                     }
-
                 } catch (\Exception $e) {
                     $oL->disabled = (++$oL->fails) >= 3 ? 1 : 0;
                     $oL->nextCheck = date("Y-m-d", strtotime("+1 DAY"));
-                    $oL->validUntil = date("Y-m-d", strtotime("+1 DAY"));;
+                    $oL->validUntil = date("Y-m-d", strtotime("+1 DAY"));
+                    ;
 
                     self::logExc($e, false);
                     self::_licSave($oL, true);
@@ -518,7 +511,6 @@ namespace ws_mollie {
                 }
                 return $kPluginAdminMenu;
             }
-
         }
     }
 

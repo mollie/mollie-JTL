@@ -12,13 +12,11 @@ try {
         $payment = \Shop::DB()->executeQueryPrepared("SELECT * FROM " . \ws_mollie\Model\Payment::TABLE . " WHERE cHash = :cHash", [':cHash' => $_REQUEST['mollie']], 1);
         // Bestellung finalized, redirect to status/completion page
         if ((int)$payment->kBestellung) {
-
             $logData = '$' . $payment->kID . '#' . $payment->kBestellung . "§" . $payment->cOrderNumber;
             \ws_mollie\Mollie::JTLMollie()->doLog('Bestellung finalized => redirect abschluss/status', $logData);
             $order = JTLMollie::API()->orders->get($payment->kID, ['embed' => 'payments']);
             \ws_mollie\Mollie::handleOrder($order, $payment->kBestellung);
             \ws_mollie\Mollie::getOrderCompletedRedirect($payment->kBestellung, true);
-
         } elseif ($payment) { // payment, but no order => finalize it
             require_once __DIR__ . '/../paymentmethod/JTLMollie.php';
             $order = JTLMollie::API()->orders->get($payment->kID, ['embed' => 'payments']);

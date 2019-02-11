@@ -52,11 +52,11 @@ class JTLMollie extends \PaymentMethod
         return self::$_mollie;
     }
     
-     /**
-     * @param Bestellung $order
-     * @param Object     $payment (Key, Zahlungsanbieter, Abgeholt, Zeit is set here)
-     * @return $this
-     */
+    /**
+    * @param Bestellung $order
+    * @param Object     $payment (Key, Zahlungsanbieter, Abgeholt, Zeit is set here)
+    * @return $this
+    */
     public function addIncomingPayment($order, $payment)
     {
         $model = (object)array_merge([
@@ -71,10 +71,10 @@ class JTLMollie extends \PaymentMethod
             'cHinweis'          => '',
             'cAbgeholt'         => 'N'
         ], (array)$payment);
-        if(isset($model->kZahlungseingang) && $model->kZahlungseingang > 0){
-			Shop::DB()->update('tzahlungseingang', 'kZahlungseingang', $model->kZahlungseingang, $model);
-        }else{
-	        Shop::DB()->insert('tzahlungseingang', $model);   
+        if (isset($model->kZahlungseingang) && $model->kZahlungseingang > 0) {
+            Shop::DB()->update('tzahlungseingang', 'kZahlungseingang', $model->kZahlungseingang, $model);
+        } else {
+            Shop::DB()->insert('tzahlungseingang', $model);
         }
 
         return $this;
@@ -522,7 +522,6 @@ class JTLMollie extends \PaymentMethod
      */
     public function isSelectable()
     {
-
         $locale = self::getLocale($_SESSION['cISOSprache'], $_SESSION['Kunde']->cLand);
         if (static::MOLLIE_METHOD !== '') {
             try {
