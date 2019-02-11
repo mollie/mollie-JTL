@@ -310,7 +310,7 @@ class JTLMollie extends \PaymentMethod
      */
     public function preparePaymentProcess($order)
     {
-        $logData = '#' . $order->kBestellung . "" . $order->cBestellNr;
+        $logData = '#' . $order->kBestellung . "§" . $order->cBestellNr;
         try {
             $payment = \ws_mollie\Model\Payment::getPayment($order->kBestellung);
             if ($payment && in_array($payment->cStatus, [\Mollie\Api\Types\OrderStatus::STATUS_CREATED]) && $payment->cCheckoutURL) {
@@ -365,7 +365,7 @@ class JTLMollie extends \PaymentMethod
     public function handleNotification($order, $hash, $args)
     {
         \ws_mollie\Helper::autoload();
-        $logData = '#' . $order->kBestellung . "" . $order->cBestellNr;
+        $logData = '#' . $order->kBestellung . "§" . $order->cBestellNr;
         $this->doLog('Received Notification<br/><pre>' . print_r([$hash, $args], 1) . '</pre>', $logData, LOGLEVEL_NOTICE);
 
         try {
@@ -386,7 +386,7 @@ class JTLMollie extends \PaymentMethod
      */
     public function finalizeOrder($order, $hash, $args)
     {
-        $logData = '#' . $order->kBestellung . "" . $order->cBestellNr;
+        $logData = '#' . $order->kBestellung . "§" . $order->cBestellNr;
         try {
             \ws_mollie\Helper::autoload();
             $oMolliePayment = self::API()->orders->get($args['id'], ['embed' => 'payments']);
