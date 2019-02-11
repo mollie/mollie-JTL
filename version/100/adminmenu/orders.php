@@ -135,7 +135,9 @@ try {
     }
 
     Shop::Smarty()->assign('payments', $payments)
-        ->assign('ordersMsgs', $ordersMsgs);
+        ->assign('ordersMsgs', $ordersMsgs)
+        ->assign('admRoot', str_replace('http:', '', $oPlugin->cAdminmenuPfadURL))
+        ->assign('hasAPIKey', trim(\ws_mollie\Helper::getSetting("api_key")) !== '');
 
     Shop::Smarty()->display($oPlugin->cAdminmenuPfad . '/tpl/orders.tpl');
 
