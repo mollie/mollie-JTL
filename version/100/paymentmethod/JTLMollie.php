@@ -154,44 +154,30 @@ class JTLMollie extends \PaymentMethod
         /** @var WarenkorbPos $oPosition */
         foreach ($order->Positionen as $oPosition) {
             $line = new stdClass();
+            $line->name = utf8_encode($oPosition->cName);
+            $line->quantity = $oPosition->nAnzahl;
+            $line->unitPrice = (object)[
+                        'value' => number_format($order->Waehrung->fFaktor * ($oPosition->fPreis * ((float)$oPosition->fMwSt / 100 + 1)), 2, '.', ''),
+                        'currency' => $order->Waehrung->cISO,
+                    ];
+            $line->totalAmount = (object)[
+                        'value' => number_format($oPosition->nAnzahl * (float)$line->unitPrice->value, 2, '.', ''),
+                        'currency' => $order->Waehrung->cISO,
+                    ];
+            $line->vatRate = $oPosition->fMwSt;
+            $line->vatAmount = (object)[
+                'value' => number_format($line->totalAmount->value - ($line->totalAmount->value / (1 + (float)$oPosition->fMwSt / 100)), 2, '.', ''),
+                'currency' => $order->Waehrung->cISO,
+            ];
+            
             switch ((int)$oPosition->nPosTyp) {
                 case (int)C_WARENKORBPOS_TYP_GRATISGESCHENK:
                 case (int)C_WARENKORBPOS_TYP_ARTIKEL:
                     $line->type = \Mollie\Api\Types\OrderLineType::TYPE_PHYSICAL;
-                    $line->name = utf8_encode($oPosition->cName);
-                    $line->quantity = $oPosition->nAnzahl;
-                    $line->unitPrice = (object)[
-                        'value' => number_format($order->Waehrung->fFaktor * ($oPosition->fPreis * ((float)$oPosition->fMwSt / 100 + 1)), 2, '.', ''),
-                        'currency' => $order->Waehrung->cISO,
-                    ];
-                    $line->totalAmount = (object)[
-                        'value' => number_format($oPosition->nAnzahl * (float)$line->unitPrice->value, 2, '.', ''),
-                        'currency' => $order->Waehrung->cISO,
-                    ];
-                    $line->vatRate = $oPosition->fMwSt;
-                    $line->vatAmount = (object)[
-                        'value' => number_format($line->totalAmount->value - ($line->totalAmount->value / (1 + (float)$oPosition->fMwSt / 100)), 2, '.', ''),
-                        'currency' => $order->Waehrung->cISO,
-                    ];
                     $line->sku = $oPosition->cArtNr;
                     break;
                 case (int)C_WARENKORBPOS_TYP_VERSANDPOS:
                     $line->type = \Mollie\Api\Types\OrderLineType::TYPE_SHIPPING_FEE;
-                    $line->name = utf8_encode($oPosition->cName);
-                    $line->quantity = $oPosition->nAnzahl;
-                    $line->unitPrice = (object)[
-                        'value' => number_format($order->Waehrung->fFaktor * ($oPosition->fPreis * ((float)$oPosition->fMwSt / 100 + 1)), 2, '.', ''),
-                        'currency' => $order->Waehrung->cISO,
-                    ];
-                    $line->totalAmount = (object)[
-                        'value' => number_format($order->Waehrung->fFaktor * ($oPosition->fPreis * $oPosition->nAnzahl * ((float)$oPosition->fMwSt / 100 + 1)), 2, '.', ''),
-                        'currency' => $order->Waehrung->cISO,
-                    ];
-                    $line->vatRate = $oPosition->fMwSt;
-                    $line->vatAmount = (object)[
-                        'value' => number_format($line->totalAmount->value - ($line->totalAmount->value / (1 + (float)$oPosition->fMwSt / 100)), 2, '.', ''),
-                        'currency' => $order->Waehrung->cISO,
-                    ];
                     break;
                 case (int)C_WARENKORBPOS_TYP_VERPACKUNG:
                 case (int)C_WARENKORBPOS_TYP_VERSANDZUSCHLAG:
@@ -199,41 +185,11 @@ class JTLMollie extends \PaymentMethod
                 case (int)C_WARENKORBPOS_TYP_VERSAND_ARTIKELABHAENGIG:
                 case (int)C_WARENKORBPOS_TYP_TRUSTEDSHOPS:
                     $line->type = \Mollie\Api\Types\OrderLineType::TYPE_SURCHARGE;
-                    $line->name = utf8_encode($oPosition->cName);
-                    $line->quantity = $oPosition->nAnzahl;
-                    $line->unitPrice = (object)[
-                        'value' => number_format($order->Waehrung->fFaktor * ($oPosition->fPreis * ((float)$oPosition->fMwSt / 100 + 1)), 2, '.', ''),
-                        'currency' => $order->Waehrung->cISO,
-                    ];
-                    $line->totalAmount = (object)[
-                        'value' => number_format($order->Waehrung->fFaktor * ($oPosition->fPreis * $oPosition->nAnzahl * ((float)$oPosition->fMwSt / 100 + 1)), 2, '.', ''),
-                        'currency' => $order->Waehrung->cISO,
-                    ];
-                    $line->vatRate = $oPosition->fMwSt;
-                    $line->vatAmount = (object)[
-                        'value' => number_format($line->totalAmount->value - ($line->totalAmount->value / (1 + (float)$oPosition->fMwSt / 100)), 2, '.', ''),
-                        'currency' => $order->Waehrung->cISO,
-                    ];
                     break;
                 case (int)C_WARENKORBPOS_TYP_GUTSCHEIN:
                 case (int)C_WARENKORBPOS_TYP_KUPON:
                 case (int)C_WARENKORBPOS_TYP_NEUKUNDENKUPON:
                     $line->type = \Mollie\Api\Types\OrderLineType::TYPE_DISCOUNT;
-                    $line->name = $oPosition->cName;
-                    $line->quantity = $oPosition->nAnzahl;
-                    $line->unitPrice = (object)[
-                        'value' => number_format($order->Waehrung->fFaktor * ($oPosition->fPreis * ((float)$oPosition->fMwSt / 100 + 1)), 2, '.', ''),
-                        'currency' => $order->Waehrung->cISO,
-                    ];
-                    $line->totalAmount = (object)[
-                        'value' => number_format($order->Waehrung->fFaktor * ($oPosition->fPreis * $oPosition->nAnzahl * ((float)$oPosition->fMwSt / 100 + 1)), 2, '.', ''),
-                        'currency' => $order->Waehrung->cISO,
-                    ];
-                    $line->vatRate = $oPosition->fMwSt;
-                    $line->vatAmount = (object)[
-                        'value' => number_format($line->totalAmount->value - ($line->totalAmount->value / (1 + (float)$oPosition->fMwSt / 100)), 2, '.', ''),
-                        'currency' => $order->Waehrung->cISO,
-                    ];
                     break;
             }
             if (isset($line->type)) {
@@ -310,7 +266,7 @@ class JTLMollie extends \PaymentMethod
      */
     public function preparePaymentProcess($order)
     {
-        $logData = '#' . $order->kBestellung . "§" . $order->cBestellNr;
+        $logData = '#' . $order->kBestellung . "" . $order->cBestellNr;
         try {
             $payment = \ws_mollie\Model\Payment::getPayment($order->kBestellung);
             if ($payment && in_array($payment->cStatus, [\Mollie\Api\Types\OrderStatus::STATUS_CREATED]) && $payment->cCheckoutURL) {
@@ -365,7 +321,7 @@ class JTLMollie extends \PaymentMethod
     public function handleNotification($order, $hash, $args)
     {
         \ws_mollie\Helper::autoload();
-        $logData = '#' . $order->kBestellung . "§" . $order->cBestellNr;
+        $logData = '#' . $order->kBestellung . "" . $order->cBestellNr;
         $this->doLog('Received Notification<br/><pre>' . print_r([$hash, $args], 1) . '</pre>', $logData, LOGLEVEL_NOTICE);
 
         try {
@@ -386,7 +342,7 @@ class JTLMollie extends \PaymentMethod
      */
     public function finalizeOrder($order, $hash, $args)
     {
-        $logData = '#' . $order->kBestellung . "§" . $order->cBestellNr;
+        $logData = '#' . $order->kBestellung . "" . $order->cBestellNr;
         try {
             \ws_mollie\Helper::autoload();
             $oMolliePayment = self::API()->orders->get($args['id'], ['embed' => 'payments']);
