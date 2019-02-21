@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://cdn.webstollen.com/plugin/ws_mollie/jtl-shop-logo.png" height="128"/>
+  <img src="https://info.mollie.com/hubfs/github/jtl/JTL.png" width="128" height="128"/>
 </p>
 <h1 align="center">Mollie for JTL-Shop</h1>
 
