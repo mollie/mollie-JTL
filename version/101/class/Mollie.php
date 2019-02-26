@@ -14,7 +14,6 @@ use ws_mollie\Model\Payment;
 
 abstract class Mollie
 {
-
     protected static $_jtlmollie;
 
     /**
