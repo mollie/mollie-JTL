@@ -15,6 +15,8 @@ use ws_mollie\Model\Payment;
 abstract class Mollie
 {
 
+    protected static $_jtlmollie;
+
     /**
      * @param $kBestellung
      * @param bool $redirect
@@ -39,58 +41,6 @@ abstract class Mollie
         }
         return $url;
     }
-
-    protected static $_jtlmollie;
-
-    /**
-     * @return \JTLMollie
-     * @throws \Exception
-     */
-    public static function JTLMollie()
-    {
-        if (self::$_jtlmollie === null) {
-            $pza = \Shop::DB()->select('tpluginzahlungsartklasse', 'cClassName', 'JTLMollie');
-            if (!$pza) {
-                throw new \Exception("Mollie Zahlungsart nicht in DB gefunden!");
-            }
-            require_once __DIR__ . '/../paymentmethod/JTLMollie.php';
-            self::$_jtlmollie = new \JTLMollie($pza->cModulId);
-        }
-        return self::$_jtlmollie;
-    }
-
-
-    /**
-     * Returns amount of sent items for SKU
-     * @param $sku
-     * @param \Bestellung $oBestellung
-     * @return float|int
-     * @throws \Exception
-     */
-    public static function getBestellPosSent($sku, \Bestellung $oBestellung)
-    {
-        if ($sku === null) {
-            return 1;
-        }
-        /** @var \WarenkorbPos $oPosition */
-        foreach ($oBestellung->Positionen as $oPosition) {
-            if ($oPosition->cArtNr === $sku) {
-                $sent = 0;
-                /** @var \Lieferschein $oLieferschein */
-                foreach ($oBestellung->oLieferschein_arr as $oLieferschein) {
-                    /** @var \Lieferscheinpos $oLieferscheinPos */
-                    foreach ($oLieferschein->oLieferscheinPos_arr as $oLieferscheinPos) {
-                        if ($oLieferscheinPos->getBestellPos() == $oPosition->kBestellpos) {
-                            $sent += $oLieferscheinPos->getAnzahl();
-                        }
-                    }
-                }
-                return $sent;
-            }
-        }
-        return false;
-    }
-
 
     /**
      * @param Order $order
@@ -152,6 +102,36 @@ abstract class Mollie
         return $options;
     }
 
+    /**
+     * Returns amount of sent items for SKU
+     * @param $sku
+     * @param \Bestellung $oBestellung
+     * @return float|int
+     * @throws \Exception
+     */
+    public static function getBestellPosSent($sku, \Bestellung $oBestellung)
+    {
+        if ($sku === null) {
+            return 1;
+        }
+        /** @var \WarenkorbPos $oPosition */
+        foreach ($oBestellung->Positionen as $oPosition) {
+            if ($oPosition->cArtNr === $sku) {
+                $sent = 0;
+                /** @var \Lieferschein $oLieferschein */
+                foreach ($oBestellung->oLieferschein_arr as $oLieferschein) {
+                    /** @var \Lieferscheinpos $oLieferscheinPos */
+                    foreach ($oLieferschein->oLieferscheinPos_arr as $oLieferscheinPos) {
+                        if ($oLieferscheinPos->getBestellPos() == $oPosition->kBestellpos) {
+                            $sent += $oLieferscheinPos->getAnzahl();
+                        }
+                    }
+                }
+                return $sent;
+            }
+        }
+        return false;
+    }
 
     /**
      * @param Order $order
@@ -167,16 +147,17 @@ abstract class Mollie
         if ($oBestellung->kBestellung) {
             $order->orderNumber = $oBestellung->cBestellNr;
             Payment::updateFromPayment($order, $kBestellung);
-            
+
             $oIncomingPayment = \Shop::DB()->executeQueryPrepared("SELECT * FROM tzahlungseingang WHERE cHinweis = :cHinweis AND kBestellung = :kBestellung", [':cHinweis' => $order->id, ':kBestellung' => $oBestellung->kBestellung], 1);
             if (!$oIncomingPayment) {
                 $oIncomingPayment = new \stdClass();
             }
-            
+
             // 2. Check PaymentStatus
             switch ($order->status) {
                 case OrderStatus::STATUS_PAID:
                 case OrderStatus::STATUS_COMPLETED:
+                case OrderStatus::STATUS_AUTHORIZED:
                     $oIncomingPayment->fBetrag = $order->amount->value;
                     $oIncomingPayment->cISO = $order->amount->curreny;
                     $oIncomingPayment->cHinweis = $order->id;
@@ -185,10 +166,9 @@ abstract class Mollie
                     Mollie::JTLMollie()->doLog('PaymentStatus: ' . $order->status . ' => Zahlungseingang (' . $order->amount->value . ')', $logData, LOGLEVEL_DEBUG);
                     break;
                 case OrderStatus::STATUS_SHIPPING:
-                case OrderStatus::STATUS_AUTHORIZED:
                 case OrderStatus::STATUS_PENDING:
                     Mollie::JTLMollie()->setOrderStatusToPaid($oBestellung);
-                    Mollie::JTLMollie()->doLog('PaymentStatus: ' . $order->status . ' => Bestellung bezahlt', $logData, LOGLEVEL_NOTICE);
+                    Mollie::JTLMollie()->doLog('PaymentStatus: ' . $order->status . ' => Bestellung bezahlt, KEIN Zahlungseingang', $logData, LOGLEVEL_NOTICE);
                     break;
                 case OrderStatus::STATUS_CANCELED:
                 case OrderStatus::STATUS_EXPIRED:
@@ -198,5 +178,22 @@ abstract class Mollie
             return true;
         }
         return false;
+    }
+
+    /**
+     * @return \JTLMollie
+     * @throws \Exception
+     */
+    public static function JTLMollie()
+    {
+        if (self::$_jtlmollie === null) {
+            $pza = \Shop::DB()->select('tpluginzahlungsartklasse', 'cClassName', 'JTLMollie');
+            if (!$pza) {
+                throw new \Exception("Mollie Zahlungsart nicht in DB gefunden!");
+            }
+            require_once __DIR__ . '/../paymentmethod/JTLMollie.php';
+            self::$_jtlmollie = new \JTLMollie($pza->cModulId);
+        }
+        return self::$_jtlmollie;
     }
 }
