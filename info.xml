@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <jtlshop3plugin>
     <Name>mollie</Name>
-    <Description>Zahlungsartplugin fÃ¼r mollie.com</Description>
+    <Description>Zahlungsartplugin fÃƒÂ¼r mollie.com</Description>
     <Author>WebStollen</Author>
     <URL>http://www.webstollen.de/</URL>
     <XMLVersion>102</XMLVersion>
@@ -38,23 +38,23 @@
                 <Name>Einstellungen</Name>
                 <Setting type="text" initialValue="" sort="10" conf="Y">
                     <Name>API Key:</Name>
-                    <Description>FÃ¼ge hier deinen mollie API Key ein</Description>
+                    <Description>FÃƒÂ¼ge hier deinen mollie API Key ein</Description>
                     <ValueName>api_key</ValueName>
                 </Setting>
                 <Setting type="selectbox" initialValue="S" sort="20" conf="Y">
                     <Name>Zahlungsart Daten syncronisiernen</Name>
-                    <Description>LÃ¤dt Name / Bild fÃ¼r die jeweilige Sprache automatisch von mollie, und speichert diese&#xA;                        in der Datenbank&#xA;                    </Description>
+                    <Description>LÃƒÂ¤dt Name / Bild fÃƒÂ¼r die jeweilige Sprache automatisch von mollie, und speichert diese&#xA;                        in der Datenbank&#xA;                    </Description>
                     <ValueName>paymentmethod_sync</ValueName>
                     <SelectboxOptions>
                         <Option value="N" sort="1"><![CDATA[Nein]]></Option>
-                        <Option value="size1x" sort="2"><![CDATA[Ja, BildgrÃ¶ÃŸe 1x]]></Option>
-                        <Option value="size2x" sort="3"><![CDATA[Ja, BildgrÃ¶ÃŸe 2x]]></Option>
+                        <Option value="size1x" sort="2"><![CDATA[Ja, BildgrÃƒÂ¶ÃƒÅ¸e 1x]]></Option>
+                        <Option value="size2x" sort="3"><![CDATA[Ja, BildgrÃƒÂ¶ÃƒÅ¸e 2x]]></Option>
                         <Option value="svg" sort="4"><![CDATA[Ja, Bild SVG]]></Option>
                     </SelectboxOptions>
                 </Setting>
                 <Setting type="selectbox" initialValue="N" sort="30" conf="Y">
                     <Name>Checkout Styles laden</Name>
-                    <Description>LÃ¤dt Stylesheets fÃ¼r das Evo Template, um den Checkout zu verschÃ¶nern.</Description>
+                    <Description>LÃƒÂ¤dt Stylesheets fÃƒÂ¼r das Evo Template, um den Checkout zu verschÃƒÂ¶nern.</Description>
                     <ValueName>load_styles</ValueName>
                     <SelectboxOptions>
                         <Option value="N" sort="1"><![CDATA[Nein]]></Option>
@@ -160,9 +160,9 @@
                 <ClassName>JTLMollieBanktransfer</ClassName>
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
-                    <Name>SEPA Ãœberweisung</Name>
+                    <Name>SEPA ÃƒÅ“berweisung</Name>
                     <ChargeName>mollie</ChargeName>
-                    <InfoText>Bezahlen Sie bequem mit SEPA Ãœberweisung.</InfoText>
+                    <InfoText>Bezahlen Sie bequem mit SEPA ÃƒÅ“berweisung.</InfoText>
                 </MethodLanguage>
             </Method>
             <Method>
@@ -180,7 +180,7 @@
                 <ClassName>JTLMollieBelfius</ClassName>
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
-                    <Name>SEPA Ãœberweisung</Name>
+                    <Name>SEPA ÃƒÅ“berweisung</Name>
                     <ChargeName>mollie</ChargeName>
                     <InfoText>Bezahlen Sie bequem mit Belfius.</InfoText>
                 </MethodLanguage>
