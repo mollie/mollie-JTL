@@ -12,7 +12,7 @@
 
 <hr/>
 
-{if $methods && $methods|count}
+{if $allMethods && $allMethods|count}
     <table class="table table-striped table-condensed">
         <thead>
         <tr>
@@ -23,13 +23,13 @@
         </tr>
         </thead>
         <tbody>
-        {foreach from=$methods item=method}
-            <tr>
-                <td><img alt="{$method->description|utf8_decode}" title="{$method->description|utf8_decode}"
+        {foreach from=$allMethods->_embedded->methods item=method}
+        <tr>
+            <td><img alt="{$method->description|utf8_decode}" title="{$method->description|utf8_decode}"
                          src="{$method->image->svg}" height="50"/></td>
-                <td>{$method->id}</td>
-                <td>{$method->description|utf8_decode}</td>
-                <td>
+            <td>{$method->id}</td>
+            <td>{$method->description|utf8_decode}</td>
+                            <td>
                     <ul>
                         {foreach from=$method->pricing item=price}
                             <li>{$price->description|utf8_decode}: {$price->fixed->value} {$price->fixed->currency}
@@ -40,7 +40,7 @@
                         {/foreach}
                     </ul>
                 </td>
-            </tr>
+        </tr>
         {/foreach}
         </tbody>
     </table>
