@@ -36,17 +36,12 @@ try {
         '  </div>' .
         '</div>';
 
-    if (\ws_mollie\Helper::_licCache()->disabled) {
-        echo "<div class='alert alert-danger'>Die Pluginlizenz und das Plugin wurden deaktiviert. "
-            . "<a href='?kPlugin=" . \ws_mollie\Helper::oPlugin()->kPlugin . "&_licActivate=" . \ws_mollie\Helper::oPlugin()->cPluginID . "'>"
-            . "Klicke hier um die Lizenz erneut zu &uuml;berpr&uuml;fen.</a></div>";
-    }
-
     try {
         $latestRelease = \ws_mollie\Helper::getLatestRelease(array_key_exists('update', $_REQUEST));
         if ((int)\ws_mollie\Helper::oPlugin()->nVersion < (int)$latestRelease->version) {
             Shop::Smarty()->assign('update', $latestRelease);
         }
+
     } catch (\Exception $e) {
     }
 
