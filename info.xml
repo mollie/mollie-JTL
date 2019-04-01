@@ -15,6 +15,9 @@
         <Version nr="101">
             <CreateDate>2019-02-26</CreateDate>
         </Version>
+        <Version nr="102">
+            <CreateDate>2019-04-01</CreateDate>
+        </Version>
         <Hooks>
             <Hook id="131">131_globalinclude.php</Hook>
             <Hook id="144">144_notify.php</Hook>
@@ -92,7 +95,7 @@
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>CREDIT_CARD</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -112,7 +115,7 @@
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -132,7 +135,7 @@
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -172,7 +175,7 @@
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -192,7 +195,7 @@
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>DIRECT_DEBIT</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -212,7 +215,7 @@
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -232,7 +235,7 @@
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -252,7 +255,7 @@
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>GIROPAY</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -272,7 +275,7 @@
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -292,7 +295,7 @@
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -312,7 +315,7 @@
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -332,7 +335,7 @@
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>PAYPAL</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -352,7 +355,7 @@
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -372,7 +375,7 @@
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>DIRECT_E_BANKING</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -392,7 +395,7 @@
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>INVOICE</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -412,7 +415,7 @@
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>FINANCING</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>

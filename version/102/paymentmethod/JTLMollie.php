@@ -1,5 +1,7 @@
 <?php
 
+use Mollie\Api\Types\OrderLineType;
+
 require_once __DIR__ . '/../../../vendor/autoload.php';
 require_once __DIR__ . '/../class/Helper.php';
 require_once __DIR__ . '/../../../../../modules/PaymentMethod.class.php';
@@ -217,7 +219,8 @@ class JTLMollie extends \PaymentMethod
             $line->name = utf8_encode($oPosition->cName);
             $line->quantity = $oPosition->nAnzahl;
             $line->unitPrice = (object)[
-                'value' => number_format($order->Waehrung->fFaktor * ($oPosition->fPreis * ((float)$oPosition->fMwSt / 100 + 1)), 2, '.', ''),
+                'value' => number_format(berechneBrutto($order->Waehrung->fFaktor * $oPosition->fPreis, $oPosition->fMwSt), 2, '.', ''),
+                //'value' => number_format($order->Waehrung->fFaktor * ($oPosition->fPreis * ((float)$oPosition->fMwSt / 100 + 1)), 2, '.', ''),
                 'currency' => $order->Waehrung->cISO,
             ];
             $line->totalAmount = (object)[
@@ -226,30 +229,31 @@ class JTLMollie extends \PaymentMethod
             ];
             $line->vatRate = $oPosition->fMwSt;
             $line->vatAmount = (object)[
-                'value' => number_format($line->totalAmount->value - ($line->totalAmount->value / (1 + (float)$oPosition->fMwSt / 100)), 2, '.', ''),
+                //'value' => number_format($line->totalAmount->value - berechneNetto($line->totalAmount->value, $oPosition->fMwSt), 2, '.', ''),
+                'value' => number_format($line->totalAmount->value - (berechneNetto($line->unitPrice->value, $oPosition->fMwSt) * $oPosition->nAnzahl), 2, '.', ''),
                 'currency' => $order->Waehrung->cISO,
             ];
 
             switch ((int)$oPosition->nPosTyp) {
                 case (int)C_WARENKORBPOS_TYP_GRATISGESCHENK:
                 case (int)C_WARENKORBPOS_TYP_ARTIKEL:
-                    $line->type = \Mollie\Api\Types\OrderLineType::TYPE_PHYSICAL;
+                    $line->type = OrderLineType::TYPE_PHYSICAL;
                     $line->sku = $oPosition->cArtNr;
                     break;
                 case (int)C_WARENKORBPOS_TYP_VERSANDPOS:
-                    $line->type = \Mollie\Api\Types\OrderLineType::TYPE_SHIPPING_FEE;
+                    $line->type = OrderLineType::TYPE_SHIPPING_FEE;
                     break;
                 case (int)C_WARENKORBPOS_TYP_VERPACKUNG:
                 case (int)C_WARENKORBPOS_TYP_VERSANDZUSCHLAG:
                 case (int)C_WARENKORBPOS_TYP_ZAHLUNGSART:
                 case (int)C_WARENKORBPOS_TYP_VERSAND_ARTIKELABHAENGIG:
                 case (int)C_WARENKORBPOS_TYP_TRUSTEDSHOPS:
-                    $line->type = \Mollie\Api\Types\OrderLineType::TYPE_SURCHARGE;
+                    $line->type = OrderLineType::TYPE_SURCHARGE;
                     break;
                 case (int)C_WARENKORBPOS_TYP_GUTSCHEIN:
                 case (int)C_WARENKORBPOS_TYP_KUPON:
                 case (int)C_WARENKORBPOS_TYP_NEUKUNDENKUPON:
-                    $line->type = \Mollie\Api\Types\OrderLineType::TYPE_DISCOUNT;
+                    $line->type = OrderLineType::TYPE_DISCOUNT;
                     break;
             }
             if (isset($line->type)) {
@@ -259,7 +263,7 @@ class JTLMollie extends \PaymentMethod
 
         if ((int)$order->GuthabenNutzen === 1 && $order->fGuthaben < 0) {
             $line = new stdClass();
-            $line->type = \Mollie\Api\Types\OrderLineType::TYPE_STORE_CREDIT;
+            $line->type = OrderLineType::TYPE_STORE_CREDIT;
             $line->name = 'Guthaben';
             $line->quantity = 1;
             $line->unitPrice = (object)[
@@ -291,7 +295,7 @@ class JTLMollie extends \PaymentMethod
             $diff = (round((float)$data['amount']->value - $sum, 2));
             if ($diff != 0) {
                 $line = new stdClass();
-                $line->type = $diff > 0 ? \Mollie\Api\Types\OrderLineType::TYPE_SURCHARGE : \Mollie\Api\Types\OrderLineType::TYPE_DISCOUNT;
+                $line->type = $diff > 0 ? OrderLineType::TYPE_SURCHARGE : OrderLineType::TYPE_DISCOUNT;
                 $line->name = 'Rundungsausgleich';
                 $line->quantity = 1;
                 $line->unitPrice = (object)[
