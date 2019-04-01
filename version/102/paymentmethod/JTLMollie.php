@@ -427,11 +427,18 @@ class JTLMollie extends \PaymentMethod
      */
     public function isSelectable()
     {
+        /** @var Warenkorb $wk */
+        $wk = $_SESSION['Warenkorb'];
+        foreach ($wk->PositionenArr as $oPosition) {
+            if ($oPosition->Artikel->cTeilbar === 'Y' && fmod($oPosition->nAnzahl, 1) !== 0) {
+                return false;
+            }
+        }
+
         $locale = self::getLocale($_SESSION['cISOSprache'], $_SESSION['Kunde']->cLand);
         if (static::MOLLIE_METHOD !== '') {
             try {
-                /** @var Warenkorb $wk */
-                $wk = $_SESSION['Warenkorb'];
+
                 $method = self::PossiblePaymentMethods(static::MOLLIE_METHOD, $locale, $_SESSION['Kunde']->cLand, $_SESSION['Waehrung']->cISO, $wk->gibGesamtsummeWaren() * $_SESSION['Waehrung']->fFaktor);
                 if ($method !== null) {
                     $this->updatePaymentMethod($_SESSION['cISOSprache'], $method);
