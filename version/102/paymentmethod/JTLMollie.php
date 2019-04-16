@@ -190,7 +190,7 @@ class JTLMollie extends PaymentMethod
             'orderNumber' => $order->cBestellNr,
             'lines' => [],
             'billingAddress' => new stdClass(),
-            'shippingAddress' => new stdClass(),
+
             'redirectUrl' => (int)$this->duringCheckout ? Shop::getURL() . '/bestellabschluss.php?mollie=' . md5($hash) : $this->getReturnURL($order),
             'webhookUrl' => $this->getNotificationURL($hash) . '&hash=' . md5($hash),
         ];
@@ -208,36 +208,40 @@ class JTLMollie extends PaymentMethod
         $data['billingAddress']->city = utf8_encode($order->oRechnungsadresse->cOrt);
         $data['billingAddress']->country = $order->oRechnungsadresse->cLand;
 
-        //if ((int)$order->kLieferadresse) {
-        $data['shippingAddress']->organizationName = utf8_encode($order->Lieferadresse->cFirma);
-        $data['shippingAddress']->title = utf8_encode($order->Lieferadresse->cAnrede === 'm' ? Shop::Lang()->get('mr') : Shop::Lang()->get('mrs'));
-        $data['shippingAddress']->givenName = utf8_encode($order->Lieferadresse->cVorname);
-        $data['shippingAddress']->familyName = utf8_encode($order->Lieferadresse->cNachname);
-        $data['shippingAddress']->email = $order->oRechnungsadresse->cMail;
-        $data['shippingAddress']->streetAndNumber = utf8_encode($order->Lieferadresse->cStrasse . ' ' . $order->Lieferadresse->cHausnummer);
-        $data['shippingAddress']->postalCode = $order->Lieferadresse->cPLZ;
-        $data['shippingAddress']->city = utf8_encode($order->Lieferadresse->cOrt);
-        $data['shippingAddress']->country = $order->Lieferadresse->cLand;
-        //}
+        if ($order->Lieferadresse != null) {
+            $data['shippingAddress'] = new stdClass();
+            $data['shippingAddress']->organizationName = utf8_encode($order->Lieferadresse->cFirma);
+            $data['shippingAddress']->title = utf8_encode($order->Lieferadresse->cAnrede === 'm' ? Shop::Lang()->get('mr') : Shop::Lang()->get('mrs'));
+            $data['shippingAddress']->givenName = utf8_encode($order->Lieferadresse->cVorname);
+            $data['shippingAddress']->familyName = utf8_encode($order->Lieferadresse->cNachname);
+            $data['shippingAddress']->email = $order->oRechnungsadresse->cMail;
+            $data['shippingAddress']->streetAndNumber = utf8_encode($order->Lieferadresse->cStrasse . ' ' . $order->Lieferadresse->cHausnummer);
+            $data['shippingAddress']->postalCode = $order->Lieferadresse->cPLZ;
+            $data['shippingAddress']->city = utf8_encode($order->Lieferadresse->cOrt);
+            $data['shippingAddress']->country = $order->Lieferadresse->cLand;
+        }
 
         /** @var WarenkorbPos $oPosition */
         foreach ($order->Positionen as $oPosition) {
+
+            $unitPrice = berechneBrutto($order->Waehrung->fFaktor * $oPosition->fPreis, $oPosition->fMwSt, 4);
+            $totalAmount = $oPosition->nAnzahl * $unitPrice;
+
             $line = new stdClass();
             $line->name = utf8_encode($oPosition->cName);
             $line->quantity = $oPosition->nAnzahl;
             $line->unitPrice = (object)[
-                'value' => number_format(berechneBrutto($order->Waehrung->fFaktor * $oPosition->fPreis, $oPosition->fMwSt), 2, '.', ''),
-                //'value' => number_format($order->Waehrung->fFaktor * ($oPosition->fPreis * ((float)$oPosition->fMwSt / 100 + 1)), 2, '.', ''),
+                'value' => number_format(round($unitPrice, 2), 2, '.', ''),
                 'currency' => $order->Waehrung->cISO,
             ];
             $line->totalAmount = (object)[
-                'value' => number_format($oPosition->nAnzahl * (float)$line->unitPrice->value, 2, '.', ''),
+                'value' => number_format(round($totalAmount, 2), 2, '.', ''),
                 'currency' => $order->Waehrung->cISO,
             ];
             $line->vatRate = $oPosition->fMwSt;
+            $x = $totalAmount - (berechneNetto($unitPrice, $oPosition->fMwSt, 4) * $oPosition->nAnzahl);
             $line->vatAmount = (object)[
-                //'value' => number_format($line->totalAmount->value - berechneNetto($line->totalAmount->value, $oPosition->fMwSt), 2, '.', ''),
-                'value' => number_format($line->totalAmount->value - (berechneNetto($line->unitPrice->value, $oPosition->fMwSt) * $oPosition->nAnzahl), 2, '.', ''),
+                'value' => number_format(round($x, 2), 2, '.', ''),
                 'currency' => $order->Waehrung->cISO,
             ];
 
