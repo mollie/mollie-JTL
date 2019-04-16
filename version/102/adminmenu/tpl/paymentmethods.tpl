@@ -1,5 +1,5 @@
 <h3>Account Status</h3>
-<table width="100%">
+<table style="width: 100%">
     <tr>
         <th>Mode:</th>
         <td>{$profile->mode}</td>
@@ -17,9 +17,8 @@
         <input type="hidden" name="kPlugin" value="{$oPlugin->kPlugin}">
         <input type="hidden" name="za" value="1">
         <div class="col-xs-12 col-sm-3">
-            Locale:
-
-            <select name="locale">
+            <label for="cLocale">Locale:</label>
+            <select name="locale" id="cLocale">
                 {foreach from=$locales item=locale}
                     <option {if $smarty.get.locale === $locale}selected="selected"{/if}
                             value="{$locale}">{$locale}</option>
@@ -28,8 +27,8 @@
 
         </div>
         <div class="col-xs-12 col-sm-3">
-            WÃ¤hrung:
-            <select name="currency">
+            <label for="cCurrency">Währung:</label>
+            <select name="currency" id="cCurrency">
                 {foreach from=$currencies item=currency key=key}
                     <option {if $smarty.get.currency === $key}selected="selected"{/if}
                             value="{$key}">{$currency}</option>
@@ -37,12 +36,12 @@
             </select>
         </div>
         <div class="col-xs-12 col-sm-3">
-            Betrag:
-            <input type="number" value="{$smarty.get.amount}" name="amount">
+            <label for="cAmount">Betrag:</label>
+            <input type="number" value="{$smarty.get.amount}" name="amount" id="cAmount">
         </div>
         <div class="col-xs-12 col-sm-3">
-            <input type="checkbox" value="1" name="active" {if $smarty.get.active}checked="checked"{/if}> Nur aktive ZA
-            &nbsp;
+            <input id="cActive" type="checkbox" value="1" name="active"
+                   {if $smarty.get.active}checked="checked"{/if}><label for="cActive">Nur aktive ZA</label>
             <button class="btn btn-primary" type="submit">senden</button>
             <a class="btn btn-info" href="plugin.php?kPlugin={$oPlugin->kPlugin}&za=1">reset</a>
         </div>

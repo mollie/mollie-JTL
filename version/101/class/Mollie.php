@@ -8,8 +8,17 @@
 
 namespace ws_mollie;
 
+use Bestellung;
+use Exception;
+use JTLMollie;
+use Lieferschein;
+use Lieferscheinpos;
 use Mollie\Api\Resources\Order;
 use Mollie\Api\Types\OrderStatus;
+use Shop;
+use Shopsetting;
+use stdClass;
+use WarenkorbPos;
 use ws_mollie\Model\Payment;
 
 abstract class Mollie
@@ -23,15 +32,15 @@ abstract class Mollie
      */
     public static function getOrderCompletedRedirect($kBestellung, $redirect = true)
     {
-        $mode = \Shopsetting::getInstance()->getValue(CONF_KAUFABWICKLUNG, 'bestellabschluss_abschlussseite');
+        $mode = Shopsetting::getInstance()->getValue(CONF_KAUFABWICKLUNG, 'bestellabschluss_abschlussseite');
 
-        $bestellid = \Shop::DB()->select("tbestellid ", 'kBestellung', (int)$kBestellung);
-        $url = \Shop::getURL() . '/bestellabschluss.php?i=' . $bestellid->cId;
+        $bestellid = Shop::DB()->select("tbestellid ", 'kBestellung', (int)$kBestellung);
+        $url = Shop::getURL() . '/bestellabschluss.php?i=' . $bestellid->cId;
 
 
         if ($mode == 'S' || !$bestellid) { // Statusseite
-            $bestellstatus = \Shop::DB()->select('tbestellstatus', 'kBestellung', (int)$kBestellung);
-            $url = \Shop::getURL() . '/status.php?uid=' . $bestellstatus->cUID;
+            $bestellstatus = Shop::DB()->select('tbestellstatus', 'kBestellung', (int)$kBestellung);
+            $url = Shop::getURL() . '/status.php?uid=' . $bestellstatus->cUID;
         }
 
         if ($redirect) {
@@ -46,16 +55,16 @@ abstract class Mollie
      * @param $kBestellung
      * @param bool $newStatus
      * @return array
-     * @throws \Exception
+     * @throws Exception
      */
     public static function getShipmentOptions(Order $order, $kBestellung, $newStatus = false)
     {
         if (!$order || !$kBestellung) {
-            throw new \Exception('Mollie::getShipmentOptions: order and kBestellung are required!');
+            throw new Exception('Mollie::getShipmentOptions: order and kBestellung are required!');
         }
 
 
-        $oBestellung = new \Bestellung($kBestellung, true);
+        $oBestellung = new Bestellung($kBestellung, true);
         if ($newStatus === false) {
             $newStatus = $oBestellung->cStatus;
         }
@@ -63,7 +72,7 @@ abstract class Mollie
 
         // Tracking Data
         if ($oBestellung->cTracking) {
-            $tracking = new \stdClass();
+            $tracking = new stdClass();
             $tracking->carrier = $oBestellung->cVersandartName;
             $tracking->url = $oBestellung->cTrackingURL;
             $tracking->code = $oBestellung->cTracking;
@@ -104,22 +113,22 @@ abstract class Mollie
     /**
      * Returns amount of sent items for SKU
      * @param $sku
-     * @param \Bestellung $oBestellung
+     * @param Bestellung $oBestellung
      * @return float|int
-     * @throws \Exception
+     * @throws Exception
      */
-    public static function getBestellPosSent($sku, \Bestellung $oBestellung)
+    public static function getBestellPosSent($sku, Bestellung $oBestellung)
     {
         if ($sku === null) {
             return 1;
         }
-        /** @var \WarenkorbPos $oPosition */
+        /** @var WarenkorbPos $oPosition */
         foreach ($oBestellung->Positionen as $oPosition) {
             if ($oPosition->cArtNr === $sku) {
                 $sent = 0;
-                /** @var \Lieferschein $oLieferschein */
+                /** @var Lieferschein $oLieferschein */
                 foreach ($oBestellung->oLieferschein_arr as $oLieferschein) {
-                    /** @var \Lieferscheinpos $oLieferscheinPos */
+                    /** @var Lieferscheinpos $oLieferscheinPos */
                     foreach ($oLieferschein->oLieferscheinPos_arr as $oLieferscheinPos) {
                         if ($oLieferscheinPos->getBestellPos() == $oPosition->kBestellpos) {
                             $sent += $oLieferscheinPos->getAnzahl();
@@ -136,20 +145,20 @@ abstract class Mollie
      * @param Order $order
      * @param null $kBestellung
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     public static function handleOrder(Order $order, $kBestellung)
     {
         $logData = '$' . $order->id . '#' . $kBestellung . "§" . $order->orderNumber;
 
-        $oBestellung = new \Bestellung($kBestellung);
+        $oBestellung = new Bestellung($kBestellung);
         if ($oBestellung->kBestellung) {
             $order->orderNumber = $oBestellung->cBestellNr;
             Payment::updateFromPayment($order, $kBestellung);
 
-            $oIncomingPayment = \Shop::DB()->executeQueryPrepared("SELECT * FROM tzahlungseingang WHERE cHinweis = :cHinweis AND kBestellung = :kBestellung", [':cHinweis' => $order->id, ':kBestellung' => $oBestellung->kBestellung], 1);
+            $oIncomingPayment = Shop::DB()->executeQueryPrepared("SELECT * FROM tzahlungseingang WHERE cHinweis = :cHinweis AND kBestellung = :kBestellung", [':cHinweis' => $order->id, ':kBestellung' => $oBestellung->kBestellung], 1);
             if (!$oIncomingPayment) {
-                $oIncomingPayment = new \stdClass();
+                $oIncomingPayment = new stdClass();
             }
 
             // 2. Check PaymentStatus
@@ -180,18 +189,18 @@ abstract class Mollie
     }
 
     /**
-     * @return \JTLMollie
-     * @throws \Exception
+     * @return JTLMollie
+     * @throws Exception
      */
     public static function JTLMollie()
     {
         if (self::$_jtlmollie === null) {
-            $pza = \Shop::DB()->select('tpluginzahlungsartklasse', 'cClassName', 'JTLMollie');
+            $pza = Shop::DB()->select('tpluginzahlungsartklasse', 'cClassName', 'JTLMollie');
             if (!$pza) {
-                throw new \Exception("Mollie Zahlungsart nicht in DB gefunden!");
+                throw new Exception("Mollie Zahlungsart nicht in DB gefunden!");
             }
             require_once __DIR__ . '/../paymentmethod/JTLMollie.php';
-            self::$_jtlmollie = new \JTLMollie($pza->cModulId);
+            self::$_jtlmollie = new JTLMollie($pza->cModulId);
         }
         return self::$_jtlmollie;
     }

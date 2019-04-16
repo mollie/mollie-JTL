@@ -1,10 +1,12 @@
 <?php /* open */
-    
+
+use ws_mollie\Helper;
+
 try {
     require_once __DIR__ . '/../class/Helper.php';
-    \ws_mollie\Helper::init();
+    Helper::init();
 
-    switch (\ws_mollie\Helper::getSetting('load_styles')) {
+    switch (Helper::getSetting('load_styles')) {
         case 'Y':
             $selector = '#fieldset-payment [id*="_mollie"]';
             $border = "";
@@ -17,18 +19,14 @@ try {
         default:
             return;
     }
-    
+
     $lh = "30px";
-    if (\ws_mollie\Helper::getSetting('paymentmethod_sync') === 'size2x') {
+    if (Helper::getSetting('paymentmethod_sync') === 'size2x') {
         $lh = "40px";
     }
-    
 
-    pq('head')->append(
-    
 
-        <<<CSS
-	
+    pq('head')->append(<<<HTML
 	<style>
 	/* MOLLIE CHECKOUT STYLES*/
 	#fieldset-payment .form-group > div:hover, #checkout-shipping-payment .form-group > div:hover {
@@ -46,8 +44,8 @@ try {
 		float: right;
 	}
 	</style>
-CSS
-);
+HTML
+    );
 } catch (Exception $e) {
-    \ws_mollie\Helper::logExc($e);
+    Helper::logExc($e);
 }

@@ -26,7 +26,7 @@
     <br/>
 {/if}
 
-<table class="table" width="100%">
+<table class="table" style="width: 100%">
     <tr>
         <th>Mollie ID:</th>
         <td>{$payment->kID}</td>
@@ -80,7 +80,7 @@
     {/if}
 </div>
 
-<table class="table table-condensed table-striped" width="100%">
+<table class="table table-condensed table-striped" style="width: 100%">
     <thead>
     <tr>
         <th>Status</th>
@@ -177,7 +177,7 @@
 
 <h4>Log</h4>
 
-<table class="table table-condensed" width="100%" style="max-width: 100%">
+<table class="table table-condensed" style="width: 100%">
     {foreach from=$logs item=log}
         <tr>
             <td>

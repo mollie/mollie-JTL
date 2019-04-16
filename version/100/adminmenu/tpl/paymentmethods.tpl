@@ -1,5 +1,5 @@
 <h3>Account Status</h3>
-<table width="100%">
+<table style="width: 100%">
     <tr>
         <th>Mode:</th>
         <td>{$profile->mode}</td>

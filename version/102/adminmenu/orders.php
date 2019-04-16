@@ -1,8 +1,13 @@
 <?php
 
+use Mollie\Api\Types\OrderStatus;
+use ws_mollie\Helper;
+use ws_mollie\Model\Payment;
+use ws_mollie\Mollie;
+
 require_once __DIR__ . '/../class/Helper.php';
 try {
-    if (!\ws_mollie\Helper::init()) {
+    if (!Helper::init()) {
         echo "Kein gültige Lizenz?";
         return;
     }
@@ -16,19 +21,19 @@ try {
                     $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Keine ID angeben!'];
                     break;
                 }
-                $payment = \ws_mollie\Model\Payment::getPaymentMollie($_REQUEST['id']);
+                $payment = Payment::getPaymentMollie($_REQUEST['id']);
                 if (!$payment) {
                     $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Order nicht gefunden!'];
                     break;
                 }
 
                 $order = JTLMollie::API()->orders->get($_REQUEST['id']);
-                if ($order->status == \Mollie\Api\Types\OrderStatus::STATUS_CANCELED) {
+                if ($order->status == OrderStatus::STATUS_CANCELED) {
                     $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Bestellung bereits storniert'];
                     break;
                 }
                 $refund = JTLMollie::API()->orderRefunds->createFor($order, ['lines' => []]);
-                \ws_mollie\Mollie::JTLMollie()->doLog("Order refunded: <br/><pre>" . print_r($refund, 1) . "</pre>", '$' . $payment->kID . '#' . $payment->kBestellung . '§' . $payment->cOrderNumber, LOGLEVEL_NOTICE);
+                Mollie::JTLMollie()->doLog("Order refunded: <br/><pre>" . print_r($refund, 1) . "</pre>", '$' . $payment->kID . '#' . $payment->kBestellung . '§' . $payment->cOrderNumber, LOGLEVEL_NOTICE);
 
                 goto order;
                 break;
@@ -38,18 +43,18 @@ try {
                     $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Keine ID angeben!'];
                     break;
                 }
-                $payment = \ws_mollie\Model\Payment::getPaymentMollie($_REQUEST['id']);
+                $payment = Payment::getPaymentMollie($_REQUEST['id']);
                 if (!$payment) {
                     $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Order nicht gefunden!'];
                     break;
                 }
                 $order = JTLMollie::API()->orders->get($_REQUEST['id']);
-                if ($order->status == \Mollie\Api\Types\OrderStatus::STATUS_CANCELED) {
+                if ($order->status == OrderStatus::STATUS_CANCELED) {
                     $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Bestellung bereits storniert'];
                     break;
                 }
                 $cancel = JTLMollie::API()->orders->cancel($order->id);
-                \ws_mollie\Mollie::JTLMollie()->doLog("Order canceled: <br/><pre>" . print_r($cancel, 1) . "</pre>", '$' . $payment->kID . '#' . $payment->kBestellung . '§' . $payment->cOrderNumber, LOGLEVEL_NOTICE);
+                Mollie::JTLMollie()->doLog("Order canceled: <br/><pre>" . print_r($cancel, 1) . "</pre>", '$' . $payment->kID . '#' . $payment->kBestellung . '§' . $payment->cOrderNumber, LOGLEVEL_NOTICE);
                 goto order;
                 break;
 
@@ -58,13 +63,13 @@ try {
                     $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Keine ID angeben!'];
                     break;
                 }
-                $payment = \ws_mollie\Model\Payment::getPaymentMollie($_REQUEST['id']);
+                $payment = Payment::getPaymentMollie($_REQUEST['id']);
                 if (!$payment) {
                     $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Order nicht gefunden!'];
                     break;
                 }
                 $order = JTLMollie::API()->orders->get($_REQUEST['id']);
-                if ($order->status !== \Mollie\Api\Types\OrderStatus::STATUS_AUTHORIZED && $order->status !== \Mollie\Api\Types\OrderStatus::STATUS_SHIPPING) {
+                if ($order->status !== OrderStatus::STATUS_AUTHORIZED && $order->status !== OrderStatus::STATUS_SHIPPING) {
                     $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Nur autorisierte Zahlungen können erfasst werden!'];
                     break;
                 }
@@ -89,7 +94,7 @@ try {
                 // CAPTURE ALL
                 $shipment = JTLMollie::API()->shipments->createFor($order, $options);
                 $ordersMsgs[] = (object)['type' => 'success', 'text' => 'Zahlung wurde erfolgreich erfasst!'];
-                \ws_mollie\Mollie::JTLMollie()->doLog('Shipment created<br/><pre>' . print_r(['options' => $options, 'shipment' => $shipment], 1) . '</pre>', $logData);
+                Mollie::JTLMollie()->doLog('Shipment created<br/><pre>' . print_r(['options' => $options, 'shipment' => $shipment], 1) . '</pre>', $logData);
                 goto order;
 
             case 'order':
@@ -100,7 +105,7 @@ try {
                 }
 
                 $order = JTLMollie::API()->orders->get($_REQUEST['id']);
-                $payment = \ws_mollie\Model\Payment::getPaymentMollie($_REQUEST['id']);
+                $payment = Payment::getPaymentMollie($_REQUEST['id']);
                 if ($payment) {
                     $oBestellung = new Bestellung($payment->kBestellung, false);
                     //\ws_mollie\Model\Payment::updateFromPayment($order, $oBestellung->kBestellung);
@@ -137,7 +142,7 @@ try {
     Shop::Smarty()->assign('payments', $payments)
         ->assign('ordersMsgs', $ordersMsgs)
         ->assign('admRoot', str_replace('http:', '', $oPlugin->cAdminmenuPfadURL))
-        ->assign('hasAPIKey', trim(\ws_mollie\Helper::getSetting("api_key")) !== '');
+        ->assign('hasAPIKey', trim(Helper::getSetting("api_key")) !== '');
 
     Shop::Smarty()->display($oPlugin->cAdminmenuPfad . '/tpl/orders.tpl');
 } catch (Exception $e) {
@@ -145,5 +150,5 @@ try {
         "{$e->getMessage()}<br/>" .
         "<blockquote>{$e->getFile()}:{$e->getLine()}<br/><pre>{$e->getTraceAsString()}</pre></blockquote>" .
         "</div>";
-    \ws_mollie\Helper::logExc($e);
+    Helper::logExc($e);
 }

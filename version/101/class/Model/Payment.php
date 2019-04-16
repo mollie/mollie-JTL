@@ -2,11 +2,15 @@
 
 namespace ws_mollie\Model;
 
+use Bestellung;
+use Mollie\Api\Resources\Order;
+use Shop;
+
 class Payment extends AbstractModel
 {
     const TABLE = 'xplugin_ws_mollie_payments';
 
-    public static function updateFromPayment(\Mollie\Api\Resources\Order $oMolliePayment, $kBestellung = null, $hash = null)
+    public static function updateFromPayment(Order $oMolliePayment, $kBestellung = null, $hash = null)
     {
         $data = [
             ':kID' => $oMolliePayment->id,
@@ -35,7 +39,7 @@ class Payment extends AbstractModel
             ':fAmountRefunded1' => $oMolliePayment->amountRefunded ? $oMolliePayment->amountRefunded->value : null,
             ':dCreatedAt' => $oMolliePayment->createdAt ? date('Y-m-d H:i:s', strtotime($oMolliePayment->createdAt)) : null,
         ];
-        return \Shop::DB()->executeQueryPrepared(
+        return Shop::DB()->executeQueryPrepared(
             'INSERT INTO ' . self::TABLE . ' (kID, kBestellung, cMode, cStatus, cHash, fAmount, cOrderNumber, cCurrency, cMethod, cLocale, bCancelable, cWebhookURL, cRedirectURL, cCheckoutURL, fAmountCaptured, fAmountRefunded, dCreatedAt) '
             . 'VALUES (:kID, :kBestellung, :cMode, :cStatus, :cHash, :fAmount, :cOrderNumber, :cCurrency, :cMethod, :cLocale, :bCancelable, :cWebhookURL, :cRedirectURL, IF(:cCheckoutURL IS NULL, cCheckoutURL, :cCheckoutURL1), :fAmountCaptured, :fAmountRefunded, :dCreatedAt) '
             . 'ON DUPLICATE KEY UPDATE kBestellung = :kBestellung1, cOrderNumber = :cOrderNumber1, cStatus = :cStatus1, cMethod = :cMethod1, bCancelable = :bCancelable1, fAmountCaptured = :fAmountCaptured1, fAmountRefunded = :fAmountRefunded1',
@@ -46,27 +50,27 @@ class Payment extends AbstractModel
 
     public static function getPayment($kBestellung)
     {
-        $payment = \Shop::DB()->executeQueryPrepared('SELECT * FROM ' . self::TABLE . ' WHERE kBestellung = :kBestellung', [':kBestellung' => $kBestellung], 1);
+        $payment = Shop::DB()->executeQueryPrepared('SELECT * FROM ' . self::TABLE . ' WHERE kBestellung = :kBestellung', [':kBestellung' => $kBestellung], 1);
         if ($payment && $payment->kBestellung) {
-            $payment->oBestellung = new \Bestellung($payment->kBestellung, false);
+            $payment->oBestellung = new Bestellung($payment->kBestellung, false);
         }
         return $payment;
     }
 
     public static function getPaymentMollie($kID)
     {
-        $payment = \Shop::DB()->executeQueryPrepared('SELECT * FROM ' . self::TABLE . ' WHERE kID = :kID', [':kID' => $kID], 1);
+        $payment = Shop::DB()->executeQueryPrepared('SELECT * FROM ' . self::TABLE . ' WHERE kID = :kID', [':kID' => $kID], 1);
         if ($payment && $payment->kBestellung) {
-            $payment->oBestellung = new \Bestellung($payment->kBestellung, false);
+            $payment->oBestellung = new Bestellung($payment->kBestellung, false);
         }
         return $payment;
     }
 
     public static function getPaymentHash($cHash)
     {
-        $payment = \Shop::DB()->executeQueryPrepared('SELECT * FROM ' . self::TABLE . ' WHERE cHash = :cHash', [':cHash' => $cHash], 1);
+        $payment = Shop::DB()->executeQueryPrepared('SELECT * FROM ' . self::TABLE . ' WHERE cHash = :cHash', [':cHash' => $cHash], 1);
         if ($payment && $payment->kBestellung) {
-            $payment->oBestellung = new \Bestellung($payment->kBestellung, false);
+            $payment->oBestellung = new Bestellung($payment->kBestellung, false);
         }
         return $payment;
     }

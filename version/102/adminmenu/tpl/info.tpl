@@ -1,8 +1,24 @@
+<div class="container">
+    <div class="row">
+        <div class="col-xs-4">X</div>
+        <div class="col-xs-4">X</div>
+        <div class="col-xs-4">X</div>
+    </div>
+    <div class="row">
+        <div class="col-xs-8">X</div>
+        <div class="col-xs-4">X</div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">X</div>
+    </div>
+</div>
+
+
 <div class="row">
     <div class="col-md-6"></div>
     <div class="col-md-6">
         {if isset($update)}
-            <script>$(function(){
+            <script>$(function () {
                     $('.nav-tabs .tab-link-info').addClass('update').text("Update verfügbar!");
                 });</script>
             <div class="alert alert-success">

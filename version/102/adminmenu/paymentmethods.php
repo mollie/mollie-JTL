@@ -1,18 +1,20 @@
 <?php
 
+use Mollie\Api\MollieApiClient;
 use ws_mollie\Helper;
+use ws_mollie\Mollie;
 
 require_once __DIR__ . '/../class/Helper.php';
 try {
     if (!Helper::init()) {
-        echo "Kein gÃ¼ltige Lizenz?";
+        echo "Kein gültige Lizenz?";
         return;
     }
 
     global $oPlugin;
 
 
-    $mollie = new \Mollie\Api\MollieApiClient();
+    $mollie = new MollieApiClient();
     $mollie->setApiKey(Helper::getSetting("api_key"));
 
     $profile = $mollie->profiles->get('me');
@@ -44,8 +46,8 @@ try {
     }
 
     Shop::Smarty()->assign('profile', $profile)
-        ->assign('currencies', \ws_mollie\Mollie::getCurrencies())
-        ->assign('locales', \ws_mollie\Mollie::getLocales())
+        ->assign('currencies', Mollie::getCurrencies())
+        ->assign('locales', Mollie::getLocales())
         ->assign('allMethods', $allMethods);
     Shop::Smarty()->display($oPlugin->cAdminmenuPfad . '/tpl/paymentmethods.tpl');
 } catch (Exception $e) {
