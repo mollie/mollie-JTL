@@ -167,7 +167,7 @@ abstract class Mollie
                 case OrderStatus::STATUS_COMPLETED:
                 case OrderStatus::STATUS_AUTHORIZED:
                     $oIncomingPayment->fBetrag = $order->amount->value;
-                    $oIncomingPayment->cISO = $order->amount->curreny;
+                    $oIncomingPayment->cISO = $order->amount->currency;
                     $oIncomingPayment->cHinweis = $order->id;
                     Mollie::JTLMollie()->addIncomingPayment($oBestellung, $oIncomingPayment);
                     Mollie::JTLMollie()->setOrderStatusToPaid($oBestellung);

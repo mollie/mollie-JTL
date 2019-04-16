@@ -113,6 +113,8 @@ class JTLMollie extends PaymentMethod
         $logData = '#' . $order->kBestellung . "" . $order->cBestellNr;
         try {
             $payment = Payment::getPayment($order->kBestellung);
+            $oMolliePayment = self::API()->orders->get($payment->kID);
+            Mollie::handleOrder($oMolliePayment, $order->kBestellung);
             if ($payment && in_array($payment->cStatus, [OrderStatus::STATUS_CREATED]) && $payment->cCheckoutURL) {
                 $logData .= '$' . $payment->kID;
                 if (!$this->duringCheckout) {
@@ -145,19 +147,6 @@ class JTLMollie extends PaymentMethod
     }
 
     /**
-     * @param string $msg
-     * @param null $data
-     * @param int $level
-     * @return $this
-     */
-    public function doLog($msg, $data = null, $level = LOGLEVEL_NOTICE)
-    {
-        ZahlungsLog::add($this->moduleID, $msg, $data, $level);
-
-        return $this;
-    }
-
-    /**
      * @return MollieApiClient
      * @throws ApiException
      * @throws IncompatiblePlatform
@@ -171,6 +160,19 @@ class JTLMollie extends PaymentMethod
             self::$_mollie->addVersionString("ws_mollie/" . Helper::oPlugin()->nVersion);
         }
         return self::$_mollie;
+    }
+
+    /**
+     * @param string $msg
+     * @param null $data
+     * @param int $level
+     * @return $this
+     */
+    public function doLog($msg, $data = null, $level = LOGLEVEL_NOTICE)
+    {
+        ZahlungsLog::add($this->moduleID, $msg, $data, $level);
+
+        return $this;
     }
 
     /**
