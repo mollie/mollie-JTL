@@ -2,7 +2,7 @@
     <div class="col-md-6"></div>
     <div class="col-md-6">
         {if isset($update)}
-            <script>$(function(){
+            <script>$(function () {
                     $('.nav-tabs .tab-link-info').addClass('update').text("Update verfügbar!");
                 });</script>
             <div class="alert alert-success">

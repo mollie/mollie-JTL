@@ -1,5 +1,5 @@
 <h3>Account Status</h3>
-<table width="100%">
+<table style="width: 100%">
     <tr>
         <th>Mode:</th>
         <td>{$profile->mode}</td>
@@ -24,12 +24,12 @@
         </thead>
         <tbody>
         {foreach from=$allMethods->_embedded->methods item=method}
-        <tr>
-            <td><img alt="{$method->description|utf8_decode}" title="{$method->description|utf8_decode}"
+            <tr>
+                <td><img alt="{$method->description|utf8_decode}" title="{$method->description|utf8_decode}"
                          src="{$method->image->svg}" height="50"/></td>
-            <td>{$method->id}</td>
-            <td>{$method->description|utf8_decode}</td>
-                            <td>
+                <td>{$method->id}</td>
+                <td>{$method->description|utf8_decode}</td>
+                <td>
                     <ul>
                         {foreach from=$method->pricing item=price}
                             <li>{$price->description|utf8_decode}: {$price->fixed->value} {$price->fixed->currency}
@@ -40,7 +40,7 @@
                         {/foreach}
                     </ul>
                 </td>
-        </tr>
+            </tr>
         {/foreach}
         </tbody>
     </table>

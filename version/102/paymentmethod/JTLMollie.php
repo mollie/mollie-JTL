@@ -113,6 +113,8 @@ class JTLMollie extends PaymentMethod
         $logData = '#' . $order->kBestellung . "" . $order->cBestellNr;
         try {
             $payment = Payment::getPayment($order->kBestellung);
+            $oMolliePayment = self::API()->orders->get($payment->kID);
+            Mollie::handleOrder($oMolliePayment, $order->kBestellung);
             if ($payment && in_array($payment->cStatus, [OrderStatus::STATUS_CREATED]) && $payment->cCheckoutURL) {
                 $logData .= '$' . $payment->kID;
                 if (!$this->duringCheckout) {
@@ -145,6 +147,22 @@ class JTLMollie extends PaymentMethod
     }
 
     /**
+     * @return MollieApiClient
+     * @throws ApiException
+     * @throws IncompatiblePlatform
+     */
+    public static function API()
+    {
+        if (self::$_mollie === null) {
+            self::$_mollie = new MollieApiClient();
+            self::$_mollie->setApiKey(Helper::getSetting('api_key'));
+            self::$_mollie->addVersionString("JTL-Shop/" . JTL_VERSION . '.' . JTL_MINOR_VERSION);
+            self::$_mollie->addVersionString("ws_mollie/" . Helper::oPlugin()->nVersion);
+        }
+        return self::$_mollie;
+    }
+
+    /**
      * @param string $msg
      * @param null $data
      * @param int $level
@@ -155,20 +173,6 @@ class JTLMollie extends PaymentMethod
         ZahlungsLog::add($this->moduleID, $msg, $data, $level);
 
         return $this;
-    }
-
-    /**
-     * @return MollieApiClient
-     * @throws ApiException
-     * @throws IncompatiblePlatform
-     */
-    public static function API()
-    {
-        if (self::$_mollie === null) {
-            self::$_mollie = new MollieApiClient();
-            self::$_mollie->setApiKey(Helper::getSetting('api_key'));
-        }
-        return self::$_mollie;
     }
 
     /**
@@ -188,7 +192,7 @@ class JTLMollie extends PaymentMethod
             'orderNumber' => $order->cBestellNr,
             'lines' => [],
             'billingAddress' => new stdClass(),
-            'shippingAddress' => new stdClass(),
+
             'redirectUrl' => (int)$this->duringCheckout ? Shop::getURL() . '/bestellabschluss.php?mollie=' . md5($hash) : $this->getReturnURL($order),
             'webhookUrl' => $this->getNotificationURL($hash) . '&hash=' . md5($hash),
         ];
@@ -206,34 +210,39 @@ class JTLMollie extends PaymentMethod
         $data['billingAddress']->city = utf8_encode($order->oRechnungsadresse->cOrt);
         $data['billingAddress']->country = $order->oRechnungsadresse->cLand;
 
-        //if ((int)$order->kLieferadresse) {
-        $data['shippingAddress']->organizationName = utf8_encode($order->Lieferadresse->cFirma);
-        $data['shippingAddress']->title = utf8_encode($order->Lieferadresse->cAnrede === 'm' ? Shop::Lang()->get('mr') : Shop::Lang()->get('mrs'));
-        $data['shippingAddress']->givenName = utf8_encode($order->Lieferadresse->cVorname);
-        $data['shippingAddress']->familyName = utf8_encode($order->Lieferadresse->cNachname);
-        $data['shippingAddress']->email = $order->oRechnungsadresse->cMail;
-        $data['shippingAddress']->streetAndNumber = utf8_encode($order->Lieferadresse->cStrasse . ' ' . $order->Lieferadresse->cHausnummer);
-        $data['shippingAddress']->postalCode = $order->Lieferadresse->cPLZ;
-        $data['shippingAddress']->city = utf8_encode($order->Lieferadresse->cOrt);
-        $data['shippingAddress']->country = $order->Lieferadresse->cLand;
-        //}
+        if ($order->Lieferadresse != null) {
+            $data['shippingAddress'] = new stdClass();
+            $data['shippingAddress']->organizationName = utf8_encode($order->Lieferadresse->cFirma);
+            $data['shippingAddress']->title = utf8_encode($order->Lieferadresse->cAnrede === 'm' ? Shop::Lang()->get('mr') : Shop::Lang()->get('mrs'));
+            $data['shippingAddress']->givenName = utf8_encode($order->Lieferadresse->cVorname);
+            $data['shippingAddress']->familyName = utf8_encode($order->Lieferadresse->cNachname);
+            $data['shippingAddress']->email = $order->oRechnungsadresse->cMail;
+            $data['shippingAddress']->streetAndNumber = utf8_encode($order->Lieferadresse->cStrasse . ' ' . $order->Lieferadresse->cHausnummer);
+            $data['shippingAddress']->postalCode = $order->Lieferadresse->cPLZ;
+            $data['shippingAddress']->city = utf8_encode($order->Lieferadresse->cOrt);
+            $data['shippingAddress']->country = $order->Lieferadresse->cLand;
+        }
 
         /** @var WarenkorbPos $oPosition */
         foreach ($order->Positionen as $oPosition) {
+            $unitPrice = berechneBrutto($order->Waehrung->fFaktor * $oPosition->fPreis, $oPosition->fMwSt, 4);
+            $totalAmount = $oPosition->nAnzahl * $unitPrice;
+
             $line = new stdClass();
             $line->name = utf8_encode($oPosition->cName);
             $line->quantity = $oPosition->nAnzahl;
             $line->unitPrice = (object)[
-                'value' => number_format($order->Waehrung->fFaktor * ($oPosition->fPreis * ((float)$oPosition->fMwSt / 100 + 1)), 2, '.', ''),
+                'value' => number_format(round($unitPrice, 2), 2, '.', ''),
                 'currency' => $order->Waehrung->cISO,
             ];
             $line->totalAmount = (object)[
-                'value' => number_format($oPosition->nAnzahl * (float)$line->unitPrice->value, 2, '.', ''),
+                'value' => number_format(round($totalAmount, 2), 2, '.', ''),
                 'currency' => $order->Waehrung->cISO,
             ];
             $line->vatRate = $oPosition->fMwSt;
+            $x = $totalAmount - (berechneNetto($unitPrice, $oPosition->fMwSt, 4) * $oPosition->nAnzahl);
             $line->vatAmount = (object)[
-                'value' => number_format($line->totalAmount->value - ($line->totalAmount->value / (1 + (float)$oPosition->fMwSt / 100)), 2, '.', ''),
+                'value' => number_format(round($x, 2), 2, '.', ''),
                 'currency' => $order->Waehrung->cISO,
             ];
 
@@ -430,11 +439,17 @@ class JTLMollie extends PaymentMethod
      */
     public function isSelectable()
     {
+        /** @var Warenkorb $wk */
+        $wk = $_SESSION['Warenkorb'];
+        foreach ($wk->PositionenArr as $oPosition) {
+            if ($oPosition->Artikel->cTeilbar === 'Y' && fmod($oPosition->nAnzahl, 1) !== 0) {
+                return false;
+            }
+        }
+
         $locale = self::getLocale($_SESSION['cISOSprache'], $_SESSION['Kunde']->cLand);
         if (static::MOLLIE_METHOD !== '') {
             try {
-                /** @var Warenkorb $wk */
-                $wk = $_SESSION['Warenkorb'];
                 $method = self::PossiblePaymentMethods(static::MOLLIE_METHOD, $locale, $_SESSION['Kunde']->cLand, $_SESSION['Waehrung']->cISO, $wk->gibGesamtsummeWaren() * $_SESSION['Waehrung']->fFaktor);
                 if ($method !== null) {
                     $this->updatePaymentMethod($_SESSION['cISOSprache'], $method);

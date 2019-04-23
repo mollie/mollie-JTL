@@ -8,10 +8,11 @@
 
 {if $hasAPIKey == false}
     <a href="https://ws-url.de/mollie-pay" target="_blank" style="display: block; text-align: center">
-        <img src="{$admRoot}tpl/mollie-account-erstellen.png" alt="Jetzt kostenlos Mollie Account eröffnen!" style="max-width: 100%"/>
+        <img src="{$admRoot}tpl/mollie-account-erstellen.png" alt="Jetzt kostenlos Mollie Account eröffnen!"
+             style="max-width: 100%"/>
     </a>
 {else}
-    <table class="datatable" width="100%" data-order='[[ 8, "desc" ]]'>
+    <table class="datatable" style="width: 100%" data-order='[[ 8, "desc" ]]'>
         <thead>
         <tr>
             <td>BestellNr.</td>

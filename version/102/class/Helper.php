@@ -3,38 +3,31 @@
 
 namespace ws_mollie {
 
-    use Exception;
-    use Jtllog;
-    use PclZip;
-    use Plugin;
-    use Shop;
-    use stdClass;
-
     if (!class_exists('ws_mollie\Helper')) {
         /**
-         * Class Helper
-         * @package ws_mollie
-         */
+        * Class Helper
+        * @package ws_mollie
+        */
         final class Helper
         {
 
 
             /**
-             * Is ::autoload() already called?
-             *
-             * @var bool|null
-             */
+            * Is ::autoload() already called?
+            *
+            * @var bool|null
+            */
             private static $_autoload;
 
             /**
-             * @var Plugin
-             */
+            * @var \Plugin
+            */
             private static $oPlugin;
 
             /**
-             * Load Vendor Autoloader
-             * @return bool
-             */
+            * Load Vendor Autoloader
+            * @return bool
+            */
             public static function autoload()
             {
                 if (null === self::$_autoload) {
@@ -63,14 +56,14 @@ namespace ws_mollie {
             }
 
             /**
-             * @throws Exception
-             */
+            * @throws \Exception
+            */
             public static function selfupdate()
             {
                 if (function_exists('opcache_reset')) {
                     opcache_reset();
                 }
-
+                
                 // 0. GET RELEASE INFO
                 $release = self::getLatestRelease(true);
                 $url = $release->short_url != '' ? $release->short_url : $release->full_url;
@@ -80,21 +73,21 @@ namespace ws_mollie {
 
                 // 1. PRE-CHECKS
                 if (file_exists($pluginsDir . self::oPlugin()->cVerzeichnis . '/.git') && is_dir($pluginsDir . self::oPlugin()->cVerzeichnis . '/.git')) {
-                    throw new Exception('Pluginordner enth�lt ein GIT Repository, kein Update m�glich!');
+                    throw new \Exception('Pluginordner enth�lt ein GIT Repository, kein Update m�glich!');
                 }
 
                 if (!function_exists("curl_exec")) {
-                    throw new Exception("cURL ist nicht verf�gbar!!");
+                    throw new \Exception("cURL ist nicht verf�gbar!!");
                 }
                 if (!is_writable($tmpDir)) {
-                    throw new Exception("Tempor�res Verzeichnis_'{$tmpDir}' ist nicht beschreibbar!");
+                    throw new \Exception("Tempor�res Verzeichnis_'{$tmpDir}' ist nicht beschreibbar!");
                 }
                 if (!is_writable($pluginsDir . self::oPlugin()->cVerzeichnis)) {
-                    throw new Exception("Plugin Verzeichnis_'" . $pluginsDir . self::oPlugin()->cVerzeichnis . "' ist nicht beschreibbar!");
+                    throw new \Exception("Plugin Verzeichnis_'" . $pluginsDir . self::oPlugin()->cVerzeichnis . "' ist nicht beschreibbar!");
                 }
                 if (file_exists($tmpDir . $filename)) {
                     if (!unlink($tmpDir . $filename)) {
-                        throw new Exception("Tempor�re Datei '" . $tmpDir . $filename . "' konnte nicht gel�scht werden!");
+                        throw new \Exception("Tempor�re Datei '" . $tmpDir . $filename . "' konnte nicht gel�scht werden!");
                     }
                 }
 
@@ -109,35 +102,35 @@ namespace ws_mollie {
                 curl_close($ch);
                 fclose($fp);
                 if ($info['http_code'] !== 200) {
-                    throw new Exception("Unerwarteter Status Code '" . $info['http_code'] . "'!");
+                    throw new \Exception("Unerwarteter Status Code '" . $info['http_code'] . "'!");
                 }
                 if ($info['download_content_length'] <= 0) {
-                    throw new Exception("Unerwartete Downloadgr��e '" . $info['download_content_length'] . "'!");
+                    throw new \Exception("Unerwartete Downloadgr��e '" . $info['download_content_length'] . "'!");
                 }
 
                 // 3. UNZIP
                 require_once PFAD_ROOT . PFAD_PCLZIP . 'pclzip.lib.php';
-                $zip = new PclZip($tmpDir . $filename);
+                $zip = new \PclZip($tmpDir . $filename);
                 $content = $zip->listContent();
 
                 if (!is_array($content) || !isset($content[0]['filename']) || strpos($content[0]['filename'], '.') !== false) {
-                    throw new Exception("Das Zip-Archiv ist leider ung�ltig!");
+                    throw new \Exception("Das Zip-Archiv ist leider ung�ltig!");
                 } else {
                     $unzipPath = PFAD_ROOT . PFAD_PLUGIN;
                     $res = $zip->extract(PCLZIP_OPT_PATH, $unzipPath);
                     if ($res !== 0) {
-                        header('Location: ' . Shop::getURL() . DIRECTORY_SEPARATOR . PFAD_ADMIN . 'pluginverwaltung.php', true);
+                        header('Location: ' . \Shop::getURL() . DIRECTORY_SEPARATOR . PFAD_ADMIN . 'pluginverwaltung.php', true);
                     } else {
-                        throw new Exception('Entpacken fehlgeschlagen: ' . $zip->errorCode());
+                        throw new \Exception('Entpacken fehlgeschlagen: ' . $zip->errorCode());
                     }
                 }
             }
 
             /**
-             * @param bool $force
-             * @return mixed
-             * @throws Exception
-             */
+            * @param bool $force
+            * @return mixed
+            * @throws \Exception
+            */
             public static function getLatestRelease($force = false)
             {
                 $lastCheck = (int)self::getSetting(__NAMESPACE__ . '_upd');
@@ -155,11 +148,11 @@ namespace ws_mollie {
                     $statusCode = (int)curl_getinfo($curl, CURLINFO_HTTP_CODE);
                     @curl_close($curl);
                     if ($statusCode !== 200) {
-                        throw new Exception(__NAMESPACE__ . ': Could not fetch release info: ' . $statusCode);
+                        throw new \Exception(__NAMESPACE__ . ': Could not fetch release info: ' . $statusCode);
                     }
                     $json = json_decode($data);
                     if (json_last_error() || $json->status != 'ok') {
-                        throw new Exception(__NAMESPACE__ . ': Could not decode release info: ' . $data);
+                        throw new \Exception(__NAMESPACE__ . ': Could not decode release info: ' . $data);
                     }
                     self::setSetting(__NAMESPACE__ . '_upd', time());
                     file_put_contents(PFAD_ROOT . PFAD_COMPILEDIR . __NAMESPACE__ . '_upd', json_encode($json->data));
@@ -170,10 +163,10 @@ namespace ws_mollie {
             }
 
             /**
-             * Register PSR-4 autoloader
-             * Licence-Check
-             * @return bool
-             */
+            * Register PSR-4 autoloader
+            * Licence-Check
+            * @return bool
+            */
             public static function init()
             {
                 ini_set('xdebug.default_enable', defined('WS_XDEBUG_ENABLED'));
@@ -181,23 +174,23 @@ namespace ws_mollie {
             }
 
             /**
-             * Sets a Plugin Setting and saves it to the DB
-             *
-             * @param $name
-             * @param $value
-             * @return int
-             */
+            * Sets a Plugin Setting and saves it to the DB
+            *
+            * @param $name
+            * @param $value
+            * @return int
+            */
             public static function setSetting($name, $value)
             {
-                $setting = new stdClass;
+                $setting = new \stdClass;
                 $setting->kPlugin = self::oPlugin()->kPlugin;
                 $setting->cName = $name;
                 $setting->cWert = $value;
 
                 if (array_key_exists($name, self::oPlugin()->oPluginEinstellungAssoc_arr)) {
-                    $return = Shop::DB()->updateRow('tplugineinstellungen', ['kPlugin', 'cName'], [$setting->kPlugin, $setting->cName], $setting);
+                    $return = \Shop::DB()->updateRow('tplugineinstellungen', ['kPlugin', 'cName'], [$setting->kPlugin, $setting->cName], $setting);
                 } else {
-                    $return = Shop::DB()->insertRow('tplugineinstellungen', $setting);
+                    $return = \Shop::DB()->insertRow('tplugineinstellungen', $setting);
                 }
                 self::oPlugin()->oPluginEinstellungAssoc_arr[$name] = $value;
                 self::oPlugin(true); // invalidate cache
@@ -205,41 +198,41 @@ namespace ws_mollie {
             }
 
             /**
-             * Get Plugin Object
-             *
-             * @param bool $force disable Cache
-             * @return Plugin|null
-             */
+            * Get Plugin Object
+            *
+            * @param bool $force disable Cache
+            * @return \Plugin|null
+            */
             public static function oPlugin($force = false)
             {
                 if ($force === true) {
-                    self::$oPlugin = new Plugin(self::oPlugin(false)->kPlugin, true);
+                    self::$oPlugin = new \Plugin(self::oPlugin(false)->kPlugin, true);
                 } elseif (null === self::$oPlugin) {
-                    self::$oPlugin = Plugin::getPluginById(__NAMESPACE__);
+                    self::$oPlugin = \Plugin::getPluginById(__NAMESPACE__);
                 }
                 return self::$oPlugin;
             }
 
             /**
-             * get a Plugin setting
-             *
-             * @param $name
-             * @return null|mixed
-             */
+            * get a Plugin setting
+            *
+            * @param $name
+            * @return null|mixed
+            */
             public static function getSetting($name)
             {
-                if (array_key_exists($name, self::oPlugin()->oPluginEinstellungAssoc_arr ?: [])) {
+                if (array_key_exists($name, self::oPlugin()->oPluginEinstellungAssoc_arr?:[])) {
                     return self::oPlugin()->oPluginEinstellungAssoc_arr[$name];
                 }
                 return null;
             }
 
             /**
-             * Get Domain frpm URL_SHOP without www.
-             *
-             * @param string $url
-             * @return string
-             */
+            * Get Domain frpm URL_SHOP without www.
+            *
+            * @param string $url
+            * @return string
+            */
             public static function getDomain($url = URL_SHOP)
             {
                 $matches = array();
@@ -248,40 +241,40 @@ namespace ws_mollie {
             }
 
             /**
-             * @return mixed
-             */
+            * @return mixed
+            */
             private static function _masterMail()
             {
-                $settings = Shop::getSettings(array(CONF_EMAILS));
+                $settings = \Shop::getSettings(array(CONF_EMAILS));
                 return $settings['emails']['email_master_absender'];
             }
 
             /**
-             * @param Exception $exc
-             * @param bool $trace
-             * @return void
-             */
-            public static function logExc(Exception $exc, $trace = true)
+            * @param \Exception $exc
+            * @param bool $trace
+            * @return void
+            */
+            public static function logExc(\Exception $exc, $trace = true)
             {
-                Jtllog::writeLog(__NAMESPACE__ . ': ' . $exc->getMessage() . ($trace ? ' - ' . $exc->getTraceAsString() : ''));
+                \Jtllog::writeLog(__NAMESPACE__ . ': ' . $exc->getMessage() . ($trace ? ' - ' . $exc->getTraceAsString() : ''));
             }
 
             /**
-             * Checks if admin session is loaded
-             *
-             * @return bool
-             */
+            * Checks if admin session is loaded
+            *
+            * @return bool
+            */
             public static function isAdminBackend()
             {
                 return session_name() === 'eSIdAdm';
             }
 
             /**
-             * Returns kAdminmenu ID for given Title, used for Tabswitching
-             *
-             * @param $name string CustomLink Title
-             * @return int
-             */
+            * Returns kAdminmenu ID for given Title, used for Tabswitching
+            *
+            * @param $name string CustomLink Title
+            * @return int
+            */
             public static function getAdminmenu($name)
             {
                 $kPluginAdminMenu = 0;
