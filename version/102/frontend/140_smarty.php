@@ -26,7 +26,8 @@ try {
     }
 
 
-    pq('head')->append(<<<HTML
+    pq('head')->append(
+        <<<HTML
 	<style>
 	/* MOLLIE CHECKOUT STYLES*/
 	#fieldset-payment .form-group > div:hover, #checkout-shipping-payment .form-group > div:hover {

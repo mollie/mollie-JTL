@@ -225,7 +225,6 @@ class JTLMollie extends PaymentMethod
 
         /** @var WarenkorbPos $oPosition */
         foreach ($order->Positionen as $oPosition) {
-
             $unitPrice = berechneBrutto($order->Waehrung->fFaktor * $oPosition->fPreis, $oPosition->fMwSt, 4);
             $totalAmount = $oPosition->nAnzahl * $unitPrice;
 
@@ -451,7 +450,6 @@ class JTLMollie extends PaymentMethod
         $locale = self::getLocale($_SESSION['cISOSprache'], $_SESSION['Kunde']->cLand);
         if (static::MOLLIE_METHOD !== '') {
             try {
-
                 $method = self::PossiblePaymentMethods(static::MOLLIE_METHOD, $locale, $_SESSION['Kunde']->cLand, $_SESSION['Waehrung']->cISO, $wk->gibGesamtsummeWaren() * $_SESSION['Waehrung']->fFaktor);
                 if ($method !== null) {
                     $this->updatePaymentMethod($_SESSION['cISOSprache'], $method);

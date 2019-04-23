@@ -60,8 +60,7 @@ namespace ws_mollie {
             */
             public static function selfupdate()
             {
-                
-                if(function_exists('opcache_reset')){
+                if (function_exists('opcache_reset')) {
                     opcache_reset();
                 }
                 
@@ -208,7 +207,7 @@ namespace ws_mollie {
             {
                 if ($force === true) {
                     self::$oPlugin = new \Plugin(self::oPlugin(false)->kPlugin, true);
-                } else if (null === self::$oPlugin) {
+                } elseif (null === self::$oPlugin) {
                     self::$oPlugin = \Plugin::getPluginById(__NAMESPACE__);
                 }
                 return self::$oPlugin;
@@ -287,7 +286,6 @@ namespace ws_mollie {
                 }
                 return $kPluginAdminMenu;
             }
-
         }
     }
 

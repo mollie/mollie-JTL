@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <jtlshop3plugin>
     <Name>mollie</Name>
-    <Description>Zahlungsartplugin für mollie.com</Description>
+    <Description>Zahlungsartplugin fÃ¼r mollie.com</Description>
     <Author>WebStollen</Author>
     <URL>http://www.webstollen.de/</URL>
     <XMLVersion>102</XMLVersion>
@@ -16,7 +16,7 @@
             <CreateDate>2019-02-26</CreateDate>
         </Version>
         <Version nr="102">
-            <CreateDate>2019-04-01</CreateDate>
+            <CreateDate>2019-04-23</CreateDate>
         </Version>
         <Hooks>
             <Hook id="131">131_globalinclude.php</Hook>
@@ -41,23 +41,23 @@
                 <Name>Einstellungen</Name>
                 <Setting type="text" initialValue="" sort="10" conf="Y">
                     <Name>API Key:</Name>
-                    <Description>Füge hier deinen mollie API Key ein</Description>
+                    <Description>FÃ¼ge hier deinen mollie API Key ein</Description>
                     <ValueName>api_key</ValueName>
                 </Setting>
                 <Setting type="selectbox" initialValue="S" sort="20" conf="Y">
                     <Name>Zahlungsart Daten syncronisiernen</Name>
-                    <Description>Lädt Name / Bild für die jeweilige Sprache automatisch von mollie, und speichert diese in der Datenbank</Description>
+                    <Description>LÃ¤dt Name / Bild fÃ¼r die jeweilige Sprache automatisch von mollie, und speichert diese in der Datenbank</Description>
                     <ValueName>paymentmethod_sync</ValueName>
                     <SelectboxOptions>
                         <Option value="N" sort="1"><![CDATA[Nein]]></Option>
-                        <Option value="size1x" sort="2"><![CDATA[Ja, Bildgröße 1x]]></Option>
-                        <Option value="size2x" sort="3"><![CDATA[Ja, Bildgröße 2x]]></Option>
+                        <Option value="size1x" sort="2"><![CDATA[Ja, BildgrÃ¶ÃŸe 1x]]></Option>
+                        <Option value="size2x" sort="3"><![CDATA[Ja, BildgrÃ¶ÃŸe 2x]]></Option>
                         <Option value="svg" sort="4"><![CDATA[Ja, Bild SVG]]></Option>
                     </SelectboxOptions>
                 </Setting>
                 <Setting type="selectbox" initialValue="N" sort="30" conf="Y">
                     <Name>Checkout Styles laden</Name>
-                    <Description>Lädt Stylesheets für das Evo Template, um den Checkout zu verschönern.</Description>
+                    <Description>LÃ¤dt Stylesheets fÃ¼r das Evo Template, um den Checkout zu verschÃ¶nern.</Description>
                     <ValueName>load_styles</ValueName>
                     <SelectboxOptions>
                         <Option value="N" sort="1"><![CDATA[Nein]]></Option>
@@ -70,7 +70,7 @@
         <PaymentMethod>
             <Method>
                 <Name>mollie</Name>
-                <PictureURL/>
+                <PictureURL></PictureURL>
                 <Sort>1</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
@@ -90,7 +90,7 @@
             </Method>
             <Method>
                 <Name>mollie Kreditkarte</Name>
-                <PictureURL/>
+                <PictureURL></PictureURL>
                 <Sort>2</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
@@ -110,7 +110,7 @@
             </Method>
             <Method>
                 <Name>mollie Bitcoin</Name>
-                <PictureURL/>
+                <PictureURL></PictureURL>
                 <Sort>3</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
@@ -130,7 +130,7 @@
             </Method>
             <Method>
                 <Name>mollie Bancontact</Name>
-                <PictureURL/>
+                <PictureURL></PictureURL>
                 <Sort>4</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
@@ -150,7 +150,7 @@
             </Method>
             <Method>
                 <Name>mollie Banktransfer</Name>
-                <PictureURL/>
+                <PictureURL></PictureURL>
                 <Sort>5</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
@@ -163,14 +163,14 @@
                 <ClassName>JTLMollieBanktransfer</ClassName>
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
-                    <Name>SEPA Überweisung</Name>
+                    <Name>SEPA Ãœberweisung</Name>
                     <ChargeName>mollie</ChargeName>
-                    <InfoText>Bezahlen Sie bequem mit SEPA Überweisung.</InfoText>
+                    <InfoText>Bezahlen Sie bequem mit SEPA Ãœberweisung.</InfoText>
                 </MethodLanguage>
             </Method>
             <Method>
                 <Name>mollie Belfius</Name>
-                <PictureURL/>
+                <PictureURL></PictureURL>
                 <Sort>6</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
@@ -190,7 +190,7 @@
             </Method>
             <Method>
                 <Name>mollie DirectDebit</Name>
-                <PictureURL/>
+                <PictureURL></PictureURL>
                 <Sort>7</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
@@ -210,7 +210,7 @@
             </Method>
             <Method>
                 <Name>mollie EPS</Name>
-                <PictureURL/>
+                <PictureURL></PictureURL>
                 <Sort>2</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
@@ -230,7 +230,7 @@
             </Method>
             <Method>
                 <Name>mollie Giftcard</Name>
-                <PictureURL/>
+                <PictureURL></PictureURL>
                 <Sort>8</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
@@ -250,7 +250,7 @@
             </Method>
             <Method>
                 <Name>mollie Giropay</Name>
-                <PictureURL/>
+                <PictureURL></PictureURL>
                 <Sort>9</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
@@ -270,7 +270,7 @@
             </Method>
             <Method>
                 <Name>mollie iDEAL</Name>
-                <PictureURL/>
+                <PictureURL></PictureURL>
                 <Sort>10</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
@@ -290,7 +290,7 @@
             </Method>
             <Method>
                 <Name>mollie ING HomePay</Name>
-                <PictureURL/>
+                <PictureURL></PictureURL>
                 <Sort>11</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
@@ -310,7 +310,7 @@
             </Method>
             <Method>
                 <Name>mollie KBC</Name>
-                <PictureURL/>
+                <PictureURL></PictureURL>
                 <Sort>12</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
@@ -330,7 +330,7 @@
             </Method>
             <Method>
                 <Name>mollie PayPal</Name>
-                <PictureURL/>
+                <PictureURL></PictureURL>
                 <Sort>13</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
@@ -350,7 +350,7 @@
             </Method>
             <Method>
                 <Name>mollie paysafecard</Name>
-                <PictureURL/>
+                <PictureURL></PictureURL>
                 <Sort>14</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
@@ -370,7 +370,7 @@
             </Method>
             <Method>
                 <Name>mollie SOFORT</Name>
-                <PictureURL/>
+                <PictureURL></PictureURL>
                 <Sort>15</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
@@ -390,7 +390,7 @@
             </Method>
             <Method>
                 <Name>mollie Klarna Pay Later</Name>
-                <PictureURL/>
+                <PictureURL></PictureURL>
                 <Sort>16</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
@@ -410,7 +410,7 @@
             </Method>
             <Method>
                 <Name>mollie Klarna Slice It</Name>
-                <PictureURL/>
+                <PictureURL></PictureURL>
                 <Sort>17</Sort>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>

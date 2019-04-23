@@ -207,7 +207,6 @@ abstract class Mollie
 
     public static function getLocales()
     {
-
         $locales = ['en_US',
             'nl_NL',
             'nl_BE',
@@ -418,6 +417,5 @@ abstract class Mollie
         }
 
         return $result;
-
     }
 }
