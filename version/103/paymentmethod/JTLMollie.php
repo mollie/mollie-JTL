@@ -113,7 +113,7 @@ class JTLMollie extends PaymentMethod
         $logData = '#' . $order->kBestellung . "" . $order->cBestellNr;
         try {
             $payment = Payment::getPayment($order->kBestellung);
-            $oMolliePayment = self::API()->orders->get($payment->kID);
+            $oMolliePayment = self::API()->orders->get($payment->kID, ['embed' => 'payments']);
             Mollie::handleOrder($oMolliePayment, $order->kBestellung);
             if ($payment && in_array($payment->cStatus, [OrderStatus::STATUS_CREATED]) && $payment->cCheckoutURL) {
                 $logData .= '$' . $payment->kID;
@@ -394,7 +394,7 @@ class JTLMollie extends PaymentMethod
         $this->doLog('Received Notification<br/><pre>' . print_r([$hash, $args], 1) . '</pre>', $logData, LOGLEVEL_NOTICE);
 
         try {
-            $oMolliePayment = self::API()->orders->get($args['id']);
+            $oMolliePayment = self::API()->orders->get($args['id'], ['embed' => 'payments']);
             Mollie::handleOrder($oMolliePayment, $order->kBestellung);
         } catch (Exception $e) {
             $this->doLog('handleNotification: ' . $e->getMessage(), $logData);

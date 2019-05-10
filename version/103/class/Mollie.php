@@ -15,6 +15,7 @@ use Lieferschein;
 use Lieferscheinpos;
 use Mollie\Api\Resources\Order;
 use Mollie\Api\Types\OrderStatus;
+use Mollie\Api\Types\PaymentStatus;
 use Shop;
 use Shopsetting;
 use stdClass;
@@ -166,9 +167,18 @@ abstract class Mollie
                 case OrderStatus::STATUS_PAID:
                 case OrderStatus::STATUS_COMPLETED:
                 case OrderStatus::STATUS_AUTHORIZED:
+                    $cHinweis = $order->id;
+                    if ($payments = $order->payments()) {
+                        /** @var \Mollie\Api\Resources\Payment $payment */
+                        foreach ($payments as $payment) {
+                            if (!in_array($payment->status, [PaymentStatus::STATUS_AUTHORIZED, PaymentStatus::STATUS_PAID])) {
+                                $cHinweis .= ' / ' . $payment->status;
+                            }
+                        }
+                    }
                     $oIncomingPayment->fBetrag = $order->amount->value;
                     $oIncomingPayment->cISO = $order->amount->currency;
-                    $oIncomingPayment->cHinweis = $order->id;
+                    $oIncomingPayment->cHinweis = $cHinweis;
                     Mollie::JTLMollie()->addIncomingPayment($oBestellung, $oIncomingPayment);
                     Mollie::JTLMollie()->setOrderStatusToPaid($oBestellung);
                     Mollie::JTLMollie()->doLog('PaymentStatus: ' . $order->status . ' => Zahlungseingang (' . $order->amount->value . ')', $logData, LOGLEVEL_DEBUG);
