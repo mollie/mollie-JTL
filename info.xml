@@ -114,7 +114,7 @@
                 </MethodLanguage>
             </Method>
             <Method>
-                <Name>mollie Bitcoin</Name>
+                <Name>mollie Apple Pay</Name>
                 <PictureURL></PictureURL>
                 <Sort>3</Sort>
                 <SendMail>0</SendMail>
@@ -124,13 +124,13 @@
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
-                <ClassFile>JTLMollieBitcoin.php</ClassFile>
-                <ClassName>JTLMollieBitcoin</ClassName>
+                <ClassFile>JTLMollieApplePay.php</ClassFile>
+                <ClassName>JTLMollieApplePay</ClassName>
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
-                    <Name>Bitcoin</Name>
+                    <Name><![CDATA[Apple Pay]]></Name>
                     <ChargeName>mollie</ChargeName>
-                    <InfoText>Bezahlen Sie bequem mit Bitcoins.</InfoText>
+                    <InfoText><![CDATA[Bezahlen Sie bequem mit Apple Pay.]]></InfoText>
                 </MethodLanguage>
             </Method>
             <Method>
