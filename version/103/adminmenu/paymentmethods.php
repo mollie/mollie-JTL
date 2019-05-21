@@ -37,6 +37,7 @@ try {
     if ($amount && $currency && $locale) {
         $params['amount'] = ['value' => number_format($amount, 2, '.', ''), 'currency' => $currency];
         $params['locale'] = $locale;
+        $params['includeWallets'] = 'applepay';
     }
 
     if ($active) {
