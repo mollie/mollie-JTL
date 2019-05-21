@@ -200,7 +200,9 @@ class JTLMollie extends PaymentMethod
         if (static::MOLLIE_METHOD !== '') {
             $data['method'] = static::MOLLIE_METHOD;
         }
-        $data['billingAddress']->organizationName = utf8_encode($order->oRechnungsadresse->cFirma);
+        if ($organizationName = utf8_encode(trim($order->oRechnungsadresse->cFirma))) {
+            $data['billingAddress']->organizationName = $organizationName;
+        }
         $data['billingAddress']->title = utf8_encode($order->oRechnungsadresse->cAnrede === 'm' ? Shop::Lang()->get('mr') : Shop::Lang()->get('mrs'));
         $data['billingAddress']->givenName = utf8_encode($order->oRechnungsadresse->cVorname);
         $data['billingAddress']->familyName = utf8_encode($order->oRechnungsadresse->cNachname);
@@ -212,7 +214,9 @@ class JTLMollie extends PaymentMethod
 
         if ($order->Lieferadresse != null) {
             $data['shippingAddress'] = new stdClass();
-            $data['shippingAddress']->organizationName = utf8_encode($order->Lieferadresse->cFirma);
+            if ($organizationName = utf8_encode(trim($order->Lieferadresse->cFirma))) {
+                $data['shippingAddress']->organizationName = $organizationName;
+            }
             $data['shippingAddress']->title = utf8_encode($order->Lieferadresse->cAnrede === 'm' ? Shop::Lang()->get('mr') : Shop::Lang()->get('mrs'));
             $data['shippingAddress']->givenName = utf8_encode($order->Lieferadresse->cVorname);
             $data['shippingAddress']->familyName = utf8_encode($order->Lieferadresse->cNachname);
