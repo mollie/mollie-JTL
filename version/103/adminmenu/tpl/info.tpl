@@ -75,7 +75,7 @@
     </div>
     <div class="row">
         <div class="col-xs-6 col-sm-4">
-            <a target="_blank" href="https://ws-url.de/r731">
+            <a target="_blank" href="https://ws-url.de/r31">
                 <img class="img-responsive" src="https://static.dash.bar/info/r31.png"/>
             </a>
         </div>
