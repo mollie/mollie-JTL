@@ -154,7 +154,6 @@ abstract class Mollie
 
         $oBestellung = new Bestellung($kBestellung);
         if ($oBestellung->kBestellung) {
-
             try {
                 // Try to change the orderNumber
                 if ($order->orderNumber !== $oBestellung->cBestellNr) {
