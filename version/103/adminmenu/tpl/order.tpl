@@ -26,7 +26,7 @@
     <br/>
 {/if}
 
-<table class="table" style="width: 100%">
+<table class="table table-condensed" style="width: 100%">
     <tr>
         <th>Mollie ID:</th>
         <td>{$payment->kID}</td>
@@ -53,7 +53,55 @@
         <th>Erstellt:</th>
         <td>{"d. M Y H:i:s"|date:($order->createdAt|strtotime)}</td>
     </tr>
+
+    <tr>
+        <th>Kunde:</th>
+        <td>
+            {if $order->billingAddress->organizationName}{$order->billingAddress->organizationName}{else}{$order->billingAddress->title} {$order->billingAddress->givenName} {$order->billingAddress->familyName}{/if}
+        </td>
+        <th>Zahlungslink:</th>
+        <td colspan="3">
+            <a href="{$payment->cCheckoutURL}" target="_blank">{$payment->cCheckoutURL}</a>
+        </td>
+
+    </tr>
 </table>
+{if $order->payments()->count > 0}
+    <h4>Zahlungen</h4>
+    <table class="table table-striped table-condensed">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Status</th>
+            <th>Methode</th>
+            <th>Amount</th>
+            <th>Settlement</th>
+            <th>Refunded</th>
+            <th>Remaining</th>
+            <th>Details</th>
+        </tr>
+        </thead>
+        {foreach from=$order->payments() item=payment}
+            <tr>
+                <td>{$payment->id}</td>
+                <td>{$payment->status}</td>
+                <td>{$payment->method}</td>
+                <td>{$payment->amount->value} {$payment->amount->currency}</td>
+                <td>{$payment->settlementAmount->value} {$payment->settlementAmount->currency}</td>
+                <td>{$payment->amountRefunded->value} {$payment->amountRefunded->currency}</td>
+                <td>{$payment->amountRemaining->value} {$payment->amountRemaining->currency}</td>
+                <td>
+                    <ul>
+                        {foreach from=$payment->details item=value key=key}
+                            <li><b>{$key}:</b> {$value}</li>
+                        {/foreach}
+                    </ul>
+                </td>
+            </tr>
+        {/foreach}
+    </table>
+{/if}
+
 
 <h4>Positionen:</h4>
 

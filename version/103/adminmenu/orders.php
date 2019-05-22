@@ -104,7 +104,7 @@ try {
                     break;
                 }
 
-                $order = JTLMollie::API()->orders->get($_REQUEST['id']);
+                $order = JTLMollie::API()->orders->get($_REQUEST['id'], ['embed' => 'payments,refunds']);
                 $payment = Payment::getPaymentMollie($_REQUEST['id']);
                 if ($payment) {
                     $oBestellung = new Bestellung($payment->kBestellung, false);
