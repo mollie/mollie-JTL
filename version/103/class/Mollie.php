@@ -157,7 +157,7 @@ abstract class Mollie
             $order->orderNumber = $oBestellung->cBestellNr;
             Payment::updateFromPayment($order, $kBestellung);
 
-            $oIncomingPayment = Shop::DB()->executeQueryPrepared("SELECT * FROM tzahlungseingang WHERE cHinweis = :cHinweis AND kBestellung = :kBestellung", [':cHinweis' => $order->id, ':kBestellung' => $oBestellung->kBestellung], 1);
+            $oIncomingPayment = Shop::DB()->executeQueryPrepared("SELECT * FROM tzahlungseingang WHERE cHinweis LIKE :cHinweis AND kBestellung = :kBestellung", [':cHinweis' => '%' . $order->id . '%', ':kBestellung' => $oBestellung->kBestellung], 1);
             if (!$oIncomingPayment) {
                 $oIncomingPayment = new stdClass();
             }
@@ -171,8 +171,8 @@ abstract class Mollie
                     if ($payments = $order->payments()) {
                         /** @var \Mollie\Api\Resources\Payment $payment */
                         foreach ($payments as $payment) {
-                            if (!in_array($payment->status, [PaymentStatus::STATUS_AUTHORIZED, PaymentStatus::STATUS_PAID])) {
-                                $cHinweis .= ' / ' . $payment->status;
+                            if (in_array($payment->status, [PaymentStatus::STATUS_AUTHORIZED, PaymentStatus::STATUS_PAID])) {
+                                $cHinweis .= ' / ' . $payment->id;
                             }
                         }
                     }
