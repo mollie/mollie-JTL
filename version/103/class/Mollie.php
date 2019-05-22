@@ -154,6 +154,17 @@ abstract class Mollie
 
         $oBestellung = new Bestellung($kBestellung);
         if ($oBestellung->kBestellung) {
+
+            try {
+                // Try to change the orderNumber
+                if ($order->orderNumber !== $oBestellung->cBestellNr) {
+                    JTLMollie::API()->performHttpCall("PATCH", sprintf('orders/%s', $order->id), json_encode(['orderNumber' => $oBestellung->cBestellNr]));
+                }
+            } catch (Exception $e) {
+                self::JTLMollie()->doLog('handleOrder: ' . $e->getMessage(), $logData);
+            }
+
+
             $order->orderNumber = $oBestellung->cBestellNr;
             Payment::updateFromPayment($order, $kBestellung);
 
