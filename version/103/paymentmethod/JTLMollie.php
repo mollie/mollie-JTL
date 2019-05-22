@@ -112,25 +112,33 @@ class JTLMollie extends PaymentMethod
     {
         $logData = '#' . $order->kBestellung . "" . $order->cBestellNr;
         try {
-            $payment = Payment::getPayment($order->kBestellung);
-            $oMolliePayment = self::API()->orders->get($payment->kID, ['embed' => 'payments']);
-            Mollie::handleOrder($oMolliePayment, $order->kBestellung);
-            if ($payment && in_array($payment->cStatus, [OrderStatus::STATUS_CREATED]) && $payment->cCheckoutURL) {
-                $logData .= '$' . $payment->kID;
-                if (!$this->duringCheckout) {
-                    Session::getInstance()->cleanUp();
+            if ($order->kBestellung) {
+                $payment = Payment::getPayment($order->kBestellung);
+                $oMolliePayment = self::API()->orders->get($payment->kID, ['embed' => 'payments']);
+                Mollie::handleOrder($oMolliePayment, $order->kBestellung);
+                if ($payment && in_array($payment->cStatus, [OrderStatus::STATUS_CREATED]) && $payment->cCheckoutURL) {
+                    $logData .= '$' . $payment->kID;
+                    if (!$this->duringCheckout) {
+                        Session::getInstance()->cleanUp();
+                    }
+                    header('Location: ' . $payment->cCheckoutURL);
+                    echo "<a href='{$oMolliePayment->getCheckoutUrl()}'>redirect to payment ...</a>";
+                    exit();
                 }
-                header('Location: ' . $payment->cCheckoutURL);
-                exit();
             }
         } catch (Exception $e) {
             $this->doLog("Get Payment Error: " . $e->getMessage() . ". Create new ORDER...", $logData);
         }
 
         try {
-            $hash = $this->generateHash($order);
-            $oMolliePayment = self::API()->orders->create($this->getOrderData($order, $hash));
-            $_SESSION['oMolliePayment'] = $oMolliePayment;
+            if (!array_key_exists('oMolliePayment', $_SESSION) || !($_SESSION['oMolliePayment'] instanceof \Mollie\Api\Resources\Order)) {
+                $hash = $this->generateHash($order);
+                $orderData = $this->getOrderData($order, $hash);
+                $oMolliePayment = self::API()->orders->create($orderData);
+                $_SESSION['oMolliePayment'] = $oMolliePayment;
+            } else {
+                $oMolliePayment = $_SESSION['oMolliePayment'];
+            }
             $logData .= '$' . $oMolliePayment->id;
             $this->doLog('Mollie Create Payment Redirect: ' . $oMolliePayment->getCheckoutUrl() . "<br/><pre>" . print_r($oMolliePayment, 1) . "</pre>", $logData, LOGLEVEL_DEBUG);
             Payment::updateFromPayment($oMolliePayment, $order->kBestellung, md5($hash));
@@ -139,6 +147,8 @@ class JTLMollie extends PaymentMethod
                 Session::getInstance()->cleanUp();
             }
             header('Location: ' . $oMolliePayment->getCheckoutUrl());
+            unset($_SESSION['oMolliePayment']);
+            echo "<a href='{$oMolliePayment->getCheckoutUrl()}'>redirect to payment ...</a>";
             exit();
         } catch (ApiException $e) {
             Shop::Smarty()->assign('oMollieException', $e);
@@ -483,9 +493,9 @@ class JTLMollie extends PaymentMethod
     {
         $key = md5(serialize([$locale, $billingCountry, $amount, $currency]));
         if (!array_key_exists($key, self::$_possiblePaymentMethods)) {
-            self::$_possiblePaymentMethods[$key] = self::API()->methods->allActive(['amount' => ['currency' => $currency, 'value' => number_format($amount, 2, '.', '')], 'billingCountry' => $_SESSION['Kunde']->cLand, 'locale' => $locale,'includeWallets'=>'applepay', 'include' => 'pricing,issuers', 'resource' => 'orders']);
+            self::$_possiblePaymentMethods[$key] = self::API()->methods->allActive(['amount' => ['currency' => $currency, 'value' => number_format($amount, 2, '.', '')], 'billingCountry' => $_SESSION['Kunde']->cLand, 'locale' => $locale, 'includeWallets' => 'applepay', 'include' => 'pricing,issuers', 'resource' => 'orders']);
         }
-        
+
         if ($method !== null) {
             foreach (self::$_possiblePaymentMethods[$key] as $m) {
                 if ($m->id === $method) {
