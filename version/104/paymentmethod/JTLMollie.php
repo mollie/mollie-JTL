@@ -254,8 +254,8 @@ class JTLMollie extends PaymentMethod
                 'currency' => $order->Waehrung->cISO,
             ];
             $line->vatRate = $oPosition->fMwSt;
-            $y = berechneNetto($unitPrice, $oPosition->fMwSt);
-            $x = $totalAmount - ($y * $oPosition->nAnzahl);
+            $y = berechneNetto($unitPrice * $oPosition->nAnzahl, $oPosition->fMwSt);
+            $x = $totalAmount - $y;
             $line->vatAmount = (object)[
                 'value' => number_format(round($x, 2), 2, '.', ''),
                 'currency' => $order->Waehrung->cISO,
@@ -535,26 +535,12 @@ class JTLMollie extends PaymentMethod
     }
 
     /**
-     *
-     * @param object $customer
-     * @param Warenkorb $cart
-     * @return bool - true, if $customer with $cart may use Payment Method
-     */
-    public function isValid($customer, $cart)
-    {
-        if (Helper::init() && Helper::getSetting("api_key")) {
-            return true;
-        }
-        $this->doLog("isValdid failed: init failed or no API Key given. Try clear the Cache.");
-        return false;
-    }
-
-    /**
      * @param array $args_arr
      * @return bool
      */
     public function isValidIntern($args_arr = [])
     {
+
         if (Helper::init() && Helper::getSetting("api_key")) {
             return true;
         }
