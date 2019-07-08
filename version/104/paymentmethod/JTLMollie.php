@@ -457,7 +457,7 @@ class JTLMollie extends PaymentMethod
         /** @var Warenkorb $wk */
         $wk = $_SESSION['Warenkorb'];
         foreach ($wk->PositionenArr as $oPosition) {
-            if ($oPosition->Artikel->cTeilbar === 'Y' && fmod($oPosition->nAnzahl, 1) !== 0) {
+            if ($oPosition->Artikel->cTeilbar === 'Y' && fmod($oPosition->nAnzahl, 1) !== 0.0) {
                 return false;
             }
         }
