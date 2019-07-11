@@ -199,7 +199,7 @@ class JTLMollie extends PaymentMethod
                 'currency' => $order->Waehrung->cISO,
                 'value' => number_format($order->fGesamtsummeKundenwaehrung, 2, '.', ''),
             ],
-            'orderNumber' => $order->cBestellNr,
+            'orderNumber' => utf8_encode($order->cBestellNr),
             'lines' => [],
             'billingAddress' => new stdClass(),
 
@@ -216,9 +216,9 @@ class JTLMollie extends PaymentMethod
         $data['billingAddress']->title = utf8_encode($order->oRechnungsadresse->cAnrede === 'm' ? Shop::Lang()->get('mr') : Shop::Lang()->get('mrs'));
         $data['billingAddress']->givenName = utf8_encode($order->oRechnungsadresse->cVorname);
         $data['billingAddress']->familyName = utf8_encode($order->oRechnungsadresse->cNachname);
-        $data['billingAddress']->email = $order->oRechnungsadresse->cMail;
+        $data['billingAddress']->email = utf8_encode($order->oRechnungsadresse->cMail);
         $data['billingAddress']->streetAndNumber = utf8_encode($order->oRechnungsadresse->cStrasse . ' ' . $order->oRechnungsadresse->cHausnummer);
-        $data['billingAddress']->postalCode = $order->oRechnungsadresse->cPLZ;
+        $data['billingAddress']->postalCode = utf8_encode($order->oRechnungsadresse->cPLZ);
         $data['billingAddress']->city = utf8_encode($order->oRechnungsadresse->cOrt);
         $data['billingAddress']->country = $order->oRechnungsadresse->cLand;
 
@@ -230,9 +230,9 @@ class JTLMollie extends PaymentMethod
             $data['shippingAddress']->title = utf8_encode($order->Lieferadresse->cAnrede === 'm' ? Shop::Lang()->get('mr') : Shop::Lang()->get('mrs'));
             $data['shippingAddress']->givenName = utf8_encode($order->Lieferadresse->cVorname);
             $data['shippingAddress']->familyName = utf8_encode($order->Lieferadresse->cNachname);
-            $data['shippingAddress']->email = $order->oRechnungsadresse->cMail;
+            $data['shippingAddress']->email = utf8_encode($order->oRechnungsadresse->cMail);
             $data['shippingAddress']->streetAndNumber = utf8_encode($order->Lieferadresse->cStrasse . ' ' . $order->Lieferadresse->cHausnummer);
-            $data['shippingAddress']->postalCode = $order->Lieferadresse->cPLZ;
+            $data['shippingAddress']->postalCode = utf8_encode($order->Lieferadresse->cPLZ);
             $data['shippingAddress']->city = utf8_encode($order->Lieferadresse->cOrt);
             $data['shippingAddress']->country = $order->Lieferadresse->cLand;
         }
@@ -465,7 +465,7 @@ class JTLMollie extends PaymentMethod
         $locale = self::getLocale($_SESSION['cISOSprache'], $_SESSION['Kunde']->cLand);
         if (static::MOLLIE_METHOD !== '') {
             try {
-                $method = self::PossiblePaymentMethods(static::MOLLIE_METHOD, $locale, $_SESSION['Kunde']->cLand, $_SESSION['Waehrung']->cISO, $wk->gibGesamtsummeWaren() * $_SESSION['Waehrung']->fFaktor);
+                $method = self::PossiblePaymentMethods(static::MOLLIE_METHOD, $locale, $_SESSION['Kunde']->cLand, $_SESSION['Waehrung']->cISO, $wk->gibGesamtsummeWaren(true) * $_SESSION['Waehrung']->fFaktor);
                 if ($method !== null) {
                     $this->updatePaymentMethod($_SESSION['cISOSprache'], $method);
                     $this->cBild = $method->image->size2x;
