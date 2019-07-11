@@ -257,7 +257,7 @@ class JTLMollie extends PaymentMethod
                 'currency' => $order->Waehrung->cISO,
             ];
             $line->vatRate = $oPosition->fMwSt;
-            $y = berechneNetto($unitPrice * $oPosition->nAnzahl, $oPosition->fMwSt);
+            $y = berechneNetto($unitPrice * $oPosition->nAnzahl, $oPosition->fMwSt, 4);
             $x = $totalAmount - $y;
             $line->vatAmount = (object)[
                 'value' => number_format(round($x, 2), 2, '.', ''),
