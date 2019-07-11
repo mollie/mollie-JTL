@@ -33,11 +33,13 @@ try {
         Shop::Smarty()->assign('defaultTabbertab', Helper::getAdminmenu("Zahlungsarten"));
     }
 
-    $params = ['include' => 'pricing,issuers'];
+    $params = ['include' => 'pricing,issuers', 'resource' => 'orders'];
     if ($amount && $currency && $locale) {
         $params['amount'] = ['value' => number_format($amount, 2, '.', ''), 'currency' => $currency];
         $params['locale'] = $locale;
-        $params['includeWallets'] = 'applepay';
+        if ($active) {
+            $params['includeWallets'] = 'applepay';
+        }
     }
 
     if ($active) {

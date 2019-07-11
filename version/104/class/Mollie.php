@@ -82,6 +82,7 @@ abstract class Mollie
 
         switch ((int)$newStatus) {
             case BESTELLUNG_STATUS_VERSANDT:
+                Mollie::JTLMollie()->doLog('181_sync: Bestellung versandt', '#' . $oBestellung->kBestellung . '§' . $oBestellung->cBestellNr, LOGLEVEL_DEBUG);
                 $options['lines'] = [];
                 break;
             case BESTELLUNG_STATUS_TEILVERSANDT:
@@ -99,16 +100,37 @@ abstract class Mollie
                         ];
                     }
                 }
+                Mollie::JTLMollie()->doLog('181_sync: Bestellung teilversandt', '#' . $oBestellung->kBestellung . '§' . $oBestellung->cBestellNr, LOGLEVEL_DEBUG);
                 if (count($lines)) {
                     $options['lines'] = $lines;
                 }
                 break;
             case BESTELLUNG_STATUS_STORNO:
+                Mollie::JTLMollie()->doLog('181_sync: Bestellung storniert', '#' . $oBestellung->kBestellung . '§' . $oBestellung->cBestellNr, LOGLEVEL_DEBUG);
                 $options = null;
                 break;
+            default:
+                Mollie::JTLMollie()->doLog('181_sync: Bestellungstatus unbekannt: ' . $newStatus . '/' . $oBestellung->cStatus, '#' . $oBestellung->kBestellung . '§' . $oBestellung->cBestellNr, LOGLEVEL_DEBUG);
         }
 
         return $options;
+    }
+
+    /**
+     * @return JTLMollie
+     * @throws Exception
+     */
+    public static function JTLMollie()
+    {
+        if (self::$_jtlmollie === null) {
+            $pza = Shop::DB()->select('tpluginzahlungsartklasse', 'cClassName', 'JTLMollie');
+            if (!$pza) {
+                throw new Exception("Mollie Zahlungsart nicht in DB gefunden!");
+            }
+            require_once __DIR__ . '/../paymentmethod/JTLMollie.php';
+            self::$_jtlmollie = new JTLMollie($pza->cModulId);
+        }
+        return self::$_jtlmollie;
     }
 
     /**
@@ -206,23 +228,6 @@ abstract class Mollie
             return true;
         }
         return false;
-    }
-
-    /**
-     * @return JTLMollie
-     * @throws Exception
-     */
-    public static function JTLMollie()
-    {
-        if (self::$_jtlmollie === null) {
-            $pza = Shop::DB()->select('tpluginzahlungsartklasse', 'cClassName', 'JTLMollie');
-            if (!$pza) {
-                throw new Exception("Mollie Zahlungsart nicht in DB gefunden!");
-            }
-            require_once __DIR__ . '/../paymentmethod/JTLMollie.php';
-            self::$_jtlmollie = new JTLMollie($pza->cModulId);
-        }
-        return self::$_jtlmollie;
     }
 
     public static function getLocales()

@@ -73,13 +73,16 @@ class JTLMollie extends PaymentMethod
             'cZahlungsanbieter' => empty($order->cZahlungsartName) ? $this->name : $order->cZahlungsartName,
             'fBetrag' => 0,
             'fZahlungsgebuehr' => 0,
-            'cISO' => $_SESSION['Waehrung']->cISO,
+            'cISO' =>  array_key_exists('Waehrung', $_SESSION) ? $_SESSION['Waehrung']->cISO : $payment->cISO,
             'cEmpfaenger' => '',
             'cZahler' => '',
             'dZeit' => 'now()',
             'cHinweis' => '',
             'cAbgeholt' => 'N'
         ], (array)$payment);
+
+
+
         if (isset($model->kZahlungseingang) && $model->kZahlungseingang > 0) {
             Shop::DB()->update('tzahlungseingang', 'kZahlungseingang', $model->kZahlungseingang, $model);
         } else {
@@ -97,7 +100,7 @@ class JTLMollie extends PaymentMethod
     {
         // If paid already, do nothing
         if ((int)$order->cStatus >= BESTELLUNG_STATUS_BEZAHLT) {
-            return;
+            return $this;
         }
         parent::setOrderStatusToPaid($order);
     }
