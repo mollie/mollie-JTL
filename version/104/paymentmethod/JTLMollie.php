@@ -73,14 +73,13 @@ class JTLMollie extends PaymentMethod
             'cZahlungsanbieter' => empty($order->cZahlungsartName) ? $this->name : $order->cZahlungsartName,
             'fBetrag' => 0,
             'fZahlungsgebuehr' => 0,
-            'cISO' =>  array_key_exists('Waehrung', $_SESSION) ? $_SESSION['Waehrung']->cISO : $payment->cISO,
+            'cISO' => array_key_exists('Waehrung', $_SESSION) ? $_SESSION['Waehrung']->cISO : $payment->cISO,
             'cEmpfaenger' => '',
             'cZahler' => '',
             'dZeit' => 'now()',
             'cHinweis' => '',
             'cAbgeholt' => 'N'
         ], (array)$payment);
-
 
 
         if (isset($model->kZahlungseingang) && $model->kZahlungseingang > 0) {
@@ -242,25 +241,27 @@ class JTLMollie extends PaymentMethod
 
         /** @var WarenkorbPos $oPosition */
         foreach ($order->Positionen as $oPosition) {
-            $unitPrice = berechneBrutto($order->Waehrung->fFaktor * $oPosition->fPreis, $oPosition->fMwSt);
-            $totalAmount = $oPosition->nAnzahl * $unitPrice;
+            //$unitPrice = berechneBrutto($order->Waehrung->fFaktor * $oPosition->fPreis, $oPosition->fMwSt);
+            $unitPrice = round(($order->Waehrung->fFaktor * $oPosition->fPreis) * (1 + (float)$oPosition->fMwSt / 100), 2);
+            $totalAmount = round($oPosition->nAnzahl * $unitPrice, 2);
 
             $line = new stdClass();
             $line->name = utf8_encode($oPosition->cName);
             $line->quantity = $oPosition->nAnzahl;
             $line->unitPrice = (object)[
-                'value' => number_format(round($unitPrice, 2), 2, '.', ''),
+                'value' => number_format($unitPrice, 2, '.', ''),
                 'currency' => $order->Waehrung->cISO,
             ];
             $line->totalAmount = (object)[
-                'value' => number_format(round($totalAmount, 2), 2, '.', ''),
+                'value' => number_format($totalAmount, 2, '.', ''),
                 'currency' => $order->Waehrung->cISO,
             ];
-            $line->vatRate = $oPosition->fMwSt;
-            $y = berechneNetto($unitPrice * $oPosition->nAnzahl, $oPosition->fMwSt, 4);
-            $x = $totalAmount - $y;
+            $line->vatRate = "{$oPosition->fMwSt}";
+            //$y = berechneNetto($unitPrice * $oPosition->nAnzahl, $oPosition->fMwSt, 4);
+            $vatAmount = round($totalAmount - (($order->Waehrung->fFaktor * $oPosition->fPreis) * $oPosition->nAnzahl), 2);
+
             $line->vatAmount = (object)[
-                'value' => number_format(round($x, 2), 2, '.', ''),
+                'value' => number_format($vatAmount, 2, '.', ''),
                 'currency' => $order->Waehrung->cISO,
             ];
 
