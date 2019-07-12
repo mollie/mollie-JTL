@@ -12,5 +12,8 @@
       "name": "C. Proske",
       "email": "proske@webstollen.de"
     }
-  ]
+  ],
+  "config": {
+      "optimize-autoloader": true
+  }
 }
