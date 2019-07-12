@@ -544,7 +544,6 @@ class JTLMollie extends PaymentMethod
      */
     public function isValidIntern($args_arr = [])
     {
-
         if (Helper::init() && Helper::getSetting("api_key")) {
             return true;
         }

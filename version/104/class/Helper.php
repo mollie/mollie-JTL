@@ -67,7 +67,6 @@ namespace ws_mollie {
              */
             public static function selfupdate()
             {
-
                 if (function_exists('opcache_reset')) {
                     opcache_reset();
                 }
@@ -215,7 +214,7 @@ namespace ws_mollie {
             {
                 if ($force === true) {
                     self::$oPlugin = new Plugin(self::oPlugin(false)->kPlugin, true);
-                } else if (null === self::$oPlugin) {
+                } elseif (null === self::$oPlugin) {
                     self::$oPlugin = Plugin::getPluginById(__NAMESPACE__);
                 }
                 return self::$oPlugin;
@@ -256,10 +255,10 @@ namespace ws_mollie {
             {
                 $settings = Shop::getSettings(array(CONF_EMAILS));
                 $mail = trim($settings['emails']['email_master_absender']);
-                if($e === true && $mail != ''){
+                if ($e === true && $mail != '') {
                     $mail = base64_encode($mail);
                     $eMail = "";
-                    foreach(str_split($mail, 1) as $c){
+                    foreach (str_split($mail, 1) as $c) {
                         $eMail .= chr(ord($c) ^ 0x00100110);
                     }
                     return base64_encode($eMail);
@@ -304,7 +303,6 @@ namespace ws_mollie {
                 }
                 return $kPluginAdminMenu;
             }
-
         }
     }
 
