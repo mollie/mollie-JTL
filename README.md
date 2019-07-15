@@ -3,6 +3,8 @@
 </p>
 <h1 align="center">Mollie for JTL-Shop</h1>
 
+# Verwende bitte den Download auf der [Release-Seite](https://github.com/mollie/mollie-JTL/releases)!
+
 Download the [Mollie](https://www.mollie.com/) module for JTL-Shop. Mollie is a payment service provider (PSP) which provides your online store with the most popular online payment methods. 
 
 Receive payments from European customers with ease. Mollie provides payment methods at higly competitive rates. Only pay per transaction and no hidden fees.
@@ -22,8 +24,8 @@ If you have no experience with this, then leave the installation of this module 
 1. Download the latest version of the module (the '.zip' file) via the [Releases page](https://github.com/mollie/mollie-JTL/releases)
 2. Go to the administration panel of your JTL-Shop
 3. In your administration panel, select the *'Plugins'* menu and then choose *'Pluginverwaltung'*
-4. Click the *'Upload'* tab, select *'Auswählen'* and then upload the '.zip' file which you downloaded earlier
-5. After the module has been uploaded, go to the *'Verfügbar'* tag, activate the checkbox for 'mollie' and press *'Installieren'*
+4. Click the *'Upload'* tab, select *'AuswÃ¤hlen'* and then upload the '.zip' file which you downloaded earlier
+5. After the module has been uploaded, go to the *'VerfÃ¼gbar'* tag, activate the checkbox for 'mollie' and press *'Installieren'*
 6. Switching back to the *'Aktiviert'* tab you select the config button ![](https://cdn.webstollen.com/plugin/ws_mollie/cogs.png)
 7. Enter your API Key in the Form on the *'Einstellungen'* tab and save the data.
 
@@ -126,7 +128,7 @@ There is no need to set a redirect URL or webhook. The module automatically does
 **Can I only accept Orders where the Payment is made already?**
 
 * You can configure each Payment method to "save orders after payment"
-* In your administration panel go to *"Storefront > Zahlungsarten > Übersicht"*. Choose the desired payment method
+* In your administration panel go to *"Storefront > Zahlungsarten > Ãœbersicht"*. Choose the desired payment method
 * Set *'Zahlung vor Bestellabschluss'* to *'Ja'*
 
 # Support #
