@@ -242,7 +242,9 @@ class JTLMollie extends PaymentMethod
         /** @var WarenkorbPos $oPosition */
         foreach ($order->Positionen as $oPosition) {
             //$unitPrice = berechneBrutto($order->Waehrung->fFaktor * $oPosition->fPreis, $oPosition->fMwSt);
-            $unitPrice = round(($order->Waehrung->fFaktor * $oPosition->fPreis) * (1 + (float)$oPosition->fMwSt / 100), 2);
+            $unitPriceNetto = round(((float)$order->Waehrung->fFaktor * round($oPosition->fPreis,2)), 2);
+            $unitPrice = round($unitPriceNetto * (1 + (float)$oPosition->fMwSt / 100), 2);
+
             $totalAmount = round($oPosition->nAnzahl * $unitPrice, 2);
 
             $line = new stdClass();
@@ -257,8 +259,8 @@ class JTLMollie extends PaymentMethod
                 'currency' => $order->Waehrung->cISO,
             ];
             $line->vatRate = "{$oPosition->fMwSt}";
-            //$y = berechneNetto($unitPrice * $oPosition->nAnzahl, $oPosition->fMwSt, 4);
-            $vatAmount = round($totalAmount - (($order->Waehrung->fFaktor * $oPosition->fPreis) * $oPosition->nAnzahl), 2);
+
+            $vatAmount = $totalAmount - ($unitPriceNetto * $oPosition->nAnzahl);
 
             $line->vatAmount = (object)[
                 'value' => number_format($vatAmount, 2, '.', ''),
