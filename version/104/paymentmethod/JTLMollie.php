@@ -241,9 +241,18 @@ class JTLMollie extends PaymentMethod
 
         /** @var WarenkorbPos $oPosition */
         foreach ($order->Positionen as $oPosition) {
-            //$unitPrice = berechneBrutto($order->Waehrung->fFaktor * $oPosition->fPreis, $oPosition->fMwSt);
-            $unitPrice = round(($order->Waehrung->fFaktor * $oPosition->fPreis) * (1 + (float)$oPosition->fMwSt / 100), 2);
-            $totalAmount = round($oPosition->nAnzahl * $unitPrice, 2);
+
+            $_currencyFactor = (float)$order->Waehrung->fFaktor;         // EUR => 1
+            $_netto = round($oPosition->fPreis,2);              // 13.45378 => 13.45
+            $_vatRate = (float)$oPosition->fMwSt / 100;                  // 0.19
+            $_amount = (float)$oPosition->nAnzahl;                       // 3
+
+            $unitPriceNetto = round(($_currencyFactor * $_netto), 2);        // => 13.45
+            $unitPrice = round($unitPriceNetto * (1 + $_vatRate), 2);   // 13.45 * 1.19 => 16.01
+
+            $totalAmount = round($_amount * $unitPrice, 2);                       // 16.01 * 3 => 48.03
+            //$vatAmount = ($unitPrice - $unitPriceNetto) * $_amount;                           // (16.01 - 13.45) * 3 => 7.68
+            $vatAmount = round($totalAmount - ($totalAmount / (1+$_vatRate)), 2); // 48.03 - (48.03 / 1.19) => 7.67
 
             $line = new stdClass();
             $line->name = utf8_encode($oPosition->cName);
@@ -257,8 +266,6 @@ class JTLMollie extends PaymentMethod
                 'currency' => $order->Waehrung->cISO,
             ];
             $line->vatRate = "{$oPosition->fMwSt}";
-            //$y = berechneNetto($unitPrice * $oPosition->nAnzahl, $oPosition->fMwSt, 4);
-            $vatAmount = round($totalAmount - (($order->Waehrung->fFaktor * $oPosition->fPreis) * $oPosition->nAnzahl), 2);
 
             $line->vatAmount = (object)[
                 'value' => number_format($vatAmount, 2, '.', ''),
@@ -364,8 +371,6 @@ class JTLMollie extends PaymentMethod
                     return "de_CH";
                 }
                 return "de_DE";
-            case "eng":
-                return "en_US";
             case "fre":
                 if ($country === "BE") {
                     return "fr_BE";
