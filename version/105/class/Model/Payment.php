@@ -66,6 +66,10 @@ class Payment extends AbstractModel
         return $payment;
     }
 
+    /**
+     * @param $cHash
+     * @return array|int|object
+     */
     public static function getPaymentHash($cHash)
     {
         $payment = Shop::DB()->executeQueryPrepared('SELECT * FROM ' . self::TABLE . ' WHERE cHash = :cHash', [':cHash' => $cHash], 1);

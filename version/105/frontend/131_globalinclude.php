@@ -58,6 +58,10 @@ try {
                     Mollie::JTLMollie()->doLog('Bestellung finalized => redirect<br/><pre>' . print_r($order, 1) . '</pre>', $logData, LOGLEVEL_DEBUG);
                     Mollie::handleOrder($order, $oBestellung->kBestellung);
                     Mollie::getOrderCompletedRedirect($oBestellung->kBestellung, true);
+
+                    JTLMollie::API()->performHttpCall('PATCH', sprintf('payments/%s', $_payment->id), json_encode(['description' => $oBestellung->cBestellNr]));
+
+
                 } else {
                     Mollie::JTLMollie()->doLog('Invalid Payment<br/><pre>' . print_r($payment, 1) . '</pre>', $logData, LOGLEVEL_ERROR);
                 }

@@ -5,6 +5,7 @@ use Mollie\Api\Exceptions\IncompatiblePlatform;
 use Mollie\Api\MollieApiClient;
 use Mollie\Api\Types\OrderLineType;
 use Mollie\Api\Types\OrderStatus;
+use Mollie\Api\Types\PaymentStatus;
 use ws_mollie\Helper;
 use ws_mollie\Model\Payment;
 use ws_mollie\Mollie;
@@ -243,7 +244,7 @@ class JTLMollie extends PaymentMethod
         foreach ($order->Positionen as $oPosition) {
 
             $_currencyFactor = (float)$order->Waehrung->fFaktor;         // EUR => 1
-            $_netto = round($oPosition->fPreis,2);              // 13.45378 => 13.45
+            $_netto = round($oPosition->fPreis, 2);              // 13.45378 => 13.45
             $_vatRate = (float)$oPosition->fMwSt / 100;                  // 0.19
             $_amount = (float)$oPosition->nAnzahl;                       // 3
 
@@ -252,7 +253,7 @@ class JTLMollie extends PaymentMethod
 
             $totalAmount = round($_amount * $unitPrice, 2);                       // 16.01 * 3 => 48.03
             //$vatAmount = ($unitPrice - $unitPriceNetto) * $_amount;                           // (16.01 - 13.45) * 3 => 7.68
-            $vatAmount = round($totalAmount - ($totalAmount / (1+$_vatRate)), 2); // 48.03 - (48.03 / 1.19) => 7.67
+            $vatAmount = round($totalAmount - ($totalAmount / (1 + $_vatRate)), 2); // 48.03 - (48.03 / 1.19) => 7.67
 
             $line = new stdClass();
             $line->name = utf8_encode($oPosition->cName);
@@ -420,6 +421,28 @@ class JTLMollie extends PaymentMethod
         try {
             $oMolliePayment = self::API()->orders->get($args['id'], ['embed' => 'payments']);
             Mollie::handleOrder($oMolliePayment, $order->kBestellung);
+
+            // GET NEWEST PAYMENT:
+            /** @var \Mollie\Api\Resources\Payment $_payment */
+            $_payment = null;
+            if ($oMolliePayment->payments()) {
+                /** @var \Mollie\Api\Resources\Payment $p */
+                foreach ($oMolliePayment->payments() as $p) {
+                    if (!in_array($p->status, [PaymentStatus::STATUS_AUTHORIZED, PaymentStatus::STATUS_PAID, PaymentStatus::STATUS_PENDING])) {
+                        continue;
+                    }
+                    if (!$_payment) {
+                        $_payment = $p;
+                        continue;
+                    }
+                    if (strtotime($p->createdAt) > strtotime($_payment->createdAt)) {
+                        $_payment = $p;
+                    }
+                }
+            }
+
+            JTLMollie::API()->performHttpCall('PATCH', sprintf('payments/%s', $_payment->id), json_encode(['description' => $order->cBestellNr]));
+
         } catch (Exception $e) {
             $this->doLog('handleNotification: ' . $e->getMessage(), $logData);
         }
@@ -466,7 +489,8 @@ class JTLMollie extends PaymentMethod
         /** @var Warenkorb $wk */
         $wk = $_SESSION['Warenkorb'];
         foreach ($wk->PositionenArr as $oPosition) {
-            if ($oPosition->Artikel->cTeilbar === 'Y' && fmod($oPosition->nAnzahl, 1) !== 0.0) {
+            if ((int)$oPosition->nPosTyp === (int)C_WARENKORBPOS_TYP_ARTIKEL && $oPosition->Artikel && $oPosition->Artikel->cTeilbar === 'Y'
+                && fmod($oPosition->nAnzahl, 1) !== 0.0) {
                 return false;
             }
         }
