@@ -58,6 +58,11 @@
                     {else}
                         <span class="label label-danger">Unbekannt: {$payment->cStatus}</span>
                     {/if}
+                    {if $payment->fAmountRefunded && $payment->fAmountRefunded == $payment->fAmount}
+                        <strong style="color: red">(total refund)</strong>
+                    {elseif $payment->fAmountRefunded && $payment->fAmountRefunded > 0}
+                        <strong style="color: red">(partly refund)</strong>
+                    {/if}
 
                 </td>
                 <td>

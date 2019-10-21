@@ -37,7 +37,7 @@
         </div>
         <div class="col-xs-12 col-sm-3">
             <label for="cAmount">Betrag:</label>
-            <input type="number" value="{$smarty.get.amount}" name="amount" id="cAmount">
+            <input type="number" value="{if $smarty.get.amount}{$smarty.get.amount}{else}10{/if}" name="amount" id="cAmount">
         </div>
         <div class="col-xs-12 col-sm-3">
             <input id="cActive" type="checkbox" value="1" name="active"

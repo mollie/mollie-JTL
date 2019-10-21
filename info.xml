@@ -73,6 +73,24 @@
             <Option value="A" sort="3"><![CDATA[Ja, alle]]></Option>
           </SelectboxOptions>
         </Setting>
+
+        <Setting type="selectbox" initialValue="H" sort="100" conf="Y">
+          <Name>Versand/Storno via:</Name>
+          <Description>Wie soll mollie der Versand oder Stornierung mitgeteilt werden?</Description>
+          <ValueName>notifyMollie</ValueName>
+          <SelectboxOptions>
+            <Option value="H" sort="1"><![CDATA[Hook]]></Option>
+            <Option value="W" sort="2"><![CDATA[WAWI Workflow]]></Option>
+            <Option value="M" sort="3"><![CDATA[Manuell (deaktiviert)]]></Option>
+          </SelectboxOptions>
+        </Setting>
+
+        <Setting type="text" initialValue="" sort="110" conf="Y">
+          <Name>Workflow-Secret:</Name>
+          <Description>Schlüssel, um die WAWI Workflow-Requests zu authentifizieren.</Description>
+          <ValueName>workflowSecret</ValueName>
+        </Setting>
+
       </Settingslink>
     </Adminmenu>
     <PaymentMethod>

@@ -33,7 +33,14 @@
         <th>Mode:</th>
         <td>{$order->mode}</td>
         <th>Status:</th>
-        <td>{$order->status}</td>
+        <td>
+            {$order->status}
+            {if $order->amountRefunded && $order->amountRefunded->value == $order->amount->value}
+                <strong style="color: red">(total refund)</strong>
+            {elseif $order->amountRefunded && $order->amountRefunded->value > 0}
+                <strong style="color: red">(partly refund)</strong>
+            {/if}
+        </td>
     </tr>
 
     <tr>
@@ -42,7 +49,9 @@
         <th>Captured:</th>
         <td>{if $order->amountCaptured}{$order->amountCaptured->value|number_format:2:',':''} {$order->amountCaptured->currency}{else}-{/if}</td>
         <th>Refunded:</th>
-        <td>{if $order->amountRefunded}{$order->amountRefunded->value|number_format:2:',':''} {$order->amountRefunded->currency}{else}-{/if}</td>
+        <td>{if $order->amountRefunded}<strong
+                    style="color: red">{$order->amountRefunded->value|number_format:2:',':''} {$order->amountRefunded->currency}</strong>{else}-{/if}
+        </td>
     </tr>
 
     <tr>

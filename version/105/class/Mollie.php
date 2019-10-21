@@ -176,6 +176,36 @@ abstract class Mollie
 
         $oBestellung = new Bestellung($kBestellung);
         if ($oBestellung->kBestellung) {
+
+            Shop::DB()->executeQueryPrepared("INSERT INTO tbestellattribut (kBestellung, cName, cValue) VALUES (:kBestellung, 'mollie_oid', :mollieId1) ON DUPLICATE KEY UPDATE cValue = :mollieId2;", [
+                ':kBestellung' => $kBestellung,
+                ':mollieId1' => $order->id,
+                ':mollieId2' => $order->id,
+            ], 3);
+
+            Shop::DB()->executeQueryPrepared("INSERT INTO tbestellattribut (kBestellung, cName, cValue) VALUES (:kBestellung, 'mollie_cBestellNr', :orderId1) ON DUPLICATE KEY UPDATE cValue = :orderId2;", [
+                ':kBestellung' => $kBestellung,
+                ':orderId1' => $oBestellung->cBestellNr,
+                ':orderId2' => $oBestellung->cBestellNr,
+            ], 3);
+
+            $mPayment = null;
+            if ($payments = $order->payments()) {
+                /** @var \Mollie\Api\Resources\Payment $payment */
+                foreach ($payments as $payment) {
+                    if (in_array($payment->status, [PaymentStatus::STATUS_AUTHORIZED, PaymentStatus::STATUS_PAID])) {
+                        $mPayment = $payment;
+                    }
+                }
+            }
+            if ($mPayment) {
+                Shop::DB()->executeQueryPrepared("INSERT INTO tbestellattribut (kBestellung, cName, cValue) VALUES (:kBestellung, 'mollie_tid', :mollieId1) ON DUPLICATE KEY UPDATE cValue = :mollieId2;", [
+                    ':kBestellung' => $kBestellung,
+                    ':mollieId1' => $mPayment->id,
+                    ':mollieId2' => $mPayment->id,
+                ], 3);
+            }
+
             try {
                 // Try to change the orderNumber
                 if ($order->orderNumber !== $oBestellung->cBestellNr) {
@@ -200,13 +230,8 @@ abstract class Mollie
                 case OrderStatus::STATUS_COMPLETED:
                 case OrderStatus::STATUS_AUTHORIZED:
                     $cHinweis = $order->id;
-                    if ($payments = $order->payments()) {
-                        /** @var \Mollie\Api\Resources\Payment $payment */
-                        foreach ($payments as $payment) {
-                            if (in_array($payment->status, [PaymentStatus::STATUS_AUTHORIZED, PaymentStatus::STATUS_PAID])) {
-                                $cHinweis .= ' / ' . $payment->id;
-                            }
-                        }
+                    if ($mPayment) {
+                        $cHinweis .= ' / ' . $mPayment->id;
                     }
                     $oIncomingPayment->fBetrag = $order->amount->value;
                     $oIncomingPayment->cISO = $order->amount->currency;
