@@ -3,7 +3,7 @@
 </p>
 <h1 align="center">Mollie for JTL-Shop</h1>
 
-# Verwende bitte den Download auf der [Release-Seite](https://github.com/mollie/mollie-JTL/releases)!
+# Verwende bitte den Download auf unsere [Partner-Seite](https://www.webstollen.de/mollie-Plugin)!
 
 Download the [Mollie](https://www.mollie.com/) module for JTL-Shop. Mollie is a payment service provider (PSP) which provides your online store with the most popular online payment methods. 
 
