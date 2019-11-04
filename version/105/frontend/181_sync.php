@@ -9,7 +9,7 @@ try {
     Helper::init();
 
     // NUR BEI HOOK SETTING:
-    if (Helper::getSetting('notifyMollie') === 'H') {
+    //if (Helper::getSetting('notifyMollie') === 'H') {
 
         $status = (int)$args_arr['status'];
         /** @var Bestellung $oBestellung */
@@ -23,7 +23,6 @@ try {
                 //$order->orderNumber = $oBestellung->cBestellNr;
                 Mollie::handleOrder($order, $oBestellung->kBestellung);
                 if ($order->isCreated() || $order->isPaid() || $order->isAuthorized() || $order->isShipping() || $order->isPending()) {
-                    Mollie::JTLMollie()->doLog("Create Shippment: <br/><pre>" . print_r($args_arr, 1) . '</pre>', $logData, LOGLEVEL_DEBUG);
                     $options = Mollie::getShipmentOptions($order, $oBestellung->kBestellung, $status);
                     if ($options && array_key_exists('lines', $options) && is_array($options['lines'])) {
                         require_once __DIR__ . '/../paymentmethod/JTLMollie.php';
@@ -38,7 +37,7 @@ try {
             }
         }
 
-    }
+    //}
 } catch (Exception $e) {
     Helper::logExc($e);
 }

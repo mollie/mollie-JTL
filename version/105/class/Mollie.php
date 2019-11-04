@@ -64,7 +64,6 @@ abstract class Mollie
             throw new Exception('Mollie::getShipmentOptions: order and kBestellung are required!');
         }
 
-
         $oBestellung = new Bestellung($kBestellung, true);
         if ($newStatus === false) {
             $newStatus = $oBestellung->cStatus;
