@@ -38,7 +38,7 @@ try {
                             } elseif ($order->status === OrderStatus::STATUS_PAID || $order->status === OrderStatus::STATUS_COMPLETED) {
                                 // TODO: Refund?
                                 if ($complete) {
-                                    
+
                                     $refund = $order->refundAll();
                                     if ($refund->status === 'failed') {
                                         Mollie::JTLMollie()->doLog("mollie//WORKFLOW: kBestellung:{$kBestellung} Refund fehlgeschlagen: " . $refund->id . ".", $logData, LOGLEVEL_ERROR);
