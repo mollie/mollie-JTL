@@ -46,7 +46,7 @@ try {
             // finalize only, if order is not canceld/expired
             if ($order && !$order->isCanceled() && !$order->isExpired()) {
                 // finalize only if payment is not expired/canceled,failed or open
-                if ($_payment && !in_array($_payment->status, [PaymentStatus::STATUS_EXPIRED, PaymentStatus::STATUS_CANCELED, PaymentStatus::STATUS_OPEN, PaymentStatus::STATUS_FAILED, PaymentStatus::STATUS_CANCELED])) {
+                if ($_payment && !in_array($_payment->status, [PaymentStatus::STATUS_EXPIRED, PaymentStatus::STATUS_CANCELED, PaymentStatus::STATUS_OPEN, PaymentStatus::STATUS_FAILED])) {
                     Mollie::JTLMollie()->doLog('Bestellung open => finalize', $logData);
                     $session = Session::getInstance();
                     /** @noinspection PhpIncludeInspection */
@@ -58,15 +58,16 @@ try {
                     Mollie::JTLMollie()->doLog('Bestellung finalized => redirect<br/><pre>' . print_r($order, 1) . '</pre>', $logData, LOGLEVEL_DEBUG);
                     Mollie::handleOrder($order, $oBestellung->kBestellung);
                     Mollie::getOrderCompletedRedirect($oBestellung->kBestellung, true);
-
                     JTLMollie::API()->performHttpCall('PATCH', sprintf('payments/%s', $_payment->id), json_encode(['description' => $oBestellung->cBestellNr]));
-
-
                 } else {
                     Mollie::JTLMollie()->doLog('Invalid Payment<br/><pre>' . print_r($payment, 1) . '</pre>', $logData, LOGLEVEL_ERROR);
+                    header('Location: ' . Shop::getURL() . '/bestellvorgang.php?editZahlungsart=1&mollieStatus=' . $_payment->status);
+                    exit();
                 }
             } else {
                 Mollie::JTLMollie()->doLog('Invalid Order<br/><pre>' . print_r($order, 1) . '</pre>', $logData, LOGLEVEL_ERROR);
+                header('Location: ' . Shop::getURL() . '/bestellvorgang.php?editZahlungsart=1&mollieStatus=' . $order->status);
+                exit();
             }
         }
     }

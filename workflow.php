@@ -17,9 +17,9 @@ try {
     }
 
     //if (Helper::getSetting('notifyMollie') === 'W') {
-    if (array_key_exists('secret', $_REQUEST) && $_REQUEST['secret'] === Helper::getSetting('workflowSecret')) {
+    if (array_key_exists('secret', $_REQUEST) && trim($_REQUEST['secret']) !== '' && $_REQUEST['secret'] === Helper::getSetting('workflowSecret')) {
 
-        file_put_contents(__DIR__ . '/workflow.log', print_r([$_REQUEST, $_SERVER], 1), FILE_APPEND);
+        //file_put_contents(__DIR__ . '/workflow.log', print_r([$_REQUEST, $_SERVER], 1), FILE_APPEND);
         //require_once $oPlugin->cAdminmenuPfad . '/../paymentmethod/JTLMollie.php';
         $kBestellung = array_key_exists('kBestellung', $_REQUEST) ? (int)$_REQUEST['kBestellung'] : null;
         if ($kBestellung && array_key_exists('action', $_REQUEST)) {
@@ -99,6 +99,6 @@ try {
     //}
 } catch (Exception $e) {
     http_response_code(500);
-    die($e->getMessage());
     Jtllog::writeLog("mollie//WORKFLOW//Execption: " . $e->getMessage());
+    die($e->getMessage());
 }

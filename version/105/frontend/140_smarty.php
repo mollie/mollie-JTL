@@ -6,6 +6,13 @@ try {
     require_once __DIR__ . '/../class/Helper.php';
     Helper::init();
 
+
+    if (array_key_exists('mollieStatus', $_REQUEST)) {
+        $status = $_REQUEST['mollieStatus'];
+        $text = Helper::oPlugin()->oPluginSprachvariableAssoc_arr['error_' . $status];
+        pq('#fieldset-payment')->prepend('<div class="alert alert-danger">' . $text . '</div>');
+    }
+
     switch (Helper::getSetting('load_styles')) {
         case 'Y':
             $selector = '#fieldset-payment [id*="_mollie"]';

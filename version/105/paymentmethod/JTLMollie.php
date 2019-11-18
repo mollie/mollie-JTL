@@ -213,6 +213,12 @@ class JTLMollie extends PaymentMethod
         if (static::MOLLIE_METHOD !== '') {
             $data['method'] = static::MOLLIE_METHOD;
         }
+
+        if (static::MOLLIE_METHOD === \Mollie\Api\Types\PaymentMethod::CREDITCARD && array_key_exists('mollieCardToken', $_SESSION)) {
+            $data['payment'] = new stdClass();
+            $data['payment']->cardToken = trim($_SESSION['mollieCardToken']);
+        }
+
         if ($organizationName = utf8_encode(trim($order->oRechnungsadresse->cFirma))) {
             $data['billingAddress']->organizationName = $organizationName;
         }

@@ -33,6 +33,56 @@
             <Hook id="181">181_sync.php</Hook>
             <Hook id="140">140_smarty.php</Hook>
         </Hooks>
+        <Locales>
+            <Variable>
+                <Name>error_canceled</Name>
+                <Description></Description>
+                <VariableLocalized iso="GER">Die Zahlung wurde von Ihnen abgebrochen. Wählen Sie ggf. eine andere Zahlart aus.</VariableLocalized>
+                <VariableLocalized iso="ENG">You canceled the payment. Please select a different payment method if necessary.</VariableLocalized>
+            </Variable>
+            <Variable>
+                <Name>error_expired</Name>
+                <Description></Description>
+                <VariableLocalized iso="GER">Ihre Zahlungssession ist abgelaufen, bitte versuchen Sie es erneut.</VariableLocalized>
+                <VariableLocalized iso="ENG">Your payment session has expired, please try again.</VariableLocalized>
+            </Variable>
+            <Variable>
+                <Name>error_open</Name>
+                <Description></Description>
+                <VariableLocalized iso="GER">Bei der Zahlung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut, oder wählen Sie eine andere Zahlungsart.</VariableLocalized>
+                <VariableLocalized iso="ENG">The payment process failed. Please try again or choose a different payment method.</VariableLocalized>
+            </Variable>
+            <Variable>
+                <Name>error_failed</Name>
+                <Description></Description>
+                <VariableLocalized iso="GER">Bei der Zahlung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut, oder wählen Sie eine andere Zahlungsart.</VariableLocalized>
+                <VariableLocalized iso="ENG">The payment process failed. Please try again or choose a different payment method.</VariableLocalized>
+            </Variable>
+            <Variable>
+                <Name>lbl_cardHolder</Name>
+                <Description></Description>
+                <VariableLocalized iso="GER">Karteninhaber:</VariableLocalized>
+                <VariableLocalized iso="ENG">Card holder:</VariableLocalized>
+            </Variable>
+            <Variable>
+                <Name>lbl_cardNumber</Name>
+                <Description></Description>
+                <VariableLocalized iso="GER">Kartennummer:</VariableLocalized>
+                <VariableLocalized iso="ENG">Card number:</VariableLocalized>
+            </Variable>
+            <Variable>
+                <Name>lbl_expiryDate</Name>
+                <Description></Description>
+                <VariableLocalized iso="GER">Ablaufdatum:</VariableLocalized>
+                <VariableLocalized iso="ENG">Expiry date:</VariableLocalized>
+            </Variable>
+            <Variable>
+                <Name>lbl_varificationCode</Name>
+                <Description></Description>
+                <VariableLocalized iso="GER">CVC:</VariableLocalized>
+                <VariableLocalized iso="ENG">CVC:</VariableLocalized>
+            </Variable>
+        </Locales>
         <Adminmenu>
             <Customlink sort="10">
                 <Name>Bestellungen</Name>
@@ -57,6 +107,15 @@
                     <Name>Profile ID:</Name>
                     <Description>Füge hier deinen mollie Profil ID ein. Wird benötigt für mollie Components</Description>
                     <ValueName>profileId</ValueName>
+                </Setting>
+                <Setting type="selectbox" initialValue="N" sort="16" conf="Y">
+                    <Name>mollie Components verwenden:</Name>
+                    <Description>Bei Kreditkarte mollie Components verwenden</Description>
+                    <ValueName>useMollieComponents</ValueName>
+                    <SelectboxOptions>
+                        <Option value="N" sort="1"><![CDATA[Nein]]></Option>
+                        <Option value="Y" sort="2"><![CDATA[Ja]]></Option>
+                    </SelectboxOptions>
                 </Setting>
                 <Setting type="selectbox" initialValue="S" sort="20" conf="Y">
                     <Name>Zahlungsart Daten syncronisiernen</Name>
@@ -126,6 +185,27 @@
                 <Name>mollie Kreditkarte</Name>
                 <PictureURL></PictureURL>
                 <Sort>2</Sort>
+                <SendMail>0</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>CREDIT_CARD</TSCode>
+                <PreOrder>1</PreOrder>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieCreditCard.php</ClassFile>
+                <ClassName>JTLMollieCreditCard</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>Kreditkarte</Name>
+                    <ChargeName>mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit Kreditkarte.</InfoText>
+                </MethodLanguage>
+            </Method>
+            <Method>
+                <Name>mollie Kreditkarte (MC)</Name>
+                <PictureURL></PictureURL>
+                <Sort>3</Sort>
+                <AdditionalTemplateFile>tpl/mollieComponents.tpl</AdditionalTemplateFile>
                 <SendMail>0</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>CREDIT_CARD</TSCode>
