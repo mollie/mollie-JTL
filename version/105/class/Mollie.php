@@ -228,10 +228,17 @@ abstract class Mollie
                 case OrderStatus::STATUS_PAID:
                 case OrderStatus::STATUS_COMPLETED:
                 case OrderStatus::STATUS_AUTHORIZED:
+
                     $cHinweis = $order->id;
                     if ($mPayment) {
                         $cHinweis .= ' / ' . $mPayment->id;
                     }
+                    if (Helper::getSetting('wawiPaymentID') === 'ord') {
+                        $cHinweis = $order->id;
+                    } elseif ($mPayment && Helper::getSetting('wawiPaymentID') === 'tr') {
+                        $cHinweis = $mPayment->id;
+                    }
+
                     $oIncomingPayment->fBetrag = $order->amount->value;
                     $oIncomingPayment->cISO = $order->amount->currency;
                     $oIncomingPayment->cHinweis = $cHinweis;
