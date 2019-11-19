@@ -82,6 +82,20 @@
                 <VariableLocalized iso="GER">CVC:</VariableLocalized>
                 <VariableLocalized iso="ENG">CVC:</VariableLocalized>
             </Variable>
+
+            <Variable>
+                <Name>cvchint_1</Name>
+                <Description></Description>
+                <VariableLocalized iso="GER">So findet man die CVV Nummer</VariableLocalized>
+                <VariableLocalized iso="ENG">How to find the CVV number</VariableLocalized>
+            </Variable>
+            <Variable>
+                <Name>cvchint_2</Name>
+                <Description></Description>
+                <VariableLocalized iso="GER">Die dreistellige CVV Nummer wird bei Visa und Mastercard auf der Rückseite, bei American Express auf
+                    der Vorderseite der Karte abgebildet.</VariableLocalized>
+                <VariableLocalized iso="ENG">The three-digit CVV number is shown on the reverse for Visa and Mastercard, and on the front of the card for American Express.</VariableLocalized>
+            </Variable>
         </Locales>
         <Adminmenu>
             <Customlink sort="10">
@@ -183,7 +197,7 @@
                     <InfoText>Bezahlen Sie bequem mit verschiedenen Zahlungsmethoden.</InfoText>
                 </MethodLanguage>
             </Method>
-            <Method>
+            <!--Method>
                 <Name>mollie Kreditkarte</Name>
                 <PictureURL></PictureURL>
                 <Sort>2</Sort>
@@ -202,9 +216,9 @@
                     <ChargeName>mollie</ChargeName>
                     <InfoText>Bezahlen Sie bequem mit Kreditkarte.</InfoText>
                 </MethodLanguage>
-            </Method>
+            </Method-->
             <Method>
-                <Name>mollie Kreditkarte (MC)</Name>
+                <Name>mollie Kreditkarte</Name>
                 <PictureURL></PictureURL>
                 <Sort>3</Sort>
                 <AdditionalTemplateFile>tpl/mollieComponents.tpl</AdditionalTemplateFile>
