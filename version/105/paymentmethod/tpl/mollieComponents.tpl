@@ -1,4 +1,4 @@
-<h3>Zahlungsinformationen</h3>
+<h3>{$mollieLang.cctitle}</h3>
 <div class="form-horizontal">
     <div id="mollieError"></div>
     <div class="form-group">

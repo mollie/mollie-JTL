@@ -35,28 +35,47 @@
         </Hooks>
         <Locales>
             <Variable>
+                <Name>cctitle</Name>
+                <Description></Description>
+                <VariableLocalized iso="GER">Zahlungsinformationen</VariableLocalized>
+                <VariableLocalized iso="ENG">Enter your payment information</VariableLocalized>
+            </Variable>
+            <Variable>
                 <Name>error_canceled</Name>
                 <Description></Description>
-                <VariableLocalized iso="GER">Die Zahlung wurde von Ihnen abgebrochen. Wählen Sie ggf. eine andere Zahlart aus.</VariableLocalized>
-                <VariableLocalized iso="ENG">You canceled the payment. Please select a different payment method if necessary.</VariableLocalized>
+                <VariableLocalized iso="GER">Die Zahlung wurde von Ihnen abgebrochen. Wählen Sie ggf. eine andere
+                    Zahlart aus.
+                </VariableLocalized>
+                <VariableLocalized iso="ENG">You canceled the payment. Please select a different payment method if
+                    necessary.
+                </VariableLocalized>
             </Variable>
             <Variable>
                 <Name>error_expired</Name>
                 <Description></Description>
-                <VariableLocalized iso="GER">Ihre Zahlungssession ist abgelaufen, bitte versuchen Sie es erneut.</VariableLocalized>
+                <VariableLocalized iso="GER">Ihre Zahlungssession ist abgelaufen, bitte versuchen Sie es erneut.
+                </VariableLocalized>
                 <VariableLocalized iso="ENG">Your payment session has expired, please try again.</VariableLocalized>
             </Variable>
             <Variable>
                 <Name>error_open</Name>
                 <Description></Description>
-                <VariableLocalized iso="GER">Bei der Zahlung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut, oder wählen Sie eine andere Zahlungsart.</VariableLocalized>
-                <VariableLocalized iso="ENG">The payment process failed. Please try again or choose a different payment method.</VariableLocalized>
+                <VariableLocalized iso="GER">Bei der Zahlung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut,
+                    oder wählen Sie eine andere Zahlungsart.
+                </VariableLocalized>
+                <VariableLocalized iso="ENG">The payment process failed. Please try again or choose a different payment
+                    method.
+                </VariableLocalized>
             </Variable>
             <Variable>
                 <Name>error_failed</Name>
                 <Description></Description>
-                <VariableLocalized iso="GER">Bei der Zahlung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut, oder wählen Sie eine andere Zahlungsart.</VariableLocalized>
-                <VariableLocalized iso="ENG">The payment process failed. Please try again or choose a different payment method.</VariableLocalized>
+                <VariableLocalized iso="GER">Bei der Zahlung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut,
+                    oder wählen Sie eine andere Zahlungsart.
+                </VariableLocalized>
+                <VariableLocalized iso="ENG">The payment process failed. Please try again or choose a different payment
+                    method.
+                </VariableLocalized>
             </Variable>
             <Variable>
                 <Name>lbl_cardHolder</Name>
@@ -92,9 +111,12 @@
             <Variable>
                 <Name>cvchint_2</Name>
                 <Description></Description>
-                <VariableLocalized iso="GER">Die dreistellige CVV Nummer wird bei Visa und Mastercard auf der Rückseite, bei American Express auf
-                    der Vorderseite der Karte abgebildet.</VariableLocalized>
-                <VariableLocalized iso="ENG">The three-digit CVV number is shown on the reverse for Visa and Mastercard, and on the front of the card for American Express.</VariableLocalized>
+                <VariableLocalized iso="GER">Die dreistellige CVV Nummer wird bei Visa und Mastercard auf der Rückseite,
+                    bei American Express auf der Vorderseite der Karte abgebildet.
+                </VariableLocalized>
+                <VariableLocalized iso="ENG">The three-digit CVV number is shown on the reverse for Visa and Mastercard,
+                    and on the front of the card for American Express.
+                </VariableLocalized>
             </Variable>
         </Locales>
         <Adminmenu>
@@ -119,7 +141,7 @@
                 </Setting>
                 <Setting type="text" initialValue="" sort="15" conf="Y">
                     <Name>Profile ID:</Name>
-                    <Description>Füge hier deinen mollie Profil ID ein. Wird benötigt für mollie Components</Description>
+                    <Description>Füge hier deinen mollie Profil ID ein. Wird benötigt um mollie Components zu aktivieren</Description>
                     <ValueName>profileId</ValueName>
                 </Setting>
 
@@ -132,11 +154,10 @@
                         <Option value="Y" sort="2"><![CDATA[Ja]]></Option>
                     </SelectboxOptions>
                 </Setting>
-
                 <Setting type="selectbox" initialValue="S" sort="20" conf="Y">
                     <Name>Zahlungsart Daten syncronisiernen</Name>
-                    <Description>Lädt Name / Bild für die jeweilige Sprache automatisch von mollie, und speichert diese&#xA;
-                        in der Datenbank&#xA;
+                    <Description>Lädt Name / Bild für die jeweilige Sprache automatisch von mollie, und speichert diese
+                        in der Datenbank
                     </Description>
                     <ValueName>paymentmethod_sync</ValueName>
                     <SelectboxOptions>
