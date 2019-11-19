@@ -130,7 +130,7 @@ class JTLMollie extends PaymentMethod
                 }
             }
         } catch (Exception $e) {
-            $this->doLog("Get Payment Error: " . $e->getMessage() . ". Create new ORDER...", $logData);
+            $this->doLog("Get Payment Error: " . $e->getMessage() . ". Create new ORDER...", $logData, LOGLEVEL_ERROR);
         }
 
         try {
@@ -154,8 +154,9 @@ class JTLMollie extends PaymentMethod
             echo "<a href='{$oMolliePayment->getCheckoutUrl()}'>redirect to payment ...</a>";
             exit();
         } catch (ApiException $e) {
-            Shop::Smarty()->assign('oMollieException', $e);
-            $this->doLog("Create Payment Error: " . $e->getMessage() . '<br/><pre>' . print_r($e->getTrace(), 1) . '</pre>', $logData);
+            $this->doLog("Create Payment Error: " . $e->getMessage() . '<br/><pre>' . print_r($orderData, 1) . '</pre>', $logData, LOGLEVEL_ERROR);
+            header('Location: ' . Shop::getURL() . '/bestellvorgang.php?editZahlungsart=1&mollieStatus=failed');
+            exit();
         }
     }
 
