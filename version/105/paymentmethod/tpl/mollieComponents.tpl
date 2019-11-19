@@ -19,7 +19,7 @@
             <div class="form-control" id="expiry-date"></div>
         </div>
     </div>
-    <div class="form-group" style="position: relative">
+    <div class="form-group">
         <label for="inputEmail3" class="col-sm-2 control-label">
             <a onclick="$('.cvchint').fadeToggle(); return false;"
                style="background: #333;cursor: help; border-radius: 50%;color: white;padding: 0 5px;font-size: 10px;margin-right: 5px;">?</a>{$mollieLang.lbl_varificationCode}
@@ -70,7 +70,6 @@
 
     var verificationCode = mollie.createComponent('verificationCode');
     verificationCode.mount('#verification-code');
-
 
     var form = document.getElementById("form_payment_extra");
 

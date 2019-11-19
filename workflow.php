@@ -19,7 +19,10 @@ try {
     //if (Helper::getSetting('notifyMollie') === 'W') {
     if (array_key_exists('secret', $_REQUEST) && trim($_REQUEST['secret']) !== '' && $_REQUEST['secret'] === Helper::getSetting('workflowSecret')) {
 
-        //file_put_contents(__DIR__ . '/workflow.log', print_r([$_REQUEST, $_SERVER], 1), FILE_APPEND);
+        if(defined('MOLLIE_WORKFLOW_LOG') && MOLLIE_WORKFLOW_LOG){
+            file_put_contents(__DIR__ . '/workflow.log', print_r([$_REQUEST, $_SERVER], 1), FILE_APPEND);
+        }
+
         //require_once $oPlugin->cAdminmenuPfad . '/../paymentmethod/JTLMollie.php';
         $kBestellung = array_key_exists('kBestellung', $_REQUEST) ? (int)$_REQUEST['kBestellung'] : null;
         if ($kBestellung && array_key_exists('action', $_REQUEST)) {
