@@ -201,7 +201,9 @@ class JTLMollie extends PaymentMethod
             'locale' => $locale ?: 'de_DE',
             'amount' => (object)[
                 'currency' => $order->Waehrung->cISO,
-                'value' => number_format($order->fGesamtsummeKundenwaehrung, 2, '.', ''),
+                //'value' => number_format($order->fGesamtsummeKundenwaehrung, 2, '.', ''),
+                // runden auf 5 Rappen berücksichtigt
+                'value' => number_format($this->optionaleRundung($order->fWarensummeKundenwaehrung), 2, '.', ''),
             ],
             'orderNumber' => utf8_encode($order->cBestellNr),
             'lines' => [],
@@ -364,8 +366,26 @@ class JTLMollie extends PaymentMethod
                 $data['lines'][] = $line;
             }
         }
-
         return $data;
+    }
+
+    public function optionaleRundung($gesamtsumme)
+    {
+        $conf = Shop::getSettings([CONF_KAUFABWICKLUNG]);
+        if (isset($conf['kaufabwicklung']['bestellabschluss_runden5']) && $conf['kaufabwicklung']['bestellabschluss_runden5'] == 1) {
+            $waehrung = isset($_SESSION['Waehrung']) ? $_SESSION['Waehrung'] : null;
+            if ($waehrung === null || !isset($waehrung->kWaehrung)) {
+                $waehrung = Shop::DB()->select('twaehrung', 'cStandard', 'Y');
+            }
+            $faktor = $waehrung->fFaktor;
+            $gesamtsumme *= $faktor;
+
+            // simplification. see https://de.wikipedia.org/wiki/Rundung#Rappenrundung
+            $gesamtsumme = round($gesamtsumme * 20) / 20;
+            $gesamtsumme /= $faktor;
+        }
+
+        return $gesamtsumme;
     }
 
     public static function getLocale($cISOSprache, $country = null)
