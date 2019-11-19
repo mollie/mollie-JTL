@@ -67,6 +67,7 @@ namespace ws_mollie {
              */
             public static function selfupdate()
             {
+
                 if (function_exists('opcache_reset')) {
                     opcache_reset();
                 }
@@ -124,7 +125,7 @@ namespace ws_mollie {
                     throw new Exception("Das Zip-Archiv ist leider ungültig!");
                 } else {
                     $unzipPath = PFAD_ROOT . PFAD_PLUGIN;
-                    $res = $zip->extract(PCLZIP_OPT_PATH, $unzipPath);
+                    $res = $zip->extract(PCLZIP_OPT_PATH, $unzipPath, PCLZIP_OPT_REPLACE_NEWER);
                     if ($res !== 0) {
                         header('Location: ' . Shop::getURL() . DIRECTORY_SEPARATOR . PFAD_ADMIN . 'pluginverwaltung.php', true);
                     } else {
@@ -214,7 +215,7 @@ namespace ws_mollie {
             {
                 if ($force === true) {
                     self::$oPlugin = new Plugin(self::oPlugin(false)->kPlugin, true);
-                } elseif (null === self::$oPlugin) {
+                } else if (null === self::$oPlugin) {
                     self::$oPlugin = Plugin::getPluginById(__NAMESPACE__);
                 }
                 return self::$oPlugin;
@@ -303,6 +304,7 @@ namespace ws_mollie {
                 }
                 return $kPluginAdminMenu;
             }
+
         }
     }
 

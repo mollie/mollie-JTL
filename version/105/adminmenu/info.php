@@ -44,6 +44,7 @@ try {
         if ((int)Helper::oPlugin()->nVersion < (int)$latestRelease->version) {
             Shop::Smarty()->assign('update', $latestRelease);
         }
+
     } catch (\Exception $e) {
     }
 
