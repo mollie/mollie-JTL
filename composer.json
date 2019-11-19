@@ -4,7 +4,7 @@
   "type": "project",
   "require": {
     "roave/security-advisories": "dev-master",
-    "mollie/mollie-api-php": "^2.6.1"
+    "mollie/mollie-api-php": "^2.12.0"
   },
   "license": "Proprietary",
   "authors": [
