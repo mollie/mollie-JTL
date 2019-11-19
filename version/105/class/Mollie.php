@@ -218,7 +218,7 @@ abstract class Mollie
             $order->orderNumber = $oBestellung->cBestellNr;
             Payment::updateFromPayment($order, $kBestellung);
 
-            $oIncomingPayment = Shop::DB()->executeQueryPrepared("SELECT * FROM tzahlungseingang WHERE cHinweis LIKE :cHinweis AND kBestellung = :kBestellung", [':cHinweis' => '%' . $order->id . '%', ':kBestellung' => $oBestellung->kBestellung], 1);
+            $oIncomingPayment = Shop::DB()->executeQueryPrepared("SELECT * FROM tzahlungseingang WHERE kBestellung = :kBestellung", [':kBestellung' => $oBestellung->kBestellung], 1);
             if (!$oIncomingPayment) {
                 $oIncomingPayment = new stdClass();
             }

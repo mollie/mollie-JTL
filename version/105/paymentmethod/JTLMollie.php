@@ -197,13 +197,16 @@ class JTLMollie extends PaymentMethod
     protected function getOrderData(Bestellung $order, $hash)
     {
         $locale = self::getLocale($_SESSION['cISOSprache'], $_SESSION['Kunde']->cLand);
+
+        $_currencyFactor = (float)$order->Waehrung->fFaktor;
+
         $data = [
             'locale' => $locale ?: 'de_DE',
             'amount' => (object)[
                 'currency' => $order->Waehrung->cISO,
                 //'value' => number_format($order->fGesamtsummeKundenwaehrung, 2, '.', ''),
                 // runden auf 5 Rappen berücksichtigt
-                'value' => number_format($this->optionaleRundung($order->fWarensummeKundenwaehrung), 2, '.', ''),
+                'value' => number_format($this->optionaleRundung($order->fGesamtsumme * $_currencyFactor), 2, '.', ''),
             ],
             'orderNumber' => utf8_encode($order->cBestellNr),
             'lines' => [],
@@ -249,10 +252,11 @@ class JTLMollie extends PaymentMethod
             $data['shippingAddress']->country = $order->Lieferadresse->cLand;
         }
 
+
         /** @var WarenkorbPos $oPosition */
         foreach ($order->Positionen as $oPosition) {
 
-            $_currencyFactor = (float)$order->Waehrung->fFaktor;         // EUR => 1
+                     // EUR => 1
             $_netto = round($oPosition->fPreis, 2);              // 13.45378 => 13.45
             $_vatRate = (float)$oPosition->fMwSt / 100;                  // 0.19
             $_amount = (float)$oPosition->nAnzahl;                       // 3

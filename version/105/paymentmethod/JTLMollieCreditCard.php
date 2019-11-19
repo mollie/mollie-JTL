@@ -26,8 +26,8 @@ class JTLMollieCreditCard extends JTLMollie
         Shop::Smarty()->assign('profileId', trim(Helper::getSetting('profileId')))
             ->assign('locale', self::getLocale($_SESSION['cISOSprache'], $_SESSION['Kunde']->cLand))
             ->assign('testmode', strpos(Helper::getSetting('api_key'), 'test_') === 0)
-            ->assign('mollieLang', Helper::oPlugin()->oPluginSprachvariableAssoc_arr);
-
+            ->assign('mollieLang', Helper::oPlugin()->oPluginSprachvariableAssoc_arr)
+            ->assign('trustBadge', Helper::getSetting('loadTrust') === 'Y' ? Helper::oPlugin()->cFrontendPfadURLSSL . 'img/trust_' . $_SESSION['cISOSprache'] . '.png' : false);
 
         return false;
     }

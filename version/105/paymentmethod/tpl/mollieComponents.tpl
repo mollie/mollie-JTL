@@ -25,14 +25,18 @@
             <div class="form-control" id="verification-code"></div>
         </div>
     </div>
+    {if $trustBadge}
+        <div class="text-center">
+            <img src="{$trustBadge}" style="height: 90px; max-width: 100%" alt="PCI-DSS SAQ-A compliant"
+                 title="PCI-DSS SAQ-A compliant"/>
+        </div>
+    {/if}
 </div>
 
 <input type="hidden" name="cardToken" id="cardToken"/>
 
 <script src="https://js.mollie.com/v1/mollie.js"></script>
 <script>
-
-
 
     var mollie = Mollie('{$profileId}', {
         locale: '{$locale}'{if $testmode}, testMode: true{/if}
@@ -53,13 +57,15 @@
 
     var form = document.getElementById("form_payment_extra");
 
-    form.addEventListener('submit', function(e){
+    form.addEventListener('submit', function (e) {
         e.preventDefault();
         var errorDiv = document.getElementById("mollieError");
         errorDiv.innerHTML = '';
 
-        mollie.createToken().then(function(result) {
-            const { token, error } = result;
+        mollie.createToken().then(function (result) {
+            const {
+                token, error
+            } = result;
             if (error) {
                 var alert = document.createElement('div');
                 alert.className = 'alert alert-danger';
