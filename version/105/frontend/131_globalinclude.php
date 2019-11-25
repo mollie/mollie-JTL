@@ -18,7 +18,7 @@ try {
         // Bestellung finalized, redirect to status/completion page
         if ((int)$payment->kBestellung) {
             $logData = '$' . $payment->kID . '#' . $payment->kBestellung . "§" . $payment->cOrderNumber;
-            Mollie::JTLMollie()->doLog('Bestellung finalized => redirect abschluss/status', $logData);
+            Mollie::JTLMollie()->doLog('Hook 131/kBestellung => bestellabschluss', $logData);
             $order = JTLMollie::API()->orders->get($payment->kID, ['embed' => 'payments']);
             Mollie::handleOrder($order, $payment->kBestellung);
             Mollie::getOrderCompletedRedirect($payment->kBestellung, true);
@@ -47,25 +47,30 @@ try {
             if ($order && !$order->isCanceled() && !$order->isExpired()) {
                 // finalize only if payment is not expired/canceled,failed or open
                 if ($_payment && !in_array($_payment->status, [PaymentStatus::STATUS_EXPIRED, PaymentStatus::STATUS_CANCELED, PaymentStatus::STATUS_OPEN, PaymentStatus::STATUS_FAILED])) {
-                    Mollie::JTLMollie()->doLog('Bestellung open => finalize', $logData);
-                    $session = Session::getInstance();
+
+                    Mollie::JTLMollie()->doLog('Hook 131/open => finalize', $logData, LOGLEVEL_DEBUG);
                     /** @noinspection PhpIncludeInspection */
                     require_once PFAD_ROOT . 'includes/bestellabschluss_inc.php';
                     /** @noinspection PhpIncludeInspection */
                     require_once PFAD_ROOT . 'includes/mailTools.php';
+                    $session = Session::getInstance();
                     $oBestellung = fakeBestellung();
                     $oBestellung = finalisiereBestellung();
-                    Mollie::JTLMollie()->doLog('Bestellung finalized => redirect<br/><pre>' . print_r($order, 1) . '</pre>', $logData, LOGLEVEL_DEBUG);
+                    $session->cleanUp();
+
+                    Mollie::JTLMollie()->doLog('Hook 131/finalized => bestellabschluss<br/><pre>' . print_r($order, 1) . '</pre>', $logData);
                     Mollie::handleOrder($order, $oBestellung->kBestellung);
-                    Mollie::getOrderCompletedRedirect($oBestellung->kBestellung, true);
                     JTLMollie::API()->performHttpCall('PATCH', sprintf('payments/%s', $_payment->id), json_encode(['description' => $oBestellung->cBestellNr]));
+
+                    return Mollie::getOrderCompletedRedirect($oBestellung->kBestellung, true);
+
                 } else {
-                    Mollie::JTLMollie()->doLog('Invalid Payment<br/><pre>' . print_r($payment, 1) . '</pre>', $logData, LOGLEVEL_ERROR);
+                    Mollie::JTLMollie()->doLog('Hook 131/Invalid Payment<br/><pre>' . print_r($payment, 1) . '</pre>', $logData, LOGLEVEL_ERROR);
                     header('Location: ' . Shop::getURL() . '/bestellvorgang.php?editZahlungsart=1&mollieStatus=' . $_payment->status);
                     exit();
                 }
             } else {
-                Mollie::JTLMollie()->doLog('Invalid Order<br/><pre>' . print_r($order, 1) . '</pre>', $logData, LOGLEVEL_ERROR);
+                Mollie::JTLMollie()->doLog('Hook 131/Invalid Order<br/><pre>' . print_r($order, 1) . '</pre>', $logData, LOGLEVEL_ERROR);
                 header('Location: ' . Shop::getURL() . '/bestellvorgang.php?editZahlungsart=1&mollieStatus=' . $order->status);
                 exit();
             }

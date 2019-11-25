@@ -211,7 +211,7 @@ abstract class Mollie
                     JTLMollie::API()->performHttpCall("PATCH", sprintf('orders/%s', $order->id), json_encode(['orderNumber' => $oBestellung->cBestellNr]));
                 }
             } catch (Exception $e) {
-                self::JTLMollie()->doLog('handleOrder: ' . $e->getMessage(), $logData);
+                self::JTLMollie()->doLog('Mollie::handleOrder: ' . $e->getMessage(), $logData);
             }
 
 
@@ -244,16 +244,16 @@ abstract class Mollie
                     $oIncomingPayment->cHinweis = $cHinweis;
                     Mollie::JTLMollie()->addIncomingPayment($oBestellung, $oIncomingPayment);
                     Mollie::JTLMollie()->setOrderStatusToPaid($oBestellung);
-                    Mollie::JTLMollie()->doLog('PaymentStatus: ' . $order->status . ' => Zahlungseingang (' . $order->amount->value . ')', $logData, LOGLEVEL_DEBUG);
+                    Mollie::JTLMollie()->doLog('Mollie::handleOrder/PaymentStatus: ' . $order->status . ' => Zahlungseingang (' . $order->amount->value . ')', $logData, LOGLEVEL_DEBUG);
                     break;
                 case OrderStatus::STATUS_SHIPPING:
                 case OrderStatus::STATUS_PENDING:
                     Mollie::JTLMollie()->setOrderStatusToPaid($oBestellung);
-                    Mollie::JTLMollie()->doLog('PaymentStatus: ' . $order->status . ' => Bestellung bezahlt, KEIN Zahlungseingang', $logData, LOGLEVEL_NOTICE);
+                    Mollie::JTLMollie()->doLog('Mollie::handleOrder/PaymentStatus: ' . $order->status . ' => Bestellung bezahlt, KEIN Zahlungseingang', $logData, LOGLEVEL_NOTICE);
                     break;
                 case OrderStatus::STATUS_CANCELED:
                 case OrderStatus::STATUS_EXPIRED:
-                    Mollie::JTLMollie()->doLog('PaymentStatus: ' . $order->status, $logData, LOGLEVEL_ERROR);
+                    Mollie::JTLMollie()->doLog('Mollie::handleOrder/PaymentStatus: ' . $order->status, $logData, LOGLEVEL_ERROR);
                     break;
             }
             return true;

@@ -447,7 +447,7 @@ class JTLMollie extends PaymentMethod
     {
         Helper::autoload();
         $logData = '#' . $order->kBestellung . "" . $order->cBestellNr;
-        $this->doLog('Received Notification<br/><pre>' . print_r([$hash, $args], 1) . '</pre>', $logData, LOGLEVEL_NOTICE);
+        $this->doLog('JTLMollie::handleNotification<br/><pre>' . print_r([$hash, $args], 1) . '</pre>', $logData, LOGLEVEL_DEBUG);
 
         try {
             $oMolliePayment = self::API()->orders->get($args['id'], ['embed' => 'payments']);
@@ -475,7 +475,7 @@ class JTLMollie extends PaymentMethod
             JTLMollie::API()->performHttpCall('PATCH', sprintf('payments/%s', $_payment->id), json_encode(['description' => $order->cBestellNr]));
 
         } catch (Exception $e) {
-            $this->doLog('handleNotification: ' . $e->getMessage(), $logData);
+            $this->doLog('JTLMollie::handleNotification: ' . $e->getMessage(), $logData);
         }
     }
 
@@ -493,11 +493,11 @@ class JTLMollie extends PaymentMethod
             Helper::autoload();
             $oMolliePayment = self::API()->orders->get($args['id'], ['embed' => 'payments']);
             $logData .= '$' . $oMolliePayment->id;
-            $this->doLog('Received Notification Finalize Order<br/><pre>' . print_r([$hash, $args, $oMolliePayment], 1) . '</pre>', $logData, LOGLEVEL_DEBUG);
+            $this->doLog('JTLMollie::finalizeOrder<br/><pre>' . print_r([$hash, $args, $oMolliePayment], 1) . '</pre>', $logData, LOGLEVEL_DEBUG);
             Payment::updateFromPayment($oMolliePayment, $order->kBestellung);
             return in_array($oMolliePayment->status, [OrderStatus::STATUS_PAID, OrderStatus::STATUS_AUTHORIZED, OrderStatus::STATUS_PENDING, OrderStatus::STATUS_COMPLETED]);
         } catch (Exception $e) {
-            $this->doLog($e->getMessage(), $logData);
+            $this->doLog('JTLMollie::finalizeOrder: ' . $e->getMessage(), $logData);
         }
         return false;
     }

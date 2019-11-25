@@ -21,7 +21,7 @@ if (array_key_exists('hash', $_REQUEST)) {
             require_once __DIR__ . '/../paymentmethod/JTLMollie.php';
             $order = JTLMollie::API()->orders->get($payment->kID, ['embed' => 'payments']);
             $logData = '#' . $payment->kBestellung . '$' . $payment->kID;
-            Mollie::JTLMollie()->doLog('Received Notification<br/><pre>' . print_r([$order, $payment], 1) . '</pre>', $logData);
+            Mollie::JTLMollie()->doLog('Notify/Hook 144/kBestellung>0<br/><pre>' . print_r([$order, $payment], 1) . '</pre>', $logData);
             Mollie::handleOrder($order, $payment->kBestellung);
             // exit to stop execution of notify.php
 
@@ -49,6 +49,9 @@ if (array_key_exists('hash', $_REQUEST)) {
             }
 
             exit();
+        }else if($payment){
+            $logData = '$' . $payment->kID;
+            Mollie::JTLMollie()->doLog('Notify/Hook 144/continue<br/><pre>' . print_r([$order, $payment], 1) . '</pre>', $logData);
         }
     } catch (Exception $e) {
         Helper::logExc($e);
