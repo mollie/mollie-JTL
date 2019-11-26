@@ -7,7 +7,7 @@ use ws_mollie\Mollie;
 require_once __DIR__ . '/../class/Helper.php';
 try {
     if (!Helper::init()) {
-        echo "Kein gültige Lizenz?";
+        echo "Kein gltige Lizenz?";
         return;
     }
 
@@ -33,12 +33,13 @@ try {
         Shop::Smarty()->assign('defaultTabbertab', Helper::getAdminmenu("Zahlungsarten"));
     }
 
-    $params = ['include' => 'pricing,issuers', 'resource' => 'orders'];
+    $params = ['include' => 'pricing,issuers'];
     if ($amount && $currency && $locale) {
         $params['amount'] = ['value' => number_format($amount, 2, '.', ''), 'currency' => $currency];
         $params['locale'] = $locale;
         if ($active) {
             $params['includeWallets'] = 'applepay';
+            $params['resource'] = 'orders';
         }
     }
 

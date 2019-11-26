@@ -153,7 +153,6 @@ class JTLMollie extends PaymentMethod
     public function doLog($msg, $data = null, $level = LOGLEVEL_NOTICE)
     {
         ZahlungsLog::add($this->moduleID, $msg, $data, $level);
-
         return $this;
     }
 
