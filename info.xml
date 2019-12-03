@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <jtlshop3plugin>
     <Name>mollie</Name>
-    <Description>Zahlungsartplugin für mollie.com</Description>
+    <Description>Zahlungsartplugin fr mollie.com</Description>
     <Author>WebStollen</Author>
     <URL>http://www.webstollen.de/</URL>
     <XMLVersion>102</XMLVersion>
@@ -25,8 +25,12 @@
             <CreateDate>2019-07-12</CreateDate>
         </Version>
         <Version nr="105">
-            <CreateDate>2019-07-12</CreateDate>
+            <CreateDate>2019-11-26</CreateDate>
         </Version>
+        <Version nr="106">
+      <CreateDate>2019-11-26</CreateDate>
+    </Version>
+
         <Hooks>
             <Hook id="131">131_globalinclude.php</Hook>
             <Hook id="144">144_notify.php</Hook>
@@ -43,7 +47,7 @@
             <Variable>
                 <Name>error_canceled</Name>
                 <Description></Description>
-                <VariableLocalized iso="GER">Die Zahlung wurde von Ihnen abgebrochen. Wählen Sie ggf. eine andere
+                <VariableLocalized iso="GER">Die Zahlung wurde von Ihnen abgebrochen. Whlen Sie ggf. eine andere
                     Zahlart aus.
                 </VariableLocalized>
                 <VariableLocalized iso="ENG">You canceled the payment. Please select a different payment method if
@@ -61,7 +65,7 @@
                 <Name>error_open</Name>
                 <Description></Description>
                 <VariableLocalized iso="GER">Bei der Zahlung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut,
-                    oder wählen Sie eine andere Zahlungsart.
+                    oder whlen Sie eine andere Zahlungsart.
                 </VariableLocalized>
                 <VariableLocalized iso="ENG">The payment process failed. Please try again or choose a different payment
                     method.
@@ -71,7 +75,7 @@
                 <Name>error_failed</Name>
                 <Description></Description>
                 <VariableLocalized iso="GER">Bei der Zahlung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut,
-                    oder wählen Sie eine andere Zahlungsart.
+                    oder whlen Sie eine andere Zahlungsart.
                 </VariableLocalized>
                 <VariableLocalized iso="ENG">The payment process failed. Please try again or choose a different payment
                     method.
@@ -111,7 +115,7 @@
             <Variable>
                 <Name>cvchint_2</Name>
                 <Description></Description>
-                <VariableLocalized iso="GER">Die dreistellige CVV Nummer wird bei Visa und Mastercard auf der Rückseite,
+                <VariableLocalized iso="GER">Die dreistellige CVV Nummer wird bei Visa und Mastercard auf der Rckseite,
                     bei American Express auf der Vorderseite der Karte abgebildet.
                 </VariableLocalized>
                 <VariableLocalized iso="ENG">The three-digit CVV number is shown on the reverse for Visa and Mastercard,
@@ -136,12 +140,12 @@
                 <Name>Einstellungen</Name>
                 <Setting type="text" initialValue="" sort="10" conf="Y">
                     <Name>API Key:</Name>
-                    <Description>Füge hier deinen mollie API Key ein</Description>
+                    <Description>Fge hier deinen mollie API Key ein</Description>
                     <ValueName>api_key</ValueName>
                 </Setting>
                 <Setting type="text" initialValue="" sort="15" conf="Y">
                     <Name>Profile ID:</Name>
-                    <Description>Füge hier deinen mollie Profil ID ein. Wird benötigt um mollie Components zu aktivieren</Description>
+                    <Description>Fge hier deinen mollie Profil ID ein. Wird bentigt um mollie Components zu aktivieren</Description>
                     <ValueName>profileId</ValueName>
                 </Setting>
 
@@ -156,20 +160,20 @@
                 </Setting>
                 <Setting type="selectbox" initialValue="S" sort="20" conf="Y">
                     <Name>Zahlungsart Daten syncronisiernen</Name>
-                    <Description>Lädt Name / Bild für die jeweilige Sprache automatisch von mollie, und speichert diese
+                    <Description>Ldt Name / Bild fr die jeweilige Sprache automatisch von mollie, und speichert diese
                         in der Datenbank
                     </Description>
                     <ValueName>paymentmethod_sync</ValueName>
                     <SelectboxOptions>
                         <Option value="N" sort="1"><![CDATA[Nein]]></Option>
-                        <Option value="size1x" sort="2"><![CDATA[Ja, Bildgröße 1x]]></Option>
-                        <Option value="size2x" sort="3"><![CDATA[Ja, Bildgröße 2x]]></Option>
+                        <Option value="size1x" sort="2"><![CDATA[Ja, Bildgre 1x]]></Option>
+                        <Option value="size2x" sort="3"><![CDATA[Ja, Bildgre 2x]]></Option>
                         <Option value="svg" sort="4"><![CDATA[Ja, Bild SVG]]></Option>
                     </SelectboxOptions>
                 </Setting>
                 <Setting type="selectbox" initialValue="N" sort="30" conf="Y">
                     <Name>Checkout Styles laden</Name>
-                    <Description>Lädt Stylesheets für das Evo Template, um den Checkout zu verschönern.</Description>
+                    <Description>Ldt Stylesheets fr das Evo Template, um den Checkout zu verschnern.</Description>
                     <ValueName>load_styles</ValueName>
                     <SelectboxOptions>
                         <Option value="N" sort="1"><![CDATA[Nein]]></Option>
@@ -180,7 +184,7 @@
 
                 <Setting type="selectbox" initialValue="ord_tr" sort="100" conf="Y">
                     <Name>TransaktionsID des Zahlungseingangs:</Name>
-                    <Description>Welche ID soll an die WAWI übetragen werden?</Description>
+                    <Description>Welche ID soll an die WAWI betragen werden?</Description>
                     <ValueName>wawiPaymentID</ValueName>
                     <SelectboxOptions>
                         <Option value="ord" sort="1"><![CDATA[Order ID]]></Option>
@@ -191,7 +195,7 @@
 
                 <Setting type="text" initialValue="" sort="110" conf="Y">
                     <Name>Workflow-Secret:</Name>
-                    <Description>Schlüssel, um die WAWI Workflow-Requests zu authentifizieren.</Description>
+                    <Description>Schlssel, um die WAWI Workflow-Requests zu authentifizieren.</Description>
                     <ValueName>workflowSecret</ValueName>
                 </Setting>
 
@@ -294,9 +298,9 @@
                 <ClassName>JTLMollieBanktransfer</ClassName>
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
-                    <Name>SEPA Überweisung</Name>
+                    <Name>SEPA berweisung</Name>
                     <ChargeName>mollie</ChargeName>
-                    <InfoText>Bezahlen Sie bequem mit SEPA Überweisung.</InfoText>
+                    <InfoText>Bezahlen Sie bequem mit SEPA berweisung.</InfoText>
                 </MethodLanguage>
             </Method>
             <Method>
