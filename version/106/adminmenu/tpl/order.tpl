@@ -96,13 +96,25 @@
                 <td>{$payment->status}</td>
                 <td>{$payment->method}</td>
                 <td>{$payment->amount->value} {$payment->amount->currency}</td>
-                <td>{$payment->settlementAmount->value} {$payment->settlementAmount->currency}</td>
-                <td>{$payment->amountRefunded->value} {$payment->amountRefunded->currency}</td>
-                <td>{$payment->amountRemaining->value} {$payment->amountRemaining->currency}</td>
+                <td>
+                    {if $payment->settlementAmount}
+                        {$payment->settlementAmount->value} {$payment->settlementAmount->currency}
+                    {else}-{/if}
+                </td>
+                <td>
+                    {if $payment->amountRefunded}
+                        {$payment->amountRefunded->value} {$payment->amountRefunded->currency}
+                    {else}-{/if}
+                </td>
+                <td>
+                    {if $payment->amountRemaining}
+                        {$payment->amountRemaining->value} {$payment->amountRemaining->currency}
+                    {else}-{/if}
+                </td>
                 <td>
                     <ul>
                         {foreach from=$payment->details item=value key=key}
-                            <li><b>{$key}:</b> {$value}</li>
+                            <li><b>{$key}:</b> {if $value|is_scalar}{$value}{else}{$value|json_encode}{/if}</li>
                         {/foreach}
                     </ul>
                 </td>
@@ -123,10 +135,10 @@
             Zahlung erfassen<sup>1</sup>
         </a>
     {/if}
-    {if $order->amount->value > $order->amountRefunded->value && $order->amountCaptured->value > 0}
+    {if !$order->amountRefunded || ($order->amount->value > $order->amountRefunded->value && $order->amountCaptured->value > 0)}
         <a href="plugin.php?kPlugin={$oPlugin->kPlugin}&action=refund&id={$order->id}"
            onclick="return confirm('Zahlung wirklich zurck erstatten?');" class="btn btn-warning"><i
-                    class="fa fa-thumbs-down"></i> Rckerstatten<sup>2</sup>
+                    class="fa fa-thumbs-down"></i> R&uuml;ckerstatten<sup>2</sup>
         </a>
     {/if}
     {if $order->isCancelable}

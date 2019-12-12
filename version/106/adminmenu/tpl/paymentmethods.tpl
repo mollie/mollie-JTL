@@ -5,8 +5,10 @@
         <td>{$profile->mode}</td>
         <th>Status:</th>
         <td>{$profile->status}</td>
-        <th>Review:</th>
-        <td>{$profile->review->status}</td>
+        {if $profile->review}
+            <th>Review:</th>
+            <td>{$profile->review->status}</td>
+        {/if}
     </tr>
 </table>
 
@@ -20,7 +22,7 @@
             <label for="cLocale">Locale:</label>
             <select name="locale" id="cLocale">
                 {foreach from=$locales item=locale}
-                    <option {if $smarty.get.locale === $locale}selected="selected"{/if}
+                    <option {if "locale"|array_key_exists:$smarty.get && $smarty.get.locale === $locale}selected="selected"{/if}
                             value="{$locale}">{$locale}</option>
                 {/foreach}
             </select>
@@ -30,18 +32,21 @@
             <label for="cCurrency">Währung:</label>
             <select name="currency" id="cCurrency">
                 {foreach from=$currencies item=currency key=key}
-                    <option {if $smarty.get.currency === $key}selected="selected"{/if}
+                    <option {if "currency"|array_key_exists:$smarty.get && $smarty.get.currency === $key}selected="selected"{/if}
                             value="{$key}">{$currency}</option>
                 {/foreach}
             </select>
         </div>
         <div class="col-xs-12 col-sm-3">
             <label for="cAmount">Betrag:</label>
-            <input type="number" value="{if $smarty.get.amount}{$smarty.get.amount}{else}10{/if}" name="amount" id="cAmount">
+            <input type="number"
+                   value="{if "amount"|array_key_exists:$smarty.get && $smarty.get.amount}{$smarty.get.amount}{else}10{/if}"
+                   name="amount" id="cAmount">
         </div>
         <div class="col-xs-12 col-sm-3">
             <input id="cActive" type="checkbox" value="1" name="active"
-                   {if $smarty.get.active}checked="checked"{/if}><label for="cActive">Nur aktive ZA</label>
+                   {if "active"|array_key_exists:$smarty.get}checked="checked"{/if}><label for="cActive">Nur aktive
+                ZA</label>
             <button class="btn btn-primary" type="submit">senden</button>
             <a class="btn btn-info" href="plugin.php?kPlugin={$oPlugin->kPlugin}&za=1">reset</a>
         </div>

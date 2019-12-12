@@ -5,6 +5,7 @@ namespace ws_mollie\Model;
 use Bestellung;
 use Mollie\Api\Resources\Order;
 use Shop;
+use ws_mollie\Mollie;
 
 class Payment extends AbstractModel
 {
@@ -12,6 +13,7 @@ class Payment extends AbstractModel
 
     public static function updateFromPayment(Order $oMolliePayment, $kBestellung = null, $hash = null)
     {
+        $logData = '#' . $kBestellung . '$' . $oMolliePayment->id;
         $data = [
             ':kID' => $oMolliePayment->id,
             ':kBestellung' => (int)$kBestellung ?: null,
@@ -39,6 +41,7 @@ class Payment extends AbstractModel
             ':fAmountRefunded1' => $oMolliePayment->amountRefunded ? $oMolliePayment->amountRefunded->value : null,
             ':dCreatedAt' => $oMolliePayment->createdAt ? date('Y-m-d H:i:s', strtotime($oMolliePayment->createdAt)) : null,
         ];
+        Mollie::JTLMollie()->doLog('Payment::updateFromPayment<br/><pre>' . print_r([$kBestellung, $oMolliePayment], 1) . '</pre>', $logData);
         return Shop::DB()->executeQueryPrepared(
             'INSERT INTO ' . self::TABLE . ' (kID, kBestellung, cMode, cStatus, cHash, fAmount, cOrderNumber, cCurrency, cMethod, cLocale, bCancelable, cWebhookURL, cRedirectURL, cCheckoutURL, fAmountCaptured, fAmountRefunded, dCreatedAt) '
             . 'VALUES (:kID, :kBestellung, :cMode, :cStatus, :cHash, :fAmount, :cOrderNumber, :cCurrency, :cMethod, :cLocale, :bCancelable, :cWebhookURL, :cRedirectURL, IF(:cCheckoutURL IS NULL, cCheckoutURL, :cCheckoutURL1), :fAmountCaptured, :fAmountRefunded, :dCreatedAt) '

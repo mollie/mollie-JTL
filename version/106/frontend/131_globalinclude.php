@@ -25,7 +25,9 @@ try {
         } elseif ($payment) { // payment, but no order => finalize it
             require_once __DIR__ . '/../paymentmethod/JTLMollie.php';
             $order = JTLMollie::API()->orders->get($payment->kID, ['embed' => 'payments']);
-            $logData = '$' . $order->id . '#' . $payment->kBestellung . "§" . $payment->cOrderNumber;
+            $logData = '$' . $order->id . "§" . $payment->cOrderNumber;
+            Mollie::JTLMollie()->doLog('Hook 131/open => finalize?', $logData);
+
 
             // GET NEWEST PAYMENT:
             /** @var Payment $_payment */
@@ -48,7 +50,7 @@ try {
                 // finalize only if payment is not expired/canceled,failed or open
                 if ($_payment && !in_array($_payment->status, [PaymentStatus::STATUS_EXPIRED, PaymentStatus::STATUS_CANCELED, PaymentStatus::STATUS_OPEN, PaymentStatus::STATUS_FAILED])) {
 
-                    Mollie::JTLMollie()->doLog('Hook 131/open => finalize', $logData, LOGLEVEL_DEBUG);
+                    Mollie::JTLMollie()->doLog('Hook 131/open => finalize!', $logData, LOGLEVEL_DEBUG);
                     /** @noinspection PhpIncludeInspection */
                     require_once PFAD_ROOT . 'includes/bestellabschluss_inc.php';
                     /** @noinspection PhpIncludeInspection */
@@ -57,6 +59,16 @@ try {
                     $oBestellung = fakeBestellung();
                     $oBestellung = finalisiereBestellung();
                     $session->cleanUp();
+
+                    if ($oBestellung->kBestellung > 0 && array_key_exists('cMollieHash', $_SESSION)) {
+                        $_upd = new stdClass();
+                        $_upd->nBezahlt = 1;
+                        $_upd->dZeitBezahlt = 'now()';
+                        $_upd->kBestellung = (int)$oBestellung->kBestellung;
+                        Shop::DB()->update('tzahlungsession', 'cZahlungsID', $_SESSION['cMollieHash'], $_upd);
+                        unset($_SESSION['cMollieHash']);
+                        Jtllog::writeLog('tzahlungsession aktualisiert.', JTLLOG_LEVEL_DEBUG, false, 'Notify');
+                    }
 
                     Mollie::JTLMollie()->doLog('Hook 131/finalized => bestellabschluss<br/><pre>' . print_r($order, 1) . '</pre>', $logData);
                     Mollie::handleOrder($order, $oBestellung->kBestellung);
