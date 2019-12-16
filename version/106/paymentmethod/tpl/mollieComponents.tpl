@@ -85,7 +85,7 @@
             if (error) {
                 var alert = document.createElement('div');
                 alert.className = 'alert alert-danger';
-                alert.id = 'mollieError';
+                alert.id = 'mollieErrorContent';
                 alert.textContent = error.message;
                 errorDiv.append(alert);
             } else {
