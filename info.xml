@@ -47,7 +47,7 @@
             <Variable>
                 <Name>error_canceled</Name>
                 <Description></Description>
-                <VariableLocalized iso="GER">Die Zahlung wurde von Ihnen abgebrochen. Whlen Sie ggf. eine andere
+                <VariableLocalized iso="GER">Die Zahlung wurde von Ihnen abgebrochen. Wählen Sie ggf. eine andere
                     Zahlart aus.
                 </VariableLocalized>
                 <VariableLocalized iso="ENG">You canceled the payment. Please select a different payment method if
@@ -65,7 +65,7 @@
                 <Name>error_open</Name>
                 <Description></Description>
                 <VariableLocalized iso="GER">Bei der Zahlung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut,
-                    oder whlen Sie eine andere Zahlungsart.
+                    oder whälen Sie eine andere Zahlungsart.
                 </VariableLocalized>
                 <VariableLocalized iso="ENG">The payment process failed. Please try again or choose a different payment
                     method.
@@ -109,16 +109,16 @@
             <Variable>
                 <Name>cvchint_1</Name>
                 <Description></Description>
-                <VariableLocalized iso="GER">So findet man die CVV Nummer</VariableLocalized>
-                <VariableLocalized iso="ENG">How to find the CVV number</VariableLocalized>
+                <VariableLocalized iso="GER">So findet man die CVV/CVC Nummer</VariableLocalized>
+                <VariableLocalized iso="ENG">How to find the CVV/CVC number</VariableLocalized>
             </Variable>
             <Variable>
                 <Name>cvchint_2</Name>
                 <Description></Description>
-                <VariableLocalized iso="GER">Die dreistellige CVV Nummer wird bei Visa und Mastercard auf der Rckseite,
+                <VariableLocalized iso="GER">Die dreistellige CVV/CVC Nummer wird bei Visa und Mastercard auf der Rückseite,
                     bei American Express auf der Vorderseite der Karte abgebildet.
                 </VariableLocalized>
-                <VariableLocalized iso="ENG">The three-digit CVV number is shown on the reverse for Visa and Mastercard,
+                <VariableLocalized iso="ENG">The three-digit CVV/CVC number is shown on the reverse for Visa and Mastercard,
                     and on the front of the card for American Express.
                 </VariableLocalized>
             </Variable>
@@ -195,7 +195,7 @@
 
                 <Setting type="text" initialValue="" sort="110" conf="Y">
                     <Name>Workflow-Secret:</Name>
-                    <Description>Schlssel, um die WAWI Workflow-Requests zu authentifizieren.</Description>
+                    <Description>Schlüssel, um die WAWI Workflow-Requests zu authentifizieren.</Description>
                     <ValueName>workflowSecret</ValueName>
                 </Setting>
 
@@ -298,9 +298,9 @@
                 <ClassName>JTLMollieBanktransfer</ClassName>
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
-                    <Name>SEPA berweisung</Name>
+                    <Name>SEPA Überweisung</Name>
                     <ChargeName>mollie</ChargeName>
-                    <InfoText>Bezahlen Sie bequem mit SEPA berweisung.</InfoText>
+                    <InfoText>Bezahlen Sie bequem mit SEPA Überweisung.</InfoText>
                 </MethodLanguage>
             </Method>
             <Method>

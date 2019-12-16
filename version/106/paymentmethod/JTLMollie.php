@@ -17,6 +17,8 @@ require_once __DIR__ . '/../../../../../modules/PaymentMethod.class.php';
 class JTLMollie extends PaymentMethod
 {
 
+    const ALLOW_PAYMENT_BEFORE_ORDER = true;
+
     /**
      * PaymentMethod identifier
      */
@@ -541,6 +543,12 @@ class JTLMollie extends PaymentMethod
             try {
                 $method = self::PossiblePaymentMethods(static::MOLLIE_METHOD, $locale, $_SESSION['Kunde']->cLand, $_SESSION['Waehrung']->cISO, $wk->gibGesamtsummeWaren(true) * $_SESSION['Waehrung']->fFaktor);
                 if ($method !== null) {
+
+                    if ((int)$this->duringCheckout === 1 && !static::ALLOW_PAYMENT_BEFORE_ORDER) {
+                        $this->doLog(static::MOLLIE_METHOD . " cannot be used for payment before order.");
+                        return false;
+                    }
+
                     $this->updatePaymentMethod($_SESSION['cISOSprache'], $method);
                     $this->cBild = $method->image->size2x;
                     return true;
@@ -550,8 +558,10 @@ class JTLMollie extends PaymentMethod
                 $this->doLog('Method ' . static::MOLLIE_METHOD . ' not selectable:' . $e->getMessage());
                 return false;
             }
+        } else {
+            $this->doLog("Global mollie PaymentMethod cannot be used for payments directly.");
         }
-        return true;
+        return false;
     }
 
     /**
