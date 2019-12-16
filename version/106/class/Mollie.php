@@ -45,7 +45,10 @@ abstract class Mollie
         }
 
         if ($redirect) {
-            header('Location: ' . $url);
+            if (!headers_sent()) {
+                header('Location: ' . $url);
+            }
+            echo "<a href='{$url}'>redirect ...</a>";
             exit();
         }
         return $url;
@@ -214,6 +217,12 @@ abstract class Mollie
                 self::JTLMollie()->doLog('Mollie::handleOrder: ' . $e->getMessage(), $logData);
             }
 
+            $_payment = self::getLastPayment($order);
+
+            if ($_payment && $_payment->description !== $oBestellung->cBestellNr) {
+                JTLMollie::API()->performHttpCall('PATCH', sprintf('payments/%s', $_payment->id), json_encode(['description' => $oBestellung->cBestellNr]));
+            }
+
 
             $order->orderNumber = $oBestellung->cBestellNr;
             Payment::updateFromPayment($order, $kBestellung);
@@ -259,6 +268,28 @@ abstract class Mollie
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param Order $order
+     * @return \Mollie\Api\Resources\Payment|null
+     */
+    public static function getLastPayment(Order $order)
+    {
+        $payment = null;
+        if ($order->payments()) {
+            /** @var \Mollie\Api\Resources\Payment $p */
+            foreach ($order->payments() as $p) {
+                if (!$payment) {
+                    $payment = $p;
+                    continue;
+                }
+                if (strtotime($p->createdAt) > strtotime($payment->createdAt)) {
+                    $payment = $p;
+                }
+            }
+        }
+        return $payment;
     }
 
     public static function getLocales()

@@ -141,7 +141,7 @@ class JTLMollie extends PaymentMethod
             }
             $logData .= '$' . $oMolliePayment->id;
             $this->doLog('Mollie Create Payment Redirect: ' . $oMolliePayment->getCheckoutUrl() . "<br/><pre>" . print_r($oMolliePayment, 1) . "</pre>", $logData, LOGLEVEL_DEBUG);
-            Payment::updateFromPayment($oMolliePayment, $order->kBestellung, md5($hash));
+            Payment::updateFromPayment($oMolliePayment, $order->kBestellung, md5(trim($hash, '_')));
             Shop::Smarty()->assign('oMolliePayment', $oMolliePayment);
             if (!$this->duringCheckout) {
                 Session::getInstance()->cleanUp();

@@ -5,7 +5,6 @@ use Mollie\Api\Exceptions\IncompatiblePlatform;
 use Mollie\Api\MollieApiClient;
 use Mollie\Api\Types\OrderLineType;
 use Mollie\Api\Types\OrderStatus;
-use Mollie\Api\Types\PaymentStatus;
 use ws_mollie\Helper;
 use ws_mollie\Model\Payment;
 use ws_mollie\Mollie;
@@ -72,7 +71,6 @@ class JTLMollie extends PaymentMethod
      */
     public function addIncomingPayment($order, $payment)
     {
-        Helper::init();
         $model = (object)array_merge([
             'kBestellung' => (int)$order->kBestellung,
             'cZahlungsanbieter' => empty($order->cZahlungsartName) ? $this->name : $order->cZahlungsartName,
@@ -107,7 +105,8 @@ class JTLMollie extends PaymentMethod
      */
     public function doLog($msg, $data = null, $level = LOGLEVEL_NOTICE)
     {
-        ZahlungsLog::add($this->moduleID, $msg, $data, $level);
+        //ZahlungsLog::add($this->moduleID, $msg, $data, $level);
+        ZahlungsLog::add($this->moduleID, "[" . $_SERVER['PHP_SELF'] . "] " . $msg, $data, $level);
 
         return $this;
     }
@@ -130,43 +129,64 @@ class JTLMollie extends PaymentMethod
      * Tells Template Engine.
      *
      * @param Bestellung $order
+     * @return bool|string
      */
     public function preparePaymentProcess($order)
     {
-        Helper::init();
         $logData = '#' . $order->kBestellung . "§" . $order->cBestellNr;
+
+        $payable = (float)$order->fGesamtsumme > 0;
+
         try {
             if ($order->kBestellung) {
-                $payment = Payment::getPayment($order->kBestellung);
-                $oMolliePayment = self::API()->orders->get($payment->kID, ['embed' => 'payments']);
-                Mollie::handleOrder($oMolliePayment, $order->kBestellung);
-                if ($payment && in_array($payment->cStatus, [OrderStatus::STATUS_CREATED]) && $payment->cCheckoutURL) {
-                    $logData .= '$' . $payment->kID;
-                    if (!$this->duringCheckout) {
-                        Session::getInstance()->cleanUp();
+                if ($payable) {
+                    $payment = Payment::getPayment($order->kBestellung);
+                    $oMolliePayment = self::API()->orders->get($payment->kID, ['embed' => 'payments']);
+                    Mollie::handleOrder($oMolliePayment, $order->kBestellung);
+                    if ($payment && in_array($payment->cStatus, [OrderStatus::STATUS_CREATED]) && $payment->cCheckoutURL) {
+                        $logData .= '$' . $payment->kID;
+                        if (!$this->duringCheckout) {
+                            Session::getInstance()->cleanUp();
+                        }
+                        header('Location: ' . $payment->cCheckoutURL);
+                        echo "<a href='{$oMolliePayment->getCheckoutUrl()}'>redirect to payment ...</a>";
+                        exit();
                     }
-                    header('Location: ' . $payment->cCheckoutURL);
-                    echo "<a href='{$oMolliePayment->getCheckoutUrl()}'>redirect to payment ...</a>";
-                    exit();
+                } else {
+                    return Mollie::getOrderCompletedRedirect($order->kBestellung, true);
                 }
             }
         } catch (Exception $e) {
             $this->doLog("Get Payment Error: " . $e->getMessage() . ". Create new ORDER...", $logData, LOGLEVEL_ERROR);
         }
 
+
         try {
+
+
+            if (!$payable) {
+                $bestellung = finalisiereBestellung();
+                if ($bestellung && (int)$bestellung->kBestellung > 0) {
+                    return Mollie::getOrderCompletedRedirect($bestellung->kBestellung, true);
+                }
+                header('Location: ' . Shop::getURL() . '/bestellvorgang.php?editZahlungsart=1&mollieStatus=failed');
+                echo "<a href='" . Shop::getURL() . '/bestellvorgang.php?editZahlungsart=1&mollieStatus=failed' . "'>redirect...</a>";
+                exit();
+            }
+
             if (!array_key_exists('oMolliePayment', $_SESSION) || !($_SESSION['oMolliePayment'] instanceof \Mollie\Api\Resources\Order)) {
                 $hash = $this->generateHash($order);
-                $_SESSION['cMollieHash'] = $hash;
+                //$_SESSION['cMollieHash'] = $hash;
                 $orderData = $this->getOrderData($order, $hash);
                 $oMolliePayment = self::API()->orders->create($orderData);
+                $this->updateHash($hash, $oMolliePayment->id);
                 $_SESSION['oMolliePayment'] = $oMolliePayment;
             } else {
                 $oMolliePayment = $_SESSION['oMolliePayment'];
             }
             $logData .= '$' . $oMolliePayment->id;
             $this->doLog('Mollie Create Payment Redirect: ' . $oMolliePayment->getCheckoutUrl() . "<br/><pre>" . print_r($oMolliePayment, 1) . "</pre>", $logData, LOGLEVEL_DEBUG);
-            Payment::updateFromPayment($oMolliePayment, $order->kBestellung, md5($hash));
+            Payment::updateFromPayment($oMolliePayment, $order->kBestellung, md5(trim($hash, '_')));
             Shop::Smarty()->assign('oMolliePayment', $oMolliePayment);
             if (!$this->duringCheckout) {
                 Session::getInstance()->cleanUp();
@@ -223,8 +243,8 @@ class JTLMollie extends PaymentMethod
             'lines' => [],
             'billingAddress' => new stdClass(),
 
-            'redirectUrl' => (int)$this->duringCheckout ? Shop::getURL() . '/bestellabschluss.php?mollie=' . md5($hash) : $this->getReturnURL($order),
-            'webhookUrl' => $this->getNotificationURL($hash) . '&hash=' . md5($hash),
+            'redirectUrl' => (int)$this->duringCheckout ? Shop::getURL() . '/bestellabschluss.php?mollie=' . md5(trim($hash, '_')) : $this->getReturnURL($order),
+            'webhookUrl' => $this->getNotificationURL($hash), // . '&hash=' . md5(trim($hash, '_')),
         ];
 
         if (static::MOLLIE_METHOD !== '') {
@@ -447,6 +467,14 @@ class JTLMollie extends PaymentMethod
         return $gesamtsumme;
     }
 
+    public function updateHash($hash, $orderID)
+    {
+        $hash = trim($hash, '_');
+        $_upd = new stdClass();
+        $_upd->cNotifyID = $orderID;
+        return Shop::DB()->update('tzahlungsession', 'cZahlungsID', $hash, $_upd);
+    }
+
     /**
      * @param Bestellung $order
      * @param string $hash
@@ -459,30 +487,9 @@ class JTLMollie extends PaymentMethod
         $this->doLog('JTLMollie::handleNotification<br/><pre>' . print_r([$hash, $args], 1) . '</pre>', $logData, LOGLEVEL_DEBUG);
 
         try {
-            Helper::init();
+
             $oMolliePayment = self::API()->orders->get($args['id'], ['embed' => 'payments']);
             Mollie::handleOrder($oMolliePayment, $order->kBestellung);
-
-            // GET NEWEST PAYMENT:
-            /** @var \Mollie\Api\Resources\Payment $_payment */
-            $_payment = null;
-            if ($oMolliePayment->payments()) {
-                /** @var \Mollie\Api\Resources\Payment $p */
-                foreach ($oMolliePayment->payments() as $p) {
-                    if (!in_array($p->status, [PaymentStatus::STATUS_AUTHORIZED, PaymentStatus::STATUS_PAID, PaymentStatus::STATUS_PENDING])) {
-                        continue;
-                    }
-                    if (!$_payment) {
-                        $_payment = $p;
-                        continue;
-                    }
-                    if (strtotime($p->createdAt) > strtotime($_payment->createdAt)) {
-                        $_payment = $p;
-                    }
-                }
-            }
-
-            JTLMollie::API()->performHttpCall('PATCH', sprintf('payments/%s', $_payment->id), json_encode(['description' => $order->cBestellNr]));
 
         } catch (Exception $e) {
             $this->doLog('JTLMollie::handleNotification: ' . $e->getMessage(), $logData);
@@ -498,20 +505,26 @@ class JTLMollie extends PaymentMethod
      */
     public function finalizeOrder($order, $hash, $args)
     {
-        $logData = '#' . $order->kBestellung . "§" . $order->cBestellNr;
+        $result = false;
         try {
-            Helper::init();
-            $oMolliePayment = self::API()->orders->get($args['id'], ['embed' => 'payments']);
-            $logData .= '$' . $oMolliePayment->id;
-
-            $result = in_array($oMolliePayment->status, [OrderStatus::STATUS_PAID, OrderStatus::STATUS_AUTHORIZED, OrderStatus::STATUS_PENDING, OrderStatus::STATUS_COMPLETED]);
-            Payment::updateFromPayment($oMolliePayment, $order->kBestellung);
-            $this->doLog('JTLMollie::finalizeOrder (' . ($result ? 'true' : 'false') . ')<br/><pre>' . print_r([$hash, $args, $oMolliePayment], 1) . '</pre>', $logData, LOGLEVEL_DEBUG);
-            return $result;
+            if ($oZahlungSession = self::getZahlungSession(md5($hash))) {
+                if ((int)$oZahlungSession->kBestellung <= 0) {
+                    $oOrder = self::API()->orders->get($args['id'], ['embed' => 'payments']);
+                    $logData = '$' . $oOrder->id;
+                    $result = in_array($oOrder->status, [OrderStatus::STATUS_PAID, OrderStatus::STATUS_AUTHORIZED, OrderStatus::STATUS_PENDING, OrderStatus::STATUS_COMPLETED]);
+                    $this->doLog('JTLMollie::finalizeOrder (' . ($result ? 'true' : 'false') . ')<br/><pre>' . print_r([$hash, $args, $oOrder], 1) . '</pre>', $logData, LOGLEVEL_DEBUG);
+                    //Payment::updateFromPayment($oMolliePayment, $order->kBestellung);
+                }
+            }
         } catch (Exception $e) {
-            $this->doLog('JTLMollie::finalizeOrder: ' . $e->getMessage(), $logData);
+            $this->doLog('JTLMollie::finalizeOrder: ' . $e->getMessage(), "#" . $hash);
         }
-        return false;
+        return $result;
+    }
+
+    public static function getZahlungSession($hash)
+    {
+        return Shop::DB()->executeQueryPrepared("SELECT * FROM tzahlungsession WHERE MD5(cZahlungsID) = :cZahlungsID", [':cZahlungsID' => trim($hash, '_')], 1);
     }
 
     /**
@@ -598,10 +611,10 @@ class JTLMollie extends PaymentMethod
      */
     protected function updatePaymentMethod($cISOSprache, $method)
     {
-        if (ws_mollie\Helper::getSetting('paymentmethod_sync') === 'N') {
+        if (Helper::getSetting('paymentmethod_sync') === 'N') {
             return;
         }
-        $size = ws_mollie\Helper::getSetting('paymentmethod_sync');
+        $size = Helper::getSetting('paymentmethod_sync');
         if ((!isset($this->cBild) || $this->cBild === '') && isset($method->image->$size)) {
             Shop::DB()->executeQueryPrepared("UPDATE tzahlungsart SET cBild = :cBild WHERE cModulId = :cModulId", [':cBild' => $method->image->$size, ':cModulId' => $this->cModulId], 3);
         }
@@ -624,7 +637,7 @@ class JTLMollie extends PaymentMethod
      */
     public function isValidIntern($args_arr = [])
     {
-        if (Helper::init() && Helper::getSetting("api_key")) {
+        if (Helper::getSetting("api_key")) {
             return true;
         }
         $this->doLog("isValdid failed: init failed or no API Key given. Try clear the Cache.");
