@@ -84,7 +84,7 @@ class JTLMollie extends PaymentMethod
             'cAbgeholt' => 'N'
         ], (array)$payment);
 
-        $logData = '#' . $order->kBestellung . '$' . $payment->id;
+        $logData = '#' . $order->kBestellung;
 
         if (isset($model->kZahlungseingang) && $model->kZahlungseingang > 0) {
             Mollie::JTLMollie()->doLog('JTLMollie::addIncomingPayment (update)<br/><pre>' . print_r([$model, $payment], 1) . '</pre>', $logData);

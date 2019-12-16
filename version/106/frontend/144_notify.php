@@ -18,7 +18,7 @@ try {
 
     require_once __DIR__ . '/../paymentmethod/JTLMollie.php';
 
-    $orderID = array_key_exists('id', $_REQUEST) ? $_REQUEST['id'] : false;
+    $orderId = array_key_exists('id', $_REQUEST) ? $_REQUEST['id'] : false;
     if (!$orderId) {
         // NOT A MOLLIE NOTIFICATION!
         return;
