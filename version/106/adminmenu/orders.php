@@ -134,7 +134,7 @@ try {
     }
 
 
-    $payments = Shop::DB()->executeQueryPrepared("SELECT * FROM xplugin_ws_mollie_payments WHERE kBestellung IS NOT NULL AND cStatus != 'created'", [], 2);
+    $payments = Shop::DB()->executeQueryPrepared("SELECT * FROM xplugin_ws_mollie_payments WHERE kBestellung IS NOT NULL AND cStatus != 'created' LIMIT 1000;", [], 2);
     foreach ($payments as $i => $payment) {
         $payments[$i]->oBestellung = new Bestellung($payment->kBestellung, false);
     }

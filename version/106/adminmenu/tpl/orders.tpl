@@ -92,7 +92,10 @@
         {/foreach}
         </tbody>
     </table>
-    <script src="//cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+    {if $payments|count > 900}
+    <div class="text-center"><small>Hier werden nur die letzten 1000 Ergebnisse angezeigt.</small></div>
+    {/if}
+    <script src="//cdn.webstollen.com/plugin/dataTables/js/jquery.dataTables.min.js"></script>
     <script>
         const cssId = 'datatables';  // you could encode the css path itself to generate id..
         if (!document.getElementById(cssId)) {
@@ -101,7 +104,7 @@
             link.id = cssId;
             link.rel = 'stylesheet';
             link.type = 'text/css';
-            link.href = '//cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css';
+            link.href = '//cdn.webstollen.com/plugin/dataTables/css/jquery.dataTables.min.css';
             link.media = 'all';
             head.appendChild(link);
         }
