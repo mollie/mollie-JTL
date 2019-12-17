@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <jtlshop3plugin>
     <Name>mollie</Name>
-    <Description>Zahlungsartplugin fr mollie.com</Description>
+    <Description>Zahlungsartplugin für mollie.com</Description>
     <Author>WebStollen</Author>
-    <URL>http://www.webstollen.de/</URL>
+    <URL>https://www.webstollen.de/</URL>
     <XMLVersion>102</XMLVersion>
     <PluginID>ws_mollie</PluginID>
     <Shop4Version>405</Shop4Version>
@@ -75,7 +75,7 @@
                 <Name>error_failed</Name>
                 <Description></Description>
                 <VariableLocalized iso="GER">Bei der Zahlung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut,
-                    oder whlen Sie eine andere Zahlungsart.
+                    oder wählen Sie eine andere Zahlungsart.
                 </VariableLocalized>
                 <VariableLocalized iso="ENG">The payment process failed. Please try again or choose a different payment
                     method.
@@ -140,12 +140,12 @@
                 <Name>Einstellungen</Name>
                 <Setting type="text" initialValue="" sort="10" conf="Y">
                     <Name>API Key:</Name>
-                    <Description>Fge hier deinen mollie API Key ein</Description>
+                    <Description>Füge hier deinen mollie API Key ein</Description>
                     <ValueName>api_key</ValueName>
                 </Setting>
                 <Setting type="text" initialValue="" sort="15" conf="Y">
                     <Name>Profile ID:</Name>
-                    <Description>Fge hier deinen mollie Profil ID ein. Wird bentigt um mollie Components zu aktivieren</Description>
+                    <Description>Füge hier deinen mollie Profil ID (pfl_) ein. Wird benötigt um mollie Components zu aktivieren</Description>
                     <ValueName>profileId</ValueName>
                 </Setting>
 
@@ -160,20 +160,20 @@
                 </Setting>
                 <Setting type="selectbox" initialValue="S" sort="20" conf="Y">
                     <Name>Zahlungsart Daten syncronisiernen</Name>
-                    <Description>Ldt Name / Bild fr die jeweilige Sprache automatisch von mollie, und speichert diese
+                    <Description>Lädt Name / Bild für die jeweilige Sprache automatisch von mollie, und speichert diese
                         in der Datenbank
                     </Description>
                     <ValueName>paymentmethod_sync</ValueName>
                     <SelectboxOptions>
                         <Option value="N" sort="1"><![CDATA[Nein]]></Option>
-                        <Option value="size1x" sort="2"><![CDATA[Ja, Bildgre 1x]]></Option>
-                        <Option value="size2x" sort="3"><![CDATA[Ja, Bildgre 2x]]></Option>
+                        <Option value="size1x" sort="2"><![CDATA[Ja, Bildgröße 1x]]></Option>
+                        <Option value="size2x" sort="3"><![CDATA[Ja, Bildgröße 2x]]></Option>
                         <Option value="svg" sort="4"><![CDATA[Ja, Bild SVG]]></Option>
                     </SelectboxOptions>
                 </Setting>
                 <Setting type="selectbox" initialValue="N" sort="30" conf="Y">
                     <Name>Checkout Styles laden</Name>
-                    <Description>Ldt Stylesheets fr das Evo Template, um den Checkout zu verschnern.</Description>
+                    <Description>Lädt Stylesheets für das Evo Template, um den Checkout zu verschönern.</Description>
                     <ValueName>load_styles</ValueName>
                     <SelectboxOptions>
                         <Option value="N" sort="1"><![CDATA[Nein]]></Option>
@@ -184,7 +184,7 @@
 
                 <Setting type="selectbox" initialValue="ord_tr" sort="100" conf="Y">
                     <Name>TransaktionsID des Zahlungseingangs:</Name>
-                    <Description>Welche ID soll an die WAWI betragen werden?</Description>
+                    <Description>Welche ID soll an die WAWI übetragen werden?</Description>
                     <ValueName>wawiPaymentID</ValueName>
                     <SelectboxOptions>
                         <Option value="ord" sort="1"><![CDATA[Order ID]]></Option>

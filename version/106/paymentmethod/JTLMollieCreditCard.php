@@ -11,8 +11,8 @@ class JTLMollieCreditCard extends JTLMollie
 
     public function handleAdditional($aPost_arr)
     {
-
-        if (trim(Helper::getSetting('profileId')) === '') {
+        $profileId = trim(Helper::getSetting('profileId'));
+        if ($profileId === '' || strpos($profileId, 'pfl_') !== 0) {
             return true;
         }
 
@@ -23,7 +23,7 @@ class JTLMollieCreditCard extends JTLMollie
             return true;
         }
 
-        Shop::Smarty()->assign('profileId', trim(Helper::getSetting('profileId')))
+        Shop::Smarty()->assign('profileId',$profileId)
             ->assign('locale', self::getLocale($_SESSION['cISOSprache'], $_SESSION['Kunde']->cLand))
             ->assign('testmode', strpos(Helper::getSetting('api_key'), 'test_') === 0)
             ->assign('mollieLang', Helper::oPlugin()->oPluginSprachvariableAssoc_arr)

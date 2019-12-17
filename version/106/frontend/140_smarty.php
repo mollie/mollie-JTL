@@ -12,6 +12,19 @@ try {
         $text = Helper::oPlugin()->oPluginSprachvariableAssoc_arr['error_' . $status];
         pq('#fieldset-payment')->prepend('<div class="alert alert-danger">' . $text . '</div>');
     }
+    
+    $applePayId = "kPlugin_".Helper::oPlugin()->kPlugin."_mollieapplepay";
+pq('body')->append(<<<HTML
+<script type="text/javascript" data-eucookie-name="mollie ApplePay Check" data-eucookie-category="required" data-eucookie-description="Prueft ob ApplePay verfuegbar ist.">
+// <!--
+if($('#{$applePayId}').length){
+    if (!window.ApplePaySession || !window.ApplePaySession.canMakePayments()) {
+        $('#{$applePayId}').remove();
+    }
+}
+// -->
+HTML
+);
 
     switch (Helper::getSetting('load_styles')) {
         case 'Y':
@@ -31,7 +44,6 @@ try {
     if (Helper::getSetting('paymentmethod_sync') === 'size2x') {
         $lh = "40px";
     }
-
 
     pq('head')->append(
         <<<HTML
