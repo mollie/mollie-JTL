@@ -29,6 +29,9 @@
     <Version nr="106">
       <CreateDate>2019-12-18</CreateDate>
     </Version>
+    <Version nr="107">
+      <CreateDate>2019-12-18</CreateDate>
+    </Version>
     <Hooks>
       <Hook id="131">131_globalinclude.php</Hook>
       <Hook id="144">144_notify.php</Hook>
