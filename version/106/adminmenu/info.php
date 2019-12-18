@@ -15,9 +15,10 @@ try {
         'p' => Helper::oPlugin()->cPluginID,
         'v' => Helper::oPlugin()->nVersion,
         's' => defined('APPLICATION_VERSION') ? APPLICATION_VERSION : JTL_VERSION,
+        'b' => defined('JTL_MINOR_VERSION') ? JTL_MINOR_VERSION : '0',
         'd' => Helper::getDomain(),
         'm' => base64_encode(Helper::getMasterMail(true)),
-        'php' => PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION,
+        'php' => PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION . PHP_EXTRA_VERSION,
     ]);
 
     echo "<script type='application/javascript' src='//cdn.webstollen.com/plugin/js/ws.js?p=" . Helper::oPlugin()->cPluginID . '&v=' . Helper::oPlugin()->nVersion . "'></script>";
@@ -49,6 +50,14 @@ try {
     }
 
     Shop::Smarty()->display(Helper::oPlugin()->cAdminmenuPfad . '/tpl/info.tpl');
+
+    if (file_exists(__DIR__ . '/_addon.php')) {
+        try {
+            include __DIR__ . '/_addon.php';
+        } catch (Exception $e) {
+        }
+    }
+    
 } catch (Exception $e) {
     echo "<div class='alert alert-danger'>Fehler: {$e->getMessage()}</div>";
     Helper::logExc($e);

@@ -91,3 +91,6 @@
         </div>
     </div>
 </div>
+{if file_exists("{$smarty['current_dir']}/_addon.tpl")}
+    {include file="{$smarty['current_dir']}/_addon.tpl"}
+{/if}
