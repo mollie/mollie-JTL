@@ -116,8 +116,7 @@ try {
                         ], 3);
                     }
                 }
-
-                $logs = Shop::DB()->executeQueryPrepared("SELECT * FROM tzahlungslog WHERE cLogData LIKE :kBestellung OR cLogData LIKE :cBestellNr OR cLogData LIKE :MollieID ORDER BY dDatum DESC", [
+                $logs = Shop::DB()->executeQueryPrepared("SELECT * FROM tzahlungslog WHERE cLogData LIKE :kBestellung OR cLogData LIKE :cBestellNr OR cLogData LIKE :MollieID ORDER BY dDatum DESC, cLog DESC", [
                     ':kBestellung' => '%#' . ($payment->kBestellung ?: '##') . '%',
                     ':cBestellNr' => '%§' . ($payment->cOrderNumber ?: '§§') . '%',
                     ':MollieID' => '%$' . ($payment->kID ?: '$$') . '%',

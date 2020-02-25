@@ -105,9 +105,7 @@ class JTLMollie extends PaymentMethod
      */
     public function doLog($msg, $data = null, $level = LOGLEVEL_NOTICE)
     {
-        //ZahlungsLog::add($this->moduleID, $msg, $data, $level);
-        ZahlungsLog::add($this->moduleID, "[" . $_SERVER['PHP_SELF'] . "] " . $msg, $data, $level);
-
+        ZahlungsLog::add($this->moduleID, "[" . microtime(true) . " - " . $_SERVER['PHP_SELF'] . "] " . $msg, $data, $level);
         return $this;
     }
 
@@ -509,8 +507,16 @@ class JTLMollie extends PaymentMethod
         try {
             if ($oZahlungSession = self::getZahlungSession(md5($hash))) {
                 if ((int)$oZahlungSession->kBestellung <= 0) {
+
+                    $logData = '$' . $args['id'];
+                    $GLOBALS['mollie_notify_lock'] = new \ws_mollie\ExclusiveLock('mollie_' . $args['id'], PFAD_ROOT . PFAD_COMPILEDIR);
+                    if ($GLOBALS['mollie_notify_lock']->lock()) {
+                        $this->doLog("JTLMollie::finalizeOrder::locked ({$args['id']})", $logData, LOGLEVEL_DEBUG);
+                    } else {
+                        $this->doLog("JTLMollie::finalizeOrder::locked failed ({$args['id']})", $logData, LOGLEVEL_ERROR);
+                    }
+
                     $oOrder = self::API()->orders->get($args['id'], ['embed' => 'payments']);
-                    $logData = '$' . $oOrder->id;
                     $result = in_array($oOrder->status, [OrderStatus::STATUS_PAID, OrderStatus::STATUS_AUTHORIZED, OrderStatus::STATUS_PENDING, OrderStatus::STATUS_COMPLETED]);
                     $this->doLog('JTLMollie::finalizeOrder (' . ($result ? 'true' : 'false') . ')<br/><pre>' . print_r([$hash, $args, $oOrder], 1) . '</pre>', $logData, LOGLEVEL_DEBUG);
                     //Payment::updateFromPayment($oMolliePayment, $order->kBestellung);
