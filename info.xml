@@ -116,6 +116,7 @@
         <Description></Description>
         <VariableLocalized iso="GER"><![CDATA[Zahlungsinformationen]]></VariableLocalized>
         <VariableLocalized iso="ENG"><![CDATA[Enter your payment information]]></VariableLocalized>
+        <VariableLocalized iso="FRE"><![CDATA[Informations de paiement]]></VariableLocalized>
       </Variable>
       <Variable>
         <Name>error_canceled</Name>
@@ -123,9 +124,8 @@
         <VariableLocalized iso="GER"><![CDATA[Die Zahlung wurde von Ihnen abgebrochen. Wählen Sie ggf. eine andere
                     Zahlart aus.
                 ]]></VariableLocalized>
-        <VariableLocalized iso="ENG"><![CDATA[You canceled the payment. Please select a different payment method if
-                    necessary.
-                ]]></VariableLocalized>
+        <VariableLocalized iso="ENG"><![CDATA[You canceled the payment. Please select a different payment method if necessary.]]></VariableLocalized>
+        <VariableLocalized iso="FRE"><![CDATA[Votre paiement a été annulé. Veuillez sélectionner un autre mode de paiement si nécessaire.]]></VariableLocalized>
       </Variable>
       <Variable>
         <Name>error_expired</Name>
@@ -133,16 +133,16 @@
         <VariableLocalized iso="GER"><![CDATA[Ihre Zahlungssession ist abgelaufen, bitte versuchen Sie es erneut.
                 ]]></VariableLocalized>
         <VariableLocalized iso="ENG"><![CDATA[Your payment session has expired, please try again.]]></VariableLocalized>
+        <VariableLocalized iso="FRE"><![CDATA[Votre session de paiement a expiré, s'il vous plaît essayer à nouveau.]]></VariableLocalized>
       </Variable>
       <Variable>
         <Name>error_open</Name>
         <Description></Description>
         <VariableLocalized iso="GER"><![CDATA[Bei der Zahlung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut,
-                    oder whälen Sie eine andere Zahlungsart.
+                    oder wählen Sie eine andere Zahlungsart.
                 ]]></VariableLocalized>
-        <VariableLocalized iso="ENG"><![CDATA[The payment process failed. Please try again or choose a different payment
-                    method.
-                ]]></VariableLocalized>
+        <VariableLocalized iso="ENG"><![CDATA[The payment process failed. Please try again or choose a different payment method.]]></VariableLocalized>
+        <VariableLocalized iso="FRE"><![CDATA[Une erreur s'est produite lors du paiement. Veuillez réessayer ou choisir un autre mode de paiement.]]></VariableLocalized>
       </Variable>
       <Variable>
         <Name>error_failed</Name>
@@ -150,39 +150,43 @@
         <VariableLocalized iso="GER"><![CDATA[Bei der Zahlung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut,
                     oder wählen Sie eine andere Zahlungsart.
                 ]]></VariableLocalized>
-        <VariableLocalized iso="ENG"><![CDATA[The payment process failed. Please try again or choose a different payment
-                    method.
-                ]]></VariableLocalized>
+        <VariableLocalized iso="ENG"><![CDATA[The payment process failed. Please try again or choose a different paymentmethod.]]></VariableLocalized>
+        <VariableLocalized iso="FRE"><![CDATA[Une erreur s'est produite lors du paiement. Veuillez réessayer ou choisir un autre mode de paiement.]]></VariableLocalized>
       </Variable>
       <Variable>
         <Name>lbl_cardHolder</Name>
         <Description></Description>
         <VariableLocalized iso="GER"><![CDATA[Karteninhaber:]]></VariableLocalized>
         <VariableLocalized iso="ENG"><![CDATA[Card holder:]]></VariableLocalized>
+        <VariableLocalized iso="FRE"><![CDATA[Titulaire de la carte:]]></VariableLocalized>
       </Variable>
       <Variable>
         <Name>lbl_cardNumber</Name>
         <Description></Description>
         <VariableLocalized iso="GER"><![CDATA[Kartennummer:]]></VariableLocalized>
         <VariableLocalized iso="ENG"><![CDATA[Card number:]]></VariableLocalized>
+        <VariableLocalized iso="FRE"><![CDATA[Numéro de carte:]]></VariableLocalized>
       </Variable>
       <Variable>
         <Name>lbl_expiryDate</Name>
         <Description></Description>
         <VariableLocalized iso="GER"><![CDATA[Ablaufdatum:]]></VariableLocalized>
         <VariableLocalized iso="ENG"><![CDATA[Expiry date:]]></VariableLocalized>
+        <VariableLocalized iso="FRE"><![CDATA[Date d'expiration:]]></VariableLocalized>
       </Variable>
       <Variable>
         <Name>lbl_varificationCode</Name>
         <Description></Description>
-        <VariableLocalized iso="GER"><![CDATA[CVC:]]></VariableLocalized>
-        <VariableLocalized iso="ENG"><![CDATA[CVC:]]></VariableLocalized>
+        <VariableLocalized iso="GER"><![CDATA[CVC/CVV:]]></VariableLocalized>
+        <VariableLocalized iso="ENG"><![CDATA[CVC/CVV:]]></VariableLocalized>
+        <VariableLocalized iso="FRE"><![CDATA[CVC/CVV:]]></VariableLocalized>
       </Variable>
       <Variable>
         <Name>cvchint_1</Name>
         <Description></Description>
         <VariableLocalized iso="GER"><![CDATA[So findet man die CVV/CVC Nummer]]></VariableLocalized>
         <VariableLocalized iso="ENG"><![CDATA[How to find the CVV/CVC number]]></VariableLocalized>
+        <VariableLocalized iso="FRE"><![CDATA[Comment trouver le numéro CVC/CVV]]></VariableLocalized>
       </Variable>
       <Variable>
         <Name>cvchint_2</Name>
@@ -190,9 +194,8 @@
         <VariableLocalized iso="GER"><![CDATA[Die dreistellige CVV/CVC Nummer wird bei Visa und Mastercard auf der Rückseite,
                     bei American Express auf der Vorderseite der Karte abgebildet.
                 ]]></VariableLocalized>
-        <VariableLocalized iso="ENG"><![CDATA[The three-digit CVV/CVC number is shown on the reverse for Visa and Mastercard,
-                    and on the front of the card for American Express.
-                ]]></VariableLocalized>
+        <VariableLocalized iso="ENG"><![CDATA[The three-digit CVV/CVC number is shown on the reverse for Visa and Mastercard, and on the front of the card for American Express.]]></VariableLocalized>
+        <VariableLocalized iso="FRE"><![CDATA[Le numéro CVC/CVV à trois chiffres est indiqué au dos de Visa et Mastercard et au recto de la carte American Express.]]></VariableLocalized>
       </Variable>
     </Locales>
     <PaymentMethod>

@@ -240,7 +240,7 @@ class JTLMollie extends PaymentMethod
             'orderNumber' => utf8_encode($order->cBestellNr),
             'lines' => [],
             'billingAddress' => new stdClass(),
-
+            'metadata' => ['originalOrderNumber' => utf8_encode($order->cBestellNr)],
             'redirectUrl' => (int)$this->duringCheckout ? Shop::getURL() . '/bestellabschluss.php?mollie=' . md5(trim($hash, '_')) : $this->getReturnURL($order),
             'webhookUrl' => $this->getNotificationURL($hash), // . '&hash=' . md5(trim($hash, '_')),
         ];
@@ -266,6 +266,15 @@ class JTLMollie extends PaymentMethod
         $data['billingAddress']->city = utf8_encode($order->oRechnungsadresse->cOrt);
         $data['billingAddress']->country = $order->oRechnungsadresse->cLand;
 
+        if (array_key_exists('Kunde', $_SESSION)) {
+            if (isset($_SESSION['Kunde']->dGeburtstag) && preg_match('/^\d{4}-\d{2}-\d{2}/$', trim($_SESSION['Kunde']->dGeburtstag))) {
+                $data['consumerDateOfBirth'] = trim($_SESSION['Kunde']->dGeburtstag);
+            }
+            if (isset($_SESSION['Kunde']->cAdressZusatz) && trim($_SESSION['Kunde']->cAdressZusatz) !== '') {
+                $data['billingAddress']->streetAdditional = utf8_encode(trim($_SESSION['Kunde']->cAdressZusatz));
+            }
+        }
+
         if ($order->Lieferadresse != null) {
             $data['shippingAddress'] = new stdClass();
             if ($organizationName = utf8_encode(trim($order->Lieferadresse->cFirma))) {
@@ -279,25 +288,36 @@ class JTLMollie extends PaymentMethod
             $data['shippingAddress']->postalCode = utf8_encode($order->Lieferadresse->cPLZ);
             $data['shippingAddress']->city = utf8_encode($order->Lieferadresse->cOrt);
             $data['shippingAddress']->country = $order->Lieferadresse->cLand;
-        }
 
+            if (array_key_exists('Lieferadresse', $_SESSION) && isset($_SESSION['Lieferadresse']->cAdressZusatz) && trim($_SESSION['Lieferadresse']->cAdressZusatz) !== '') {
+                $data['shippingAddress']->streetAdditional = utf8_encode(trim($_SESSION['Lieferadresse']->cAdressZusatz));
+            }
+        }
 
         /** @var WarenkorbPos $oPosition */
         foreach ($order->Positionen as $oPosition) {
 
-            // EUR => 1
+            $line = new stdClass();
+            $line->name = utf8_encode($oPosition->cName);
+
             $_netto = round($oPosition->fPreis, 2);
             $_vatRate = (float)$oPosition->fMwSt / 100;
             $_amount = (float)$oPosition->nAnzahl;
+
+            // TODO: Setting for Teilbar
+            if ((int)$oPosition->nPosTyp === (int)C_WARENKORBPOS_TYP_ARTIKEL && $oPosition->Artikel->cTeilbar === 'Y'
+                && fmod($oPosition->nAnzahl, 1) !== 0.0) {
+                $_netto *= $_amount;
+                $_amount = 1;
+                $line->name .= sprintf(" (%.2f %s)", (float)$oPosition->nAnzahl, $oPosition->cEinheit);
+            }
 
             $unitPriceNetto = round(($_currencyFactor * $_netto), 2);
             $unitPrice = round($unitPriceNetto * (1 + $_vatRate), 2);
             $totalAmount = round($_amount * $unitPrice, 2);
             $vatAmount = round($totalAmount - ($totalAmount / (1 + $_vatRate)), 2);
 
-            $line = new stdClass();
-            $line->name = utf8_encode($oPosition->cName);
-            $line->quantity = $oPosition->nAnzahl;
+            $line->quantity = (int)$_amount;
             $line->unitPrice = (object)[
                 'value' => number_format($unitPrice, 2, '.', ''),
                 'currency' => $order->Waehrung->cISO,
@@ -317,7 +337,7 @@ class JTLMollie extends PaymentMethod
                 case (int)C_WARENKORBPOS_TYP_GRATISGESCHENK:
                 case (int)C_WARENKORBPOS_TYP_ARTIKEL:
                     $line->type = OrderLineType::TYPE_PHYSICAL;
-                    $line->sku = $oPosition->cArtNr;
+                    $line->sku = utf8_encode($oPosition->cArtNr);
                     break;
                 case (int)C_WARENKORBPOS_TYP_VERSANDPOS:
                     $line->type = OrderLineType::TYPE_SHIPPING_FEE;
@@ -548,14 +568,15 @@ class JTLMollie extends PaymentMethod
      */
     public function isSelectable()
     {
+        // TODO: Setting for Teilbar
         /** @var Warenkorb $wk */
         $wk = $_SESSION['Warenkorb'];
-        foreach ($wk->PositionenArr as $oPosition) {
+        /*foreach ($wk->PositionenArr as $oPosition) {
             if ((int)$oPosition->nPosTyp === (int)C_WARENKORBPOS_TYP_ARTIKEL && $oPosition->Artikel && $oPosition->Artikel->cTeilbar === 'Y'
                 && fmod($oPosition->nAnzahl, 1) !== 0.0) {
                 return false;
             }
-        }
+        }*/
 
         $locale = self::getLocale($_SESSION['cISOSprache'], $_SESSION['Kunde']->cLand);
         if (static::MOLLIE_METHOD !== '') {
