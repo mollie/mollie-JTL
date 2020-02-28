@@ -93,6 +93,17 @@
             <Option value="A" sort="3"><![CDATA[Ja, alle]]></Option>
           </SelectboxOptions>
         </Setting>
+
+        <Setting type="selectbox" initialValue="N" sort="40" conf="Y">
+          <Name>Artikel mit rationalen Stückzahlen</Name>
+          <Description>Artikel mit rationalen Stückzahlen werden dann unterstützt, jedoch als ein Artikel behandelt. KEIN Teilversand hierfür möglich!</Description>
+          <ValueName>supportQ</ValueName>
+          <SelectboxOptions>
+            <Option value="Y" sort="1"><![CDATA[Ja, mollie hier anbieten]]></Option>
+            <Option value="N" sort="2"><![CDATA[Nein, mollie hier nicht anbieten]]></Option>
+          </SelectboxOptions>
+        </Setting>
+
         <Setting type="selectbox" initialValue="ord_tr" sort="100" conf="Y">
           <Name>TransaktionsID des Zahlungseingangs:</Name>
           <Description>Welche ID soll an die WAWI übetragen werden?</Description>

@@ -82,37 +82,47 @@ abstract class Mollie
             $options['tracking'] = $tracking;
         }
 
+        $logData = '#' . $oBestellung->kBestellung . '§' . $oBestellung->cBestellNr . '$' . $order->id;
+
         switch ((int)$newStatus) {
             case BESTELLUNG_STATUS_VERSANDT:
-                Mollie::JTLMollie()->doLog('181_sync: Bestellung versandt', '#' . $oBestellung->kBestellung . '§' . $oBestellung->cBestellNr, LOGLEVEL_DEBUG);
+                Mollie::JTLMollie()->doLog('181_sync: Bestellung versandt', $logData, LOGLEVEL_DEBUG);
                 $options['lines'] = [];
                 break;
             case BESTELLUNG_STATUS_TEILVERSANDT:
                 $lines = [];
                 foreach ($order->lines as $i => $line) {
-                    if (($quantity = Mollie::getBestellPosSent($line->sku, $oBestellung)) !== false && ($quantity - $line->quantityShipped) > 0) {
-                        $x = $quantity - $line->quantityShipped;
-                        $lines[] = (object)[
-                            'id' => $line->id,
-                            'quantity' => $x,
-                            'amount' => (object)[
-                                'currency' => $line->totalAmount->currency,
-                                'value' => number_format($x * $line->unitPrice->value, 2),
-                            ],
-                        ];
-                    }
+                    if ($line->totalAmount->value > 0.0)
+                        if (($quantity = Mollie::getBestellPosSent($line->sku, $oBestellung)) !== false && ($quantity - $line->quantityShipped) > 0) {
+                            $x = min($quantity - $line->quantityShipped, $line->shippableQuantity);
+                            if ($x > 0) {
+                                $lines[] = (object)[
+                                    'id' => $line->id,
+                                    'quantity' => $x,
+                                    'amount' => (object)[
+                                        'currency' => $line->totalAmount->currency,
+                                        'value' => number_format($x * $line->unitPrice->value, 2),
+                                    ],
+                                ];
+                            }
+                        }
                 }
-                Mollie::JTLMollie()->doLog('181_sync: Bestellung teilversandt', '#' . $oBestellung->kBestellung . '§' . $oBestellung->cBestellNr, LOGLEVEL_DEBUG);
+                Mollie::JTLMollie()->doLog('181_sync: Bestellung teilversandt', $logData, LOGLEVEL_DEBUG);
                 if (count($lines)) {
                     $options['lines'] = $lines;
                 }
                 break;
             case BESTELLUNG_STATUS_STORNO:
-                Mollie::JTLMollie()->doLog('181_sync: Bestellung storniert', '#' . $oBestellung->kBestellung . '§' . $oBestellung->cBestellNr, LOGLEVEL_DEBUG);
+                Mollie::JTLMollie()->doLog('181_sync: Bestellung storniert', $logData, LOGLEVEL_DEBUG);
                 $options = null;
                 break;
+            case BESTELLUNG_STATUS_BEZAHLT:
+            case BESTELLUNG_STATUS_IN_BEARBEITUNG:
+            case BESTELLUNG_STATUS_OFFEN:
+                // NOTHING TO DO!
+                break;
             default:
-                Mollie::JTLMollie()->doLog('181_sync: Bestellungstatus unbekannt: ' . $newStatus . '/' . $oBestellung->cStatus, '#' . $oBestellung->kBestellung . '§' . $oBestellung->cBestellNr, LOGLEVEL_DEBUG);
+                Mollie::JTLMollie()->doLog('181_sync: Bestellungstatus unbekannt: ' . $newStatus . '/' . $oBestellung->cStatus, $logData, LOGLEVEL_DEBUG);
         }
 
         return $options;
@@ -164,6 +174,28 @@ abstract class Mollie
             }
         }
         return false;
+    }
+
+    /**
+     *
+     */
+    public static function fixZahlungsarten()
+    {
+        $kPlugin = Helper::oPlugin()->kPlugin;
+        $test1 = 'kPlugin_%_mollie%';
+        $test2 = 'kPlugin_' . $kPlugin . '_mollie%';
+        $conflicted_arr = Shop::DB()->executeQueryPrepared("SELECT kZahlungsart, cName, cModulId FROM `tzahlungsart` WHERE cModulId LIKE :test1 AND cModulId NOT LIKE :test2", [
+            ':test1' => $test1,
+            ':test2' => $test2,
+        ], 2);
+        if ($conflicted_arr && count($conflicted_arr)) {
+            foreach ($conflicted_arr as $conflicted) {
+                Shop::DB()->executeQueryPrepared('UPDATE tzahlungsart SET cModulId = :cModulId WHERE kZahlungsart = :kZahlungsart', [
+                    ':cModulId' => preg_replace('/^kPlugin_\d+_/', 'kPlugin_' . $kPlugin . '_', $conflicted->cModulId),
+                    ':kZahlungsart' => $conflicted->kZahlungsart,
+                ], 3);
+            }
+        }
     }
 
     /**

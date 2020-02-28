@@ -304,12 +304,14 @@ class JTLMollie extends PaymentMethod
             $_vatRate = (float)$oPosition->fMwSt / 100;
             $_amount = (float)$oPosition->nAnzahl;
 
-            // TODO: Setting for Teilbar
-            if ((int)$oPosition->nPosTyp === (int)C_WARENKORBPOS_TYP_ARTIKEL && $oPosition->Artikel->cTeilbar === 'Y'
-                && fmod($oPosition->nAnzahl, 1) !== 0.0) {
-                $_netto *= $_amount;
-                $_amount = 1;
-                $line->name .= sprintf(" (%.2f %s)", (float)$oPosition->nAnzahl, $oPosition->cEinheit);
+            if (Helper::getSetting("supportQ") === 'Y') {
+                // Rationale Stückzahlen aktiviert
+                if ((int)$oPosition->nPosTyp === (int)C_WARENKORBPOS_TYP_ARTIKEL && $oPosition->Artikel->cTeilbar === 'Y'
+                    && fmod($oPosition->nAnzahl, 1) !== 0.0) {
+                    $_netto *= $_amount;
+                    $_amount = 1;
+                    $line->name .= sprintf(" (%.2f %s)", (float)$oPosition->nAnzahl, $oPosition->cEinheit);
+                }
             }
 
             $unitPriceNetto = round(($_currencyFactor * $_netto), 2);
@@ -568,15 +570,17 @@ class JTLMollie extends PaymentMethod
      */
     public function isSelectable()
     {
-        // TODO: Setting for Teilbar
         /** @var Warenkorb $wk */
         $wk = $_SESSION['Warenkorb'];
-        /*foreach ($wk->PositionenArr as $oPosition) {
-            if ((int)$oPosition->nPosTyp === (int)C_WARENKORBPOS_TYP_ARTIKEL && $oPosition->Artikel && $oPosition->Artikel->cTeilbar === 'Y'
-                && fmod($oPosition->nAnzahl, 1) !== 0.0) {
-                return false;
+        if (Helper::getSetting("supportQ") !== 'Y') {
+            // Rationale Stückzahlen vorhanden?
+            foreach ($wk->PositionenArr as $oPosition) {
+                if ((int)$oPosition->nPosTyp === (int)C_WARENKORBPOS_TYP_ARTIKEL && $oPosition->Artikel && $oPosition->Artikel->cTeilbar === 'Y'
+                    && fmod($oPosition->nAnzahl, 1) !== 0.0) {
+                    return false;
+                }
             }
-        }*/
+        }
 
         $locale = self::getLocale($_SESSION['cISOSprache'], $_SESSION['Kunde']->cLand);
         if (static::MOLLIE_METHOD !== '') {
