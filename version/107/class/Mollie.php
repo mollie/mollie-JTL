@@ -223,6 +223,14 @@ abstract class Mollie
                 ':orderId2' => $oBestellung->cBestellNr,
             ], 3);
 
+            if(isset($order->metadata->originalOrderNumber)){
+                Shop::DB()->executeQueryPrepared("INSERT INTO tbestellattribut (kBestellung, cName, cValue) VALUES (:kBestellung, 'mollie_cFakeBestellNr', :orderId1) ON DUPLICATE KEY UPDATE cValue = :orderId2;", [
+                    ':kBestellung' => $kBestellung,
+                    ':orderId1' => $order->metadata->originalOrderNumber,
+                    ':orderId2' => $order->metadata->originalOrderNumber,
+                ], 3);
+            }
+
             $mPayment = null;
             if ($payments = $order->payments()) {
                 /** @var \Mollie\Api\Resources\Payment $payment */
