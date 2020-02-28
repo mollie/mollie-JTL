@@ -30,6 +30,7 @@
       <CreateDate>2019-12-18</CreateDate>
     </Version>
     <Version nr="107">
+      <SQL>107.sql</SQL>
       <CreateDate>2019-12-18</CreateDate>
     </Version>
     <Hooks>

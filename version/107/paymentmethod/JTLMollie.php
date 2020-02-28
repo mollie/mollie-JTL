@@ -3,6 +3,7 @@
 use Mollie\Api\Exceptions\ApiException;
 use Mollie\Api\Exceptions\IncompatiblePlatform;
 use Mollie\Api\MollieApiClient;
+use Mollie\Api\Resources\Customer;
 use Mollie\Api\Types\OrderLineType;
 use Mollie\Api\Types\OrderStatus;
 use ws_mollie\Helper;
@@ -15,6 +16,8 @@ require_once __DIR__ . '/../../../../../modules/PaymentMethod.class.php';
 
 class JTLMollie extends PaymentMethod
 {
+
+    const KUNDENATTRIBUT_CUSTOMERID = 'ws_mollie_customer_id';
 
     const ALLOW_PAYMENT_BEFORE_ORDER = true;
 
@@ -135,7 +138,12 @@ class JTLMollie extends PaymentMethod
 
         $payable = (float)$order->fGesamtsumme > 0;
 
+        if ($payable) {
+            $this->updateMollieCustomer($_SESSION['Kunde']);
+        }
+
         try {
+
             if ($order->kBestellung) {
                 if ($payable) {
                     $payment = Payment::getPayment($order->kBestellung);
@@ -202,6 +210,52 @@ class JTLMollie extends PaymentMethod
     }
 
     /**
+     * @param $oKunde Kunde
+     */
+    public function updateMollieCustomer($oKunde)
+    {
+        if (!$oKunde->kKunde || (int)$oKunde->nRegistriert <= 0) {
+            return;
+        }
+        try {
+            $customerId = Shop::DB()->select('xplugin_ws_mollie_kunde', 'kKunde', (int)$oKunde->kKunde);
+            $api = JTLMollie::API();
+            /** @var Customer $customer */
+            $customer = new stdClass();
+            if ($customerId && isset($customerId->customerId)) {
+                try {
+                    $customer = $api->customers->get($customerId->customerId);
+                } catch (Exception $e) {
+                    Helper::logExc($e);
+                }
+            }
+
+            $customer->name = utf8_encode(trim($oKunde->cVorname . ' ' . $oKunde->cNachname));
+            $customer->email = utf8_encode($oKunde->cMail);
+            $customer->locale = self::getLocale($_SESSION['cISOSprache'], $_SESSION['Kunde']->cLand);
+            $customer->metadata = [
+                'kKunde' => $oKunde->kKunde,
+                'kKundengruppe' => $oKunde->kKundengruppe,
+                'cKundenNr' => $oKunde->cKundenNr,
+            ];
+
+            if ($customer instanceof Customer) {
+                $customer->update();
+            } else {
+                if ($customer = $api->customers->create((array)$customer)) {
+                    Shop::DB()->insert('xplugin_ws_mollie_kunde', (object)[
+                        'kKunde' => $oKunde->kKunde,
+                        'customerId' => $customer->id,
+                    ]);
+                }
+            }
+
+        } catch (Exception $e) {
+            Helper::logExc($e);
+        }
+    }
+
+    /**
      * @return MollieApiClient
      * @throws ApiException
      * @throws IncompatiblePlatform
@@ -216,6 +270,52 @@ class JTLMollie extends PaymentMethod
             self::$_mollie->addVersionString("ws_mollie/" . Helper::oPlugin()->nVersion);
         }
         return self::$_mollie;
+    }
+
+    public static function getLocale($cISOSprache, $country = null)
+    {
+        switch ($cISOSprache) {
+            case "ger":
+                if ($country === "AT") {
+                    return "de_AT";
+                }
+                if ($country === "CH") {
+                    return "de_CH";
+                }
+                return "de_DE";
+            case "fre":
+                if ($country === "BE") {
+                    return "fr_BE";
+                }
+                return "fr_FR";
+            case "dut":
+                if ($country === "BE") {
+                    return "nl_BE";
+                }
+                return "nl_NL";
+            case "spa":
+                return "es_ES";
+            case "ita":
+                return "it_IT";
+            case "pol":
+                return "pl_PL";
+            case "hun":
+                return "hu_HU";
+            case "por":
+                return "pt_PT";
+            case "nor":
+                return "nb_NO";
+            case "swe":
+                return "sv_SE";
+            case "fin":
+                return "fi_FI";
+            case "dan":
+                return "da_DK";
+            case "ice":
+                return "is_IS";
+            default:
+                return "en_US";
+        }
     }
 
     /**
@@ -252,6 +352,13 @@ class JTLMollie extends PaymentMethod
         if (static::MOLLIE_METHOD === \Mollie\Api\Types\PaymentMethod::CREDITCARD && array_key_exists('mollieCardToken', $_SESSION)) {
             $data['payment'] = new stdClass();
             $data['payment']->cardToken = trim($_SESSION['mollieCardToken']);
+        }
+
+        if (($customerId = self::getMollieCustomerId((int)$_SESSION['Kunde']->kKunde)) !== false) {
+            if (!array_key_exists('payment', $data)) {
+                $data['payment'] = new stdClass();
+            }
+            $data['payment']->customerId = $customerId;
         }
 
         if ($organizationName = utf8_encode(trim($order->oRechnungsadresse->cFirma))) {
@@ -422,52 +529,6 @@ class JTLMollie extends PaymentMethod
         return $data;
     }
 
-    public static function getLocale($cISOSprache, $country = null)
-    {
-        switch ($cISOSprache) {
-            case "ger":
-                if ($country === "AT") {
-                    return "de_AT";
-                }
-                if ($country === "CH") {
-                    return "de_CH";
-                }
-                return "de_DE";
-            case "fre":
-                if ($country === "BE") {
-                    return "fr_BE";
-                }
-                return "fr_FR";
-            case "dut":
-                if ($country === "BE") {
-                    return "nl_BE";
-                }
-                return "nl_NL";
-            case "spa":
-                return "es_ES";
-            case "ita":
-                return "it_IT";
-            case "pol":
-                return "pl_PL";
-            case "hun":
-                return "hu_HU";
-            case "por":
-                return "pt_PT";
-            case "nor":
-                return "nb_NO";
-            case "swe":
-                return "sv_SE";
-            case "fin":
-                return "fi_FI";
-            case "dan":
-                return "da_DK";
-            case "ice":
-                return "is_IS";
-            default:
-                return "en_US";
-        }
-    }
-
     public function optionaleRundung($gesamtsumme)
     {
         $conf = Shop::getSettings([CONF_KAUFABWICKLUNG]);
@@ -485,6 +546,14 @@ class JTLMollie extends PaymentMethod
         }
 
         return $gesamtsumme;
+    }
+
+    public static function getMollieCustomerId($kKunde)
+    {
+        if ($row = Shop::DB()->select('xplugin_ws_mollie_kunde', 'kKunde', (int)$kKunde)) {
+            return $row->customerId;
+        }
+        return false;
     }
 
     public function updateHash($hash, $orderID)
