@@ -580,6 +580,26 @@
           <InfoText>Bezahlen Sie bequem mit Przelewy24.</InfoText>
         </MethodLanguage>
       </Method>
+      <Method>
+        <Name>mollie MyBank</Name>
+        <PictureURL></PictureURL>
+        <Sort>17</Sort>
+        <SendMail>0</SendMail>
+        <Provider>mollie.com</Provider>
+        <TSCode>OTHER</TSCode>
+        <PreOrder>1</PreOrder>
+        <Soap>0</Soap>
+        <Curl>1</Curl>
+        <Sockets>0</Sockets>
+        <ClassFile>JTLMollieMyBank.php</ClassFile>
+        <ClassName>JTLMollieMyBank</ClassName>
+        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+        <MethodLanguage iso="GER">
+          <Name>MyBank</Name>
+          <ChargeName>mollie</ChargeName>
+          <InfoText>Bezahlen Sie bequem mit MyBank.</InfoText>
+        </MethodLanguage>
+      </Method>
 
     </PaymentMethod>
   </Install>
