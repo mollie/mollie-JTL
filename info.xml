@@ -31,7 +31,7 @@
     </Version>
     <Version nr="107">
       <SQL>107.sql</SQL>
-      <CreateDate>2019-12-18</CreateDate>
+      <CreateDate>2020-03-02</CreateDate>
     </Version>
     <Hooks>
       <Hook id="131">131_globalinclude.php</Hook>
@@ -94,7 +94,6 @@
             <Option value="A" sort="3"><![CDATA[Ja, alle]]></Option>
           </SelectboxOptions>
         </Setting>
-
         <Setting type="selectbox" initialValue="N" sort="40" conf="Y">
           <Name>Artikel mit rationalen Stückzahlen</Name>
           <Description>Artikel mit rationalen Stückzahlen werden dann unterstützt, jedoch als ein Artikel behandelt. KEIN Teilversand hierfür möglich!</Description>
@@ -104,7 +103,6 @@
             <Option value="N" sort="2"><![CDATA[Nein, mollie hier nicht anbieten]]></Option>
           </SelectboxOptions>
         </Setting>
-
         <Setting type="selectbox" initialValue="ord_tr" sort="100" conf="Y">
           <Name>TransaktionsID des Zahlungseingangs:</Name>
           <Description>Welche ID soll an die WAWI übetragen werden?</Description>
@@ -571,7 +569,6 @@
           <InfoText>Bezahlen Sie bequem mit Klarna Slice It.</InfoText>
         </MethodLanguage>
       </Method>
-
       <Method>
         <Name>mollie Przelewy24</Name>
         <PictureURL></PictureURL>
@@ -612,7 +609,6 @@
           <InfoText>Bezahlen Sie bequem mit MyBank.</InfoText>
         </MethodLanguage>
       </Method>
-
     </PaymentMethod>
   </Install>
 </jtlshop3plugin>
