@@ -93,7 +93,7 @@
         </tbody>
     </table>
     {if $payments|count > 900}
-    <div class="text-center"><small>Hier werden nur die letzten 1000 Ergebnisse angezeigt.</small></div>
+        <div class="text-center"><small>Hier werden nur die letzten 1000 Ergebnisse angezeigt.</small></div>
     {/if}
     <script src="//cdn.webstollen.com/plugin/dataTables/js/jquery.dataTables.min.js"></script>
     <script>
@@ -110,6 +110,25 @@
         }
         $(document).ready(function () {
             $('.datatable').DataTable();
+        });
+    </script>
+    <div class="row form-inline">
+        <div class="col-xs-12">
+            <h3>Export:</h3>
+        </div>
+
+        <div class="col-xs-12 form-group">
+            <label>Von:</label>
+            <input class="form-control" type="date" id="exportFrom" placeholder="Export von ..."/>
+            <label>Bis:</label>
+            <input class="form-control" type="date" id="exportTo" placeholder="... bis"/>
+            <button class="btn btn-primary" type="button" id="export">Export</button>
+        </div>
+    </div>
+    <script type="application/javascript">
+        $('#export').click(function () {
+            document.location.href = 'plugin.php?kPlugin={$oPlugin->kPlugin}&action=export&from=' + $('#exportFrom').val() + '&to=' + $('#exportTo').val();
+            return false;
         });
     </script>
 {/if}

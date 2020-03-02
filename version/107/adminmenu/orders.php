@@ -16,6 +16,90 @@ try {
     $ordersMsgs = [];
     if (array_key_exists('action', $_REQUEST)) {
         switch ($_REQUEST['action']) {
+
+
+            case 'export':
+
+                try {
+
+                    $export = [];
+
+                    $from = new DateTime($_REQUEST['from']);
+                    $to = new DateTime($_REQUEST['to']);
+
+                    $orders = Shop::DB()->executeQueryPrepared('SELECT * FROM xplugin_ws_mollie_payments WHERE kBestellung > 0 AND dCreatedAt >= :From AND dCreatedAt <= :To ORDER BY dCreatedAt', [
+                        ':From' => $from->format('Y-m-d'),
+                        ':To' => $to->format('Y-m-d'),
+                    ], 2);
+
+
+                    $api = JTLMollie::API();
+
+                    header('Content-Type: application/csv');
+                    header('Content-Disposition: attachment; filename=mollie-' . $from->format('Ymd') . '-' . $to->format('Ymd') . '.csv');
+                    header('Pragma: no-cache');
+
+                    $out = fopen('php://output', 'w');
+
+
+                    fputcsv($out, [
+                        'kBestellung',
+                        'OrderID',
+                        'Status (mollie)',
+                        'BestellNr',
+                        'Status (JTL)',
+                        'Mode',
+                        'OriginalOrderNumber',
+                        'Currency',
+                        'Amount',
+                        'Method',
+                        'PaymentID',
+                        'Created'
+                    ]);
+
+
+                    foreach ($orders as $order) {
+                        $tbestellung = Shop::DB()->executeQueryPrepared('SELECT cBestellNr, cStatus FROM tbestellung WHERE kBestellung = :kBestellung', [':kBestellung' => $order->kBestellung], 1);
+
+                        $tmp = [
+                            'kBestellung' => $order->kBestellung,
+                            'cOrderId' => $order->kID,
+                            'cStatus' => $order->cStatus,
+                            'cBestellNr' => $tbestellung ? $tbestellung->cBestellNr : $order->cOrderNumber,
+                            'nStatus' => $tbestellung ? $tbestellung->cStatus : 0,
+                            'cMode' => $order->cMode,
+                            'cOriginalOrderNumber' => '',
+                            'cCurrency' => $order->cCurrency,
+                            'fAmount' => $order->fAmount,
+                            'cMethod' => $order->cMethod,
+                            'cPaymentId' => '',
+                            'dCreated' => $order->dCreatedAt,
+                        ];
+
+                        try {
+                            $oOrder = $api->orders->get($order->kID, ['embed' => 'payments']);
+                            $tmp['cStatus'] = $oOrder->status;
+                            $tmp['cOriginalOrderNumber'] = isset($oOrder->metadata->originalOrderNumber) ? $oOrder->metadata->originalOrderNumber : '';
+                            foreach ($oOrder->payments() as $payment) {
+                                if ($payment->status === \Mollie\Api\Types\PaymentStatus::STATUS_PAID) {
+                                    $tmp['cPaymentId'] = $payment->id;
+                                }
+                            }
+                        } catch (Exception $e) {
+                        }
+                        fputcsv($out, $tmp);
+
+                        $export[] = $tmp;
+                    }
+
+                    fclose($out);
+                    exit();
+
+                } catch (Exception $e) {
+                    $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Fehler:' . $e->getMessage()];
+                }
+                break;
+
             case 'refund':
                 if (!array_key_exists('id', $_REQUEST)) {
                     $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Keine ID angeben!'];
