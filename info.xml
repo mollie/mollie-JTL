@@ -239,6 +239,7 @@
         <SendMail>0</SendMail>
         <Provider>mollie.com</Provider>
         <TSCode>CREDIT_CARD</TSCode>
+        <AdditionalTemplateFile>tpl/mollieComponents.tpl</AdditionalTemplateFile>
         <PreOrder>1</PreOrder>
         <Soap>0</Soap>
         <Curl>1</Curl>
