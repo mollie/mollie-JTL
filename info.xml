@@ -428,7 +428,7 @@
         <ClassName>JTLMollieIDEAL</ClassName>
         <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
         <MethodLanguage iso="GER">
-          <Name>Giropay</Name>
+          <Name>iDEAL</Name>
           <ChargeName>mollie</ChargeName>
           <InfoText>Bezahlen Sie bequem mit iDEAL.</InfoText>
         </MethodLanguage>

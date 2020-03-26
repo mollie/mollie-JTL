@@ -1,5 +1,8 @@
 <?php
 
+use Composer\CaBundle\CaBundle;
+use GuzzleHttp\Client;
+use GuzzleHttp\RequestOptions;
 use Mollie\Api\Exceptions\ApiException;
 use Mollie\Api\Exceptions\IncompatiblePlatform;
 use Mollie\Api\MollieApiClient;
@@ -197,9 +200,16 @@ class JTLMollie extends PaymentMethod
             if (!$this->duringCheckout) {
                 Session::getInstance()->cleanUp();
             }
-            header('Location: ' . $oMolliePayment->getCheckoutUrl());
+
+            if (!$oMolliePayment->getCheckoutUrl() && ($oMolliePayment->isAuthorized() || $oMolliePayment->isPaid())) {
+                header('Location: ' . $oMolliePayment->redirectUrl);
+                echo "<a href='{$oMolliePayment->redirectUrl}'>redirect to order ...</a>";
+            } else {
+                header('Location: ' . $oMolliePayment->getCheckoutUrl());
+                echo "<a href='{$oMolliePayment->getCheckoutUrl()}'>redirect to payment ...</a>";
+            }
             unset($_SESSION['oMolliePayment']);
-            echo "<a href='{$oMolliePayment->getCheckoutUrl()}'>redirect to payment ...</a>";
+
             exit();
         } catch (ApiException $e) {
             $this->doLog("Create Payment Error: " . $e->getMessage() . '<br/><pre>' . print_r($orderData, 1) . '</pre>', $logData, LOGLEVEL_ERROR);
@@ -264,7 +274,10 @@ class JTLMollie extends PaymentMethod
     {
         Helper::init();
         if (self::$_mollie === null) {
-            self::$_mollie = new MollieApiClient();
+            self::$_mollie = new MollieApiClient(new Client([
+                RequestOptions::VERIFY => CaBundle::getBundledCaBundlePath(),
+                RequestOptions::TIMEOUT => 60,
+            ]));
             self::$_mollie->setApiKey(Helper::getSetting('api_key'));
             self::$_mollie->addVersionString("JTL-Shop/" . JTL_VERSION . '.' . JTL_MINOR_VERSION);
             self::$_mollie->addVersionString("ws_mollie/" . Helper::oPlugin()->nVersion);
@@ -374,7 +387,8 @@ class JTLMollie extends PaymentMethod
         $data['billingAddress']->country = $order->oRechnungsadresse->cLand;
 
         if (array_key_exists('Kunde', $_SESSION)) {
-            if (isset($_SESSION['Kunde']->dGeburtstag) && preg_match('/^\d{4}-\d{2}-\d{2}/$', trim($_SESSION['Kunde']->dGeburtstag))) {
+            if (isset($_SESSION['Kunde']->dGeburtstag) && preg_match('/^\d{4}-\d{2}-\d{2}$/', trim($_SESSION['Kunde']->dGeburtstag)) && trim($_SESSION['Kunde']->dGeburtstag) !== '0000-00-00') {
+
                 $data['consumerDateOfBirth'] = trim($_SESSION['Kunde']->dGeburtstag);
             }
             if (isset($_SESSION['Kunde']->cAdressZusatz) && trim($_SESSION['Kunde']->cAdressZusatz) !== '') {
