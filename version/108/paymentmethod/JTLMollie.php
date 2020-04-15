@@ -7,6 +7,7 @@ use Mollie\Api\Exceptions\ApiException;
 use Mollie\Api\Exceptions\IncompatiblePlatform;
 use Mollie\Api\MollieApiClient;
 use Mollie\Api\Resources\Customer;
+use Mollie\Api\Resources\Order;
 use Mollie\Api\Types\OrderLineType;
 use Mollie\Api\Types\OrderStatus;
 use ws_mollie\Helper;
@@ -183,7 +184,7 @@ class JTLMollie extends PaymentMethod
                 exit();
             }
 
-            if (!array_key_exists('oMolliePayment', $_SESSION) || !($_SESSION['oMolliePayment'] instanceof \Mollie\Api\Resources\Order)) {
+            if (!array_key_exists('oMolliePayment', $_SESSION) || !($_SESSION['oMolliePayment'] instanceof Order)) {
                 $hash = $this->generateHash($order);
                 //$_SESSION['cMollieHash'] = $hash;
                 $orderData = $this->getOrderData($order, $hash);
@@ -253,10 +254,17 @@ class JTLMollie extends PaymentMethod
                 $customer->update();
             } else {
                 if ($customer = $api->customers->create((array)$customer)) {
-                    Shop::DB()->insert('xplugin_ws_mollie_kunde', (object)[
-                        'kKunde' => $oKunde->kKunde,
-                        'customerId' => $customer->id,
-                    ]);
+                    if (self::getMollieCustomerId($oKunde->kKunde) === false) {
+                        Shop::DB()->insert('xplugin_ws_mollie_kunde', (object)[
+                            'kKunde' => $oKunde->kKunde,
+                            'customerId' => $customer->id,
+                        ]);
+                    } else {
+                        Shop::DB()->update('xplugin_ws_mollie_kunde', 'kKunde', (int)$oKunde->kKunde, (object)[
+                            'customerId' => $customer->id,
+                        ]);
+                    }
+
                 }
             }
 
@@ -329,6 +337,14 @@ class JTLMollie extends PaymentMethod
             default:
                 return "en_US";
         }
+    }
+
+    public static function getMollieCustomerId($kKunde)
+    {
+        if ($row = Shop::DB()->select('xplugin_ws_mollie_kunde', 'kKunde', (int)$kKunde)) {
+            return $row->customerId;
+        }
+        return false;
     }
 
     /**
@@ -560,14 +576,6 @@ class JTLMollie extends PaymentMethod
         }
 
         return $gesamtsumme;
-    }
-
-    public static function getMollieCustomerId($kKunde)
-    {
-        if ($row = Shop::DB()->select('xplugin_ws_mollie_kunde', 'kKunde', (int)$kKunde)) {
-            return $row->customerId;
-        }
-        return false;
     }
 
     public function updateHash($hash, $orderID)
