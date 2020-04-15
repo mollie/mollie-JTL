@@ -662,6 +662,12 @@ class JTLMollie extends PaymentMethod
      */
     public function isSelectable()
     {
+
+        if (array_key_exists('mollieDeleteToken', $_REQUEST) && (int)$_REQUEST['mollieDeleteToken'] === 1) {
+            unset($_SESSION['mollieCardToken']);
+            unset($_SESSION['mollieCardTokenTS']);
+        }
+
         /** @var Warenkorb $wk */
         $wk = $_SESSION['Warenkorb'];
         if (Helper::getSetting("supportQ") !== 'Y') {
