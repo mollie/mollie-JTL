@@ -600,7 +600,6 @@ class JTLMollie extends PaymentMethod
         try {
 
 
-
             $oMolliePayment = self::API()->orders->get($args['id'], ['embed' => 'payments']);
             Mollie::handleOrder($oMolliePayment, $order->kBestellung);
 
@@ -678,7 +677,11 @@ class JTLMollie extends PaymentMethod
         $locale = self::getLocale($_SESSION['cISOSprache'], $_SESSION['Kunde']->cLand);
         if (static::MOLLIE_METHOD !== '') {
             try {
-                $method = self::PossiblePaymentMethods(static::MOLLIE_METHOD, $locale, $_SESSION['Kunde']->cLand, $_SESSION['Waehrung']->cISO, $wk->gibGesamtsummeWaren(true) * $_SESSION['Waehrung']->fFaktor);
+                $amount = $wk->gibGesamtsummeWaren(true) * $_SESSION['Waehrung']->fFaktor;
+                if ($amount <= 0) {
+                    $amount = 0.01;
+                }
+                $method = self::PossiblePaymentMethods(static::MOLLIE_METHOD, $locale, $_SESSION['Kunde']->cLand, $_SESSION['Waehrung']->cISO, $amount);
                 if ($method !== null) {
 
                     if ((int)$this->duringCheckout === 1 && !static::ALLOW_PAYMENT_BEFORE_ORDER) {
