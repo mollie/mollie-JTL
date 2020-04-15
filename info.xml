@@ -210,6 +210,15 @@
         <VariableLocalized iso="ENG"><![CDATA[The three-digit CVV/CVC number is shown on the reverse for Visa and Mastercard, and on the front of the card for American Express.]]></VariableLocalized>
         <VariableLocalized iso="FRE"><![CDATA[Le numéro CVC/CVV à trois chiffres est indiqué au dos de Visa et Mastercard et au recto de la carte American Express.]]></VariableLocalized>
       </Variable>
+
+      <Variable>
+        <Name>mcErrorMessage</Name>
+        <Description>Ein oder mehrere Felder sind ungültig.</Description>
+        <VariableLocalized iso="GER"><![CDATA[Ein oder mehrere Felder sind ungültig.]]></VariableLocalized>
+        <VariableLocalized iso="ENG"><![CDATA[One or more fields are invalid.]]></VariableLocalized>
+        <VariableLocalized iso="FRE"><![CDATA[Un ou plusieurs champs ne sont pas valides.]]></VariableLocalized>
+      </Variable>
+
     </Locales>
     <PaymentMethod>
       <Method>

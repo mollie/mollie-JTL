@@ -30,6 +30,7 @@ class JTLMollieCreditCard extends JTLMollie
         }
 
         Shop::Smarty()->assign('profileId', $profileId)
+            ->assign('errorMessage', json_encode(utf8_encode(Helper::oPlugin()->oPluginSprachvariableAssoc_arr['mcErrorMessage'])))
             ->assign('locale', self::getLocale($_SESSION['cISOSprache'], $_SESSION['Kunde']->cLand))
             ->assign('testmode', strpos(trim(Helper::getSetting('api_key')), 'test_') === 0)
             ->assign('mollieLang', Helper::oPlugin()->oPluginSprachvariableAssoc_arr)

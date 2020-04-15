@@ -55,6 +55,8 @@
 <script src="https://js.mollie.com/v1/mollie.js"></script>
 <script>
 
+    var errorMessage = {if isset($errorMessage)}{$errorMessage}{else}null{/if};
+
     var mollie = Mollie('{$profileId}', {
         locale: '{$locale}'{if $testmode}, testMode: true{/if}
     });
@@ -86,7 +88,7 @@
                 var alert = document.createElement('div');
                 alert.className = 'alert alert-danger';
                 alert.id = 'mollieErrorContent';
-                alert.textContent = error.message;
+                alert.textContent = errorMessage ? errorMessage : error.message;
                 errorDiv.append(alert);
             } else {
                 // Add token to the form
