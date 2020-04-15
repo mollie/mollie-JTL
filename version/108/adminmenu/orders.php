@@ -169,9 +169,9 @@ try {
                 $options = ['lines' => []];
                 if ($oBestellung->cTracking) {
                     $tracking = new stdClass();
-                    $tracking->carrier = $oBestellung->cVersandartName;
-                    $tracking->url = $oBestellung->cTrackingURL;
-                    $tracking->code = $oBestellung->cTracking;
+                    $tracking->carrier = utf8_encode($oBestellung->cVersandartName);
+                    $tracking->url = utf8_encode($oBestellung->cTrackingURL);
+                    $tracking->code = utf8_encode($oBestellung->cTracking);
                     $options['tracking'] = $tracking;
                 }
 

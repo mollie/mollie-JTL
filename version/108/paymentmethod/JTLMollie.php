@@ -387,7 +387,7 @@ class JTLMollie extends PaymentMethod
         $data['billingAddress']->country = $order->oRechnungsadresse->cLand;
 
         if (array_key_exists('Kunde', $_SESSION)) {
-            if (isset($_SESSION['Kunde']->dGeburtstag) && preg_match('/^\d{4}-\d{2}-\d{2}$/', trim($_SESSION['Kunde']->dGeburtstag)) && trim($_SESSION['Kunde']->dGeburtstag) !== '0000-00-00') {
+            if (isset($_SESSION['Kunde']->dGeburtstag) && trim($_SESSION['Kunde']->dGeburtstag) !== '0000-00-00' && preg_match('/^\d{4}-\d{2}-\d{2}$/', trim($_SESSION['Kunde']->dGeburtstag))) {
 
                 $data['consumerDateOfBirth'] = trim($_SESSION['Kunde']->dGeburtstag);
             }
