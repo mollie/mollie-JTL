@@ -245,9 +245,9 @@ class JTLMollie extends PaymentMethod
             $customer->email = utf8_encode($oKunde->cMail);
             $customer->locale = self::getLocale($_SESSION['cISOSprache'], $_SESSION['Kunde']->cLand);
             $customer->metadata = [
-                'kKunde' => $oKunde->kKunde,
-                'kKundengruppe' => $oKunde->kKundengruppe,
-                'cKundenNr' => $oKunde->cKundenNr,
+                'kKunde' => (int)$oKunde->kKunde,
+                'kKundengruppe' => (int)$oKunde->kKundengruppe,
+                'cKundenNr' => utf8_encode($oKunde->cKundenNr),
             ];
 
             if ($customer instanceof Customer) {
@@ -256,7 +256,7 @@ class JTLMollie extends PaymentMethod
                 if ($customer = $api->customers->create((array)$customer)) {
                     if (self::getMollieCustomerId($oKunde->kKunde) === false) {
                         Shop::DB()->insert('xplugin_ws_mollie_kunde', (object)[
-                            'kKunde' => $oKunde->kKunde,
+                            'kKunde' => (int)$oKunde->kKunde,
                             'customerId' => $customer->id,
                         ]);
                     } else {
@@ -598,6 +598,8 @@ class JTLMollie extends PaymentMethod
         $this->doLog('JTLMollie::handleNotification<br/><pre>' . print_r([$hash, $args], 1) . '</pre>', $logData, LOGLEVEL_DEBUG);
 
         try {
+
+
 
             $oMolliePayment = self::API()->orders->get($args['id'], ['embed' => 'payments']);
             Mollie::handleOrder($oMolliePayment, $order->kBestellung);

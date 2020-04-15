@@ -15,11 +15,17 @@ class JTLMollieCreditCard extends JTLMollie
         if ($profileId === '' || strpos($profileId, 'pfl_') !== 0) {
             return true;
         }
+        if (array_key_exists('mollieCardTokenTS', $_SESSION) && (int)$_SESSION['mollieCardTokenTS'] > time()
+            && array_key_exists('mollieCardToken', $_SESSION) && trim($_SESSION['mollieCardToken']) !== '') {
+            return true;
+        }
 
         unset($_SESSION['mollieCardToken']);
+        unset($_SESSION['mollieCardTokenTS']);
 
         if (array_key_exists('cardToken', $aPost_arr) && trim($aPost_arr['cardToken'])) {
             $_SESSION['mollieCardToken'] = trim($aPost_arr['cardToken']);
+            $_SESSION['mollieCardTokenTS'] = time() + 3600;
             return true;
         }
 

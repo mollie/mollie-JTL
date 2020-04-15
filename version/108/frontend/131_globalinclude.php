@@ -31,13 +31,13 @@ try {
 
                     $lock = new \ws_mollie\ExclusiveLock('mollie_' . $mOrder->id, PFAD_ROOT . PFAD_COMPILEDIR);
                     $logged = false;
-                    $maxWait = 300;
+                    $maxWait = 120;
                     while (!$lock->lock() && $maxWait > 0) {
                         if (!$logged) {
                             Mollie::JTLMollie()->doLog("Hook 131: Order currently locked ({$oZahlungSession->cNotifyID})", $logData, LOGLEVEL_DEBUG);
                             $logged = microtime(true);
                         }
-                        usleep(100000);
+                        usleep(1000000);
                         $maxWait--;
                     }
 
