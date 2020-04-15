@@ -12,9 +12,15 @@ try {
         $text = Helper::oPlugin()->oPluginSprachvariableAssoc_arr['error_' . $status];
         pq('#fieldset-payment')->prepend('<div class="alert alert-danger">' . $text . '</div>');
     }
-    
-    $applePayId = "kPlugin_".Helper::oPlugin()->kPlugin."_mollieapplepay";
-pq('body')->append(<<<HTML
+
+    $applePayId = "kPlugin_" . Helper::oPlugin()->kPlugin . "_mollieapplepay";
+    if (pq('#' . $applePayId)) {
+        $selector = 'body';
+        if (array_key_exists('isAjax', $_REQUEST)) {
+            $selector = '#checkout';
+        }
+
+        pq($selector)->append(<<<HTML
 <script type="text/javascript" data-eucookie-name="mollie ApplePay Check" data-eucookie-category="required" data-eucookie-description="Prueft ob ApplePay verfuegbar ist.">
 // <!--
 if($('#{$applePayId}').length){
@@ -24,7 +30,8 @@ if($('#{$applePayId}').length){
 }
 // -->
 HTML
-);
+        );
+    }
 
     switch (Helper::getSetting('load_styles')) {
         case 'Y':
