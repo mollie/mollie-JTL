@@ -704,8 +704,8 @@ class JTLMollie extends PaymentMethod
                 $this->doLog('Method ' . static::MOLLIE_METHOD . ' not selectable:' . $e->getMessage());
                 return false;
             }
-        } else {
-            $this->doLog("Global mollie PaymentMethod cannot be used for payments directly.");
+        } else if ((int)$this->duringCheckout === 0 && static::MOLLIE_METHOD === '') {
+            return true;
         }
         return false;
     }
