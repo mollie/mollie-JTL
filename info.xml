@@ -34,7 +34,7 @@
       <CreateDate>2020-03-02</CreateDate>
     </Version>
     <Version nr="108">
-      <CreateDate>2020-03-02</CreateDate>
+      <CreateDate>2020-04-24</CreateDate>
     </Version>
     <Hooks>
       <Hook id="131">131_globalinclude.php</Hook>
@@ -210,7 +210,6 @@
         <VariableLocalized iso="ENG"><![CDATA[The three-digit CVV/CVC number is shown on the reverse for Visa and Mastercard, and on the front of the card for American Express.]]></VariableLocalized>
         <VariableLocalized iso="FRE"><![CDATA[Le numéro CVC/CVV à trois chiffres est indiqué au dos de Visa et Mastercard et au recto de la carte American Express.]]></VariableLocalized>
       </Variable>
-
       <Variable>
         <Name>mcErrorMessage</Name>
         <Description>Ein oder mehrere Felder sind ungültig.</Description>
@@ -218,7 +217,6 @@
         <VariableLocalized iso="ENG"><![CDATA[One or more fields are invalid.]]></VariableLocalized>
         <VariableLocalized iso="FRE"><![CDATA[Un ou plusieurs champs ne sont pas valides.]]></VariableLocalized>
       </Variable>
-
     </Locales>
     <PaymentMethod>
       <Method>
@@ -248,7 +246,6 @@
         <SendMail>0</SendMail>
         <Provider>mollie.com</Provider>
         <TSCode>CREDIT_CARD</TSCode>
-        <AdditionalTemplateFile>tpl/mollieComponents.tpl</AdditionalTemplateFile>
         <PreOrder>1</PreOrder>
         <Soap>0</Soap>
         <Curl>1</Curl>
@@ -256,6 +253,7 @@
         <ClassFile>JTLMollieCreditCard.php</ClassFile>
         <ClassName>JTLMollieCreditCard</ClassName>
         <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+        <AdditionalTemplateFile>tpl/mollieComponents.tpl</AdditionalTemplateFile>
         <MethodLanguage iso="GER">
           <Name>Kreditkarte</Name>
           <ChargeName>mollie</ChargeName>
