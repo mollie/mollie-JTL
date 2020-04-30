@@ -182,18 +182,20 @@ abstract class Mollie
     public static function fixZahlungsarten()
     {
         $kPlugin = Helper::oPlugin()->kPlugin;
-        $test1 = 'kPlugin_%_mollie%';
-        $test2 = 'kPlugin_' . $kPlugin . '_mollie%';
-        $conflicted_arr = Shop::DB()->executeQueryPrepared("SELECT kZahlungsart, cName, cModulId FROM `tzahlungsart` WHERE cModulId LIKE :test1 AND cModulId NOT LIKE :test2", [
-            ':test1' => $test1,
-            ':test2' => $test2,
-        ], 2);
-        if ($conflicted_arr && count($conflicted_arr)) {
-            foreach ($conflicted_arr as $conflicted) {
-                Shop::DB()->executeQueryPrepared('UPDATE tzahlungsart SET cModulId = :cModulId WHERE kZahlungsart = :kZahlungsart', [
-                    ':cModulId' => preg_replace('/^kPlugin_\d+_/', 'kPlugin_' . $kPlugin . '_', $conflicted->cModulId),
-                    ':kZahlungsart' => $conflicted->kZahlungsart,
-                ], 3);
+        if ((int)$kPlugin) {
+            $test1 = 'kPlugin_%_mollie%';
+            $test2 = 'kPlugin_' . $kPlugin . '_mollie%';
+            $conflicted_arr = Shop::DB()->executeQueryPrepared("SELECT kZahlungsart, cName, cModulId FROM `tzahlungsart` WHERE cModulId LIKE :test1 AND cModulId NOT LIKE :test2", [
+                ':test1' => $test1,
+                ':test2' => $test2,
+            ], 2);
+            if ($conflicted_arr && count($conflicted_arr)) {
+                foreach ($conflicted_arr as $conflicted) {
+                    Shop::DB()->executeQueryPrepared('UPDATE tzahlungsart SET cModulId = :cModulId WHERE kZahlungsart = :kZahlungsart', [
+                        ':cModulId' => preg_replace('/^kPlugin_\d+_/', 'kPlugin_' . $kPlugin . '_', $conflicted->cModulId),
+                        ':kZahlungsart' => $conflicted->kZahlungsart,
+                    ], 3);
+                }
             }
         }
     }
@@ -223,7 +225,7 @@ abstract class Mollie
                 ':orderId2' => $oBestellung->cBestellNr,
             ], 3);
 
-            if(isset($order->metadata->originalOrderNumber)){
+            if (isset($order->metadata->originalOrderNumber)) {
                 Shop::DB()->executeQueryPrepared("INSERT INTO tbestellattribut (kBestellung, cName, cValue) VALUES (:kBestellung, 'mollie_cFakeBestellNr', :orderId1) ON DUPLICATE KEY UPDATE cValue = :orderId2;", [
                     ':kBestellung' => $kBestellung,
                     ':orderId1' => $order->metadata->originalOrderNumber,
