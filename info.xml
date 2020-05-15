@@ -33,6 +33,9 @@
       <SQL>107.sql</SQL>
       <CreateDate>2020-03-02</CreateDate>
     </Version>
+    <Version nr="108">
+      <CreateDate>2020-04-24</CreateDate>
+    </Version>
     <Hooks>
       <Hook id="131">131_globalinclude.php</Hook>
       <Hook id="144">144_notify.php</Hook>
@@ -207,6 +210,13 @@
         <VariableLocalized iso="ENG"><![CDATA[The three-digit CVV/CVC number is shown on the reverse for Visa and Mastercard, and on the front of the card for American Express.]]></VariableLocalized>
         <VariableLocalized iso="FRE"><![CDATA[Le numéro CVC/CVV à trois chiffres est indiqué au dos de Visa et Mastercard et au recto de la carte American Express.]]></VariableLocalized>
       </Variable>
+      <Variable>
+        <Name>mcErrorMessage</Name>
+        <Description>Ein oder mehrere Felder sind ungültig.</Description>
+        <VariableLocalized iso="GER"><![CDATA[Ein oder mehrere Felder sind ungültig.]]></VariableLocalized>
+        <VariableLocalized iso="ENG"><![CDATA[One or more fields are invalid.]]></VariableLocalized>
+        <VariableLocalized iso="FRE"><![CDATA[Un ou plusieurs champs ne sont pas valides.]]></VariableLocalized>
+      </Variable>
     </Locales>
     <PaymentMethod>
       <Method>
@@ -242,8 +252,8 @@
         <Sockets>0</Sockets>
         <ClassFile>JTLMollieCreditCard.php</ClassFile>
         <ClassName>JTLMollieCreditCard</ClassName>
-        <AdditionalTemplateFile>tpl/mollieComponents.tpl</AdditionalTemplateFile>
         <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+        <AdditionalTemplateFile>tpl/mollieComponents.tpl</AdditionalTemplateFile>
         <MethodLanguage iso="GER">
           <Name>Kreditkarte</Name>
           <ChargeName>mollie</ChargeName>
@@ -425,7 +435,7 @@
         <ClassName>JTLMollieIDEAL</ClassName>
         <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
         <MethodLanguage iso="GER">
-          <Name>Giropay</Name>
+          <Name>iDEAL</Name>
           <ChargeName>mollie</ChargeName>
           <InfoText>Bezahlen Sie bequem mit iDEAL.</InfoText>
         </MethodLanguage>
