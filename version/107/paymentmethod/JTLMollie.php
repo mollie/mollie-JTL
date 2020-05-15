@@ -1,8 +1,10 @@
 <?php
 
+use GuzzleHttp\Client;
 use Mollie\Api\Exceptions\ApiException;
 use Mollie\Api\Exceptions\IncompatiblePlatform;
 use Mollie\Api\MollieApiClient;
+use Mollie\Api\Resources\Customer;
 use Mollie\Api\Types\OrderLineType;
 use Mollie\Api\Types\OrderStatus;
 use ws_mollie\Helper;
@@ -15,6 +17,8 @@ require_once __DIR__ . '/../../../../../modules/PaymentMethod.class.php';
 
 class JTLMollie extends PaymentMethod
 {
+
+    const KUNDENATTRIBUT_CUSTOMERID = 'ws_mollie_customer_id';
 
     const ALLOW_PAYMENT_BEFORE_ORDER = true;
 
@@ -105,9 +109,7 @@ class JTLMollie extends PaymentMethod
      */
     public function doLog($msg, $data = null, $level = LOGLEVEL_NOTICE)
     {
-        //ZahlungsLog::add($this->moduleID, $msg, $data, $level);
-        ZahlungsLog::add($this->moduleID, "[" . $_SERVER['PHP_SELF'] . "] " . $msg, $data, $level);
-
+        ZahlungsLog::add($this->moduleID, "[" . microtime(true) . " - " . $_SERVER['PHP_SELF'] . "] " . $msg, $data, $level);
         return $this;
     }
 
@@ -137,7 +139,12 @@ class JTLMollie extends PaymentMethod
 
         $payable = (float)$order->fGesamtsumme > 0;
 
+        if ($payable) {
+            $this->updateMollieCustomer($_SESSION['Kunde']);
+        }
+
         try {
+
             if ($order->kBestellung) {
                 if ($payable) {
                     $payment = Payment::getPayment($order->kBestellung);
@@ -163,7 +170,6 @@ class JTLMollie extends PaymentMethod
 
         try {
 
-
             if (!$payable) {
                 $bestellung = finalisiereBestellung();
                 if ($bestellung && (int)$bestellung->kBestellung > 0) {
@@ -188,18 +194,71 @@ class JTLMollie extends PaymentMethod
             $this->doLog('Mollie Create Payment Redirect: ' . $oMolliePayment->getCheckoutUrl() . "<br/><pre>" . print_r($oMolliePayment, 1) . "</pre>", $logData, LOGLEVEL_DEBUG);
             Payment::updateFromPayment($oMolliePayment, $order->kBestellung, md5(trim($hash, '_')));
             Shop::Smarty()->assign('oMolliePayment', $oMolliePayment);
+
             if (!$this->duringCheckout) {
                 Session::getInstance()->cleanUp();
             }
-            header('Location: ' . $oMolliePayment->getCheckoutUrl());
+
+            if (!$oMolliePayment->getCheckoutUrl() && ($oMolliePayment->isAuthorized() || $oMolliePayment->isPaid())) {
+                header('Location: ' . $oMolliePayment->redirectUrl);
+                echo "<a href='{$oMolliePayment->redirectUrl}'>redirect to order ...</a>";
+            } else {
+                header('Location: ' . $oMolliePayment->getCheckoutUrl());
+                echo "<a href='{$oMolliePayment->getCheckoutUrl()}'>redirect to payment ...</a>";
+            }
             unset($_SESSION['oMolliePayment']);
-            echo "<a href='{$oMolliePayment->getCheckoutUrl()}'>redirect to payment ...</a>";
             exit();
         } catch (ApiException $e) {
             $this->doLog("Create Payment Error: " . $e->getMessage() . '<br/><pre>' . print_r($orderData, 1) . '</pre>', $logData, LOGLEVEL_ERROR);
-            header('Location: ' . Shop::getURL() . '/bestellvorgang.php?editZahlungsart=1&mollieStatus=failed');
+            //header('Location: ' . Shop::getURL() . '/bestellvorgang.php?editZahlungsart=1&mollieStatus=failed');
             echo "<a href='" . Shop::getURL() . '/bestellvorgang.php?editZahlungsart=1&mollieStatus=failed' . "'>redirect...</a>";
             exit();
+        }
+    }
+
+    /**
+     * @param $oKunde Kunde
+     */
+    public function updateMollieCustomer($oKunde)
+    {
+        if (!$oKunde->kKunde || (int)$oKunde->nRegistriert <= 0) {
+            return;
+        }
+        try {
+            $customerId = Shop::DB()->select('xplugin_ws_mollie_kunde', 'kKunde', (int)$oKunde->kKunde);
+            $api = JTLMollie::API();
+            /** @var Customer $customer */
+            $customer = new stdClass();
+            if ($customerId && isset($customerId->customerId)) {
+                try {
+                    $customer = $api->customers->get($customerId->customerId);
+                } catch (Exception $e) {
+                    Helper::logExc($e);
+                }
+            }
+
+            $customer->name = utf8_encode(trim($oKunde->cVorname . ' ' . $oKunde->cNachname));
+            $customer->email = utf8_encode($oKunde->cMail);
+            $customer->locale = self::getLocale($_SESSION['cISOSprache'], $_SESSION['Kunde']->cLand);
+            $customer->metadata = [
+                'kKunde' => $oKunde->kKunde,
+                'kKundengruppe' => $oKunde->kKundengruppe,
+                'cKundenNr' => $oKunde->cKundenNr,
+            ];
+
+            if ($customer instanceof Customer) {
+                $customer->update();
+            } else {
+                if ($customer = $api->customers->create((array)$customer)) {
+                    Shop::DB()->insert('xplugin_ws_mollie_kunde', (object)[
+                        'kKunde' => $oKunde->kKunde,
+                        'customerId' => $customer->id,
+                    ]);
+                }
+            }
+
+        } catch (Exception $e) {
+            Helper::logExc($e);
         }
     }
 
@@ -212,12 +271,61 @@ class JTLMollie extends PaymentMethod
     {
         Helper::init();
         if (self::$_mollie === null) {
-            self::$_mollie = new MollieApiClient();
+            self::$_mollie = new MollieApiClient(new Client([
+                \GuzzleHttp\RequestOptions::VERIFY => \Composer\CaBundle\CaBundle::getBundledCaBundlePath(),
+                \GuzzleHttp\RequestOptions::TIMEOUT => 60,
+            ]));
             self::$_mollie->setApiKey(Helper::getSetting('api_key'));
             self::$_mollie->addVersionString("JTL-Shop/" . JTL_VERSION . '.' . JTL_MINOR_VERSION);
             self::$_mollie->addVersionString("ws_mollie/" . Helper::oPlugin()->nVersion);
         }
         return self::$_mollie;
+    }
+
+    public static function getLocale($cISOSprache, $country = null)
+    {
+        switch ($cISOSprache) {
+            case "ger":
+                if ($country === "AT") {
+                    return "de_AT";
+                }
+                if ($country === "CH") {
+                    return "de_CH";
+                }
+                return "de_DE";
+            case "fre":
+                if ($country === "BE") {
+                    return "fr_BE";
+                }
+                return "fr_FR";
+            case "dut":
+                if ($country === "BE") {
+                    return "nl_BE";
+                }
+                return "nl_NL";
+            case "spa":
+                return "es_ES";
+            case "ita":
+                return "it_IT";
+            case "pol":
+                return "pl_PL";
+            case "hun":
+                return "hu_HU";
+            case "por":
+                return "pt_PT";
+            case "nor":
+                return "nb_NO";
+            case "swe":
+                return "sv_SE";
+            case "fin":
+                return "fi_FI";
+            case "dan":
+                return "da_DK";
+            case "ice":
+                return "is_IS";
+            default:
+                return "en_US";
+        }
     }
 
     /**
@@ -242,7 +350,7 @@ class JTLMollie extends PaymentMethod
             'orderNumber' => utf8_encode($order->cBestellNr),
             'lines' => [],
             'billingAddress' => new stdClass(),
-
+            'metadata' => ['originalOrderNumber' => utf8_encode($order->cBestellNr)],
             'redirectUrl' => (int)$this->duringCheckout ? Shop::getURL() . '/bestellabschluss.php?mollie=' . md5(trim($hash, '_')) : $this->getReturnURL($order),
             'webhookUrl' => $this->getNotificationURL($hash), // . '&hash=' . md5(trim($hash, '_')),
         ];
@@ -254,6 +362,13 @@ class JTLMollie extends PaymentMethod
         if (static::MOLLIE_METHOD === \Mollie\Api\Types\PaymentMethod::CREDITCARD && array_key_exists('mollieCardToken', $_SESSION)) {
             $data['payment'] = new stdClass();
             $data['payment']->cardToken = trim($_SESSION['mollieCardToken']);
+        }
+
+        if (($customerId = self::getMollieCustomerId((int)$_SESSION['Kunde']->kKunde)) !== false) {
+            if (!array_key_exists('payment', $data)) {
+                $data['payment'] = new stdClass();
+            }
+            $data['payment']->customerId = $customerId;
         }
 
         if ($organizationName = utf8_encode(trim($order->oRechnungsadresse->cFirma))) {
@@ -268,6 +383,15 @@ class JTLMollie extends PaymentMethod
         $data['billingAddress']->city = utf8_encode($order->oRechnungsadresse->cOrt);
         $data['billingAddress']->country = $order->oRechnungsadresse->cLand;
 
+        if (array_key_exists('Kunde', $_SESSION)) {
+            if (isset($_SESSION['Kunde']->dGeburtstag) && preg_match('/^\d{4}-\d{2}-\d{2}$/', trim($_SESSION['Kunde']->dGeburtstag)) && trim($_SESSION['Kunde']->dGeburtstag) !== '0000-00-00') {
+                $data['consumerDateOfBirth'] = trim($_SESSION['Kunde']->dGeburtstag);
+            }
+            if (isset($_SESSION['Kunde']->cAdressZusatz) && trim($_SESSION['Kunde']->cAdressZusatz) !== '') {
+                $data['billingAddress']->streetAdditional = utf8_encode(trim($_SESSION['Kunde']->cAdressZusatz));
+            }
+        }
+
         if ($order->Lieferadresse != null) {
             $data['shippingAddress'] = new stdClass();
             if ($organizationName = utf8_encode(trim($order->Lieferadresse->cFirma))) {
@@ -281,25 +405,38 @@ class JTLMollie extends PaymentMethod
             $data['shippingAddress']->postalCode = utf8_encode($order->Lieferadresse->cPLZ);
             $data['shippingAddress']->city = utf8_encode($order->Lieferadresse->cOrt);
             $data['shippingAddress']->country = $order->Lieferadresse->cLand;
-        }
 
+            if (array_key_exists('Lieferadresse', $_SESSION) && isset($_SESSION['Lieferadresse']->cAdressZusatz) && trim($_SESSION['Lieferadresse']->cAdressZusatz) !== '') {
+                $data['shippingAddress']->streetAdditional = utf8_encode(trim($_SESSION['Lieferadresse']->cAdressZusatz));
+            }
+        }
 
         /** @var WarenkorbPos $oPosition */
         foreach ($order->Positionen as $oPosition) {
 
-            // EUR => 1
+            $line = new stdClass();
+            $line->name = utf8_encode($oPosition->cName);
+
             $_netto = round($oPosition->fPreis, 2);
             $_vatRate = (float)$oPosition->fMwSt / 100;
             $_amount = (float)$oPosition->nAnzahl;
+
+            if (Helper::getSetting("supportQ") === 'Y') {
+                // Rationale Stückzahlen aktiviert
+                if ((int)$oPosition->nPosTyp === (int)C_WARENKORBPOS_TYP_ARTIKEL && $oPosition->Artikel->cTeilbar === 'Y'
+                    && fmod($oPosition->nAnzahl, 1) !== 0.0) {
+                    $_netto *= $_amount;
+                    $_amount = 1;
+                    $line->name .= sprintf(" (%.2f %s)", (float)$oPosition->nAnzahl, $oPosition->cEinheit);
+                }
+            }
 
             $unitPriceNetto = round(($_currencyFactor * $_netto), 2);
             $unitPrice = round($unitPriceNetto * (1 + $_vatRate), 2);
             $totalAmount = round($_amount * $unitPrice, 2);
             $vatAmount = round($totalAmount - ($totalAmount / (1 + $_vatRate)), 2);
 
-            $line = new stdClass();
-            $line->name = utf8_encode($oPosition->cName);
-            $line->quantity = $oPosition->nAnzahl;
+            $line->quantity = (int)$_amount;
             $line->unitPrice = (object)[
                 'value' => number_format($unitPrice, 2, '.', ''),
                 'currency' => $order->Waehrung->cISO,
@@ -319,7 +456,7 @@ class JTLMollie extends PaymentMethod
                 case (int)C_WARENKORBPOS_TYP_GRATISGESCHENK:
                 case (int)C_WARENKORBPOS_TYP_ARTIKEL:
                     $line->type = OrderLineType::TYPE_PHYSICAL;
-                    $line->sku = $oPosition->cArtNr;
+                    $line->sku = utf8_encode($oPosition->cArtNr);
                     break;
                 case (int)C_WARENKORBPOS_TYP_VERSANDPOS:
                     $line->type = OrderLineType::TYPE_SHIPPING_FEE;
@@ -402,52 +539,6 @@ class JTLMollie extends PaymentMethod
         return $data;
     }
 
-    public static function getLocale($cISOSprache, $country = null)
-    {
-        switch ($cISOSprache) {
-            case "ger":
-                if ($country === "AT") {
-                    return "de_AT";
-                }
-                if ($country === "CH") {
-                    return "de_CH";
-                }
-                return "de_DE";
-            case "fre":
-                if ($country === "BE") {
-                    return "fr_BE";
-                }
-                return "fr_FR";
-            case "dut":
-                if ($country === "BE") {
-                    return "nl_BE";
-                }
-                return "nl_NL";
-            case "spa":
-                return "es_ES";
-            case "ita":
-                return "it_IT";
-            case "pol":
-                return "pl_PL";
-            case "hun":
-                return "hu_HU";
-            case "por":
-                return "pt_PT";
-            case "nor":
-                return "nb_NO";
-            case "swe":
-                return "sv_SE";
-            case "fin":
-                return "fi_FI";
-            case "dan":
-                return "da_DK";
-            case "ice":
-                return "is_IS";
-            default:
-                return "en_US";
-        }
-    }
-
     public function optionaleRundung($gesamtsumme)
     {
         $conf = Shop::getSettings([CONF_KAUFABWICKLUNG]);
@@ -465,6 +556,14 @@ class JTLMollie extends PaymentMethod
         }
 
         return $gesamtsumme;
+    }
+
+    public static function getMollieCustomerId($kKunde)
+    {
+        if ($row = Shop::DB()->select('xplugin_ws_mollie_kunde', 'kKunde', (int)$kKunde)) {
+            return $row->customerId;
+        }
+        return false;
     }
 
     public function updateHash($hash, $orderID)
@@ -509,8 +608,16 @@ class JTLMollie extends PaymentMethod
         try {
             if ($oZahlungSession = self::getZahlungSession(md5($hash))) {
                 if ((int)$oZahlungSession->kBestellung <= 0) {
+
+                    $logData = '$' . $args['id'];
+                    $GLOBALS['mollie_notify_lock'] = new \ws_mollie\ExclusiveLock('mollie_' . $args['id'], PFAD_ROOT . PFAD_COMPILEDIR);
+                    if ($GLOBALS['mollie_notify_lock']->lock()) {
+                        $this->doLog("JTLMollie::finalizeOrder::locked ({$args['id']})", $logData, LOGLEVEL_DEBUG);
+                    } else {
+                        $this->doLog("JTLMollie::finalizeOrder::locked failed ({$args['id']})", $logData, LOGLEVEL_ERROR);
+                    }
+
                     $oOrder = self::API()->orders->get($args['id'], ['embed' => 'payments']);
-                    $logData = '$' . $oOrder->id;
                     $result = in_array($oOrder->status, [OrderStatus::STATUS_PAID, OrderStatus::STATUS_AUTHORIZED, OrderStatus::STATUS_PENDING, OrderStatus::STATUS_COMPLETED]);
                     $this->doLog('JTLMollie::finalizeOrder (' . ($result ? 'true' : 'false') . ')<br/><pre>' . print_r([$hash, $args, $oOrder], 1) . '</pre>', $logData, LOGLEVEL_DEBUG);
                     //Payment::updateFromPayment($oMolliePayment, $order->kBestellung);
@@ -544,10 +651,13 @@ class JTLMollie extends PaymentMethod
     {
         /** @var Warenkorb $wk */
         $wk = $_SESSION['Warenkorb'];
-        foreach ($wk->PositionenArr as $oPosition) {
-            if ((int)$oPosition->nPosTyp === (int)C_WARENKORBPOS_TYP_ARTIKEL && $oPosition->Artikel && $oPosition->Artikel->cTeilbar === 'Y'
-                && fmod($oPosition->nAnzahl, 1) !== 0.0) {
-                return false;
+        if (Helper::getSetting("supportQ") !== 'Y') {
+            // Rationale Stückzahlen vorhanden?
+            foreach ($wk->PositionenArr as $oPosition) {
+                if ((int)$oPosition->nPosTyp === (int)C_WARENKORBPOS_TYP_ARTIKEL && $oPosition->Artikel && $oPosition->Artikel->cTeilbar === 'Y'
+                    && fmod($oPosition->nAnzahl, 1) !== 0.0) {
+                    return false;
+                }
             }
         }
 
