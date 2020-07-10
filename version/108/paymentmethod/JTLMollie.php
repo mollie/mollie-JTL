@@ -628,6 +628,7 @@ class JTLMollie extends PaymentMethod
                         $this->doLog("JTLMollie::finalizeOrder::locked ({$args['id']})", $logData, LOGLEVEL_DEBUG);
                     } else {
                         $this->doLog("JTLMollie::finalizeOrder::locked failed ({$args['id']})", $logData, LOGLEVEL_ERROR);
+                        return false;
                     }
 
                     $oOrder = self::API()->orders->get($args['id'], ['embed' => 'payments']);
