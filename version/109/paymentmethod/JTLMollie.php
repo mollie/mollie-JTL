@@ -412,7 +412,7 @@ class JTLMollie extends PaymentMethod
             }
         }
 
-        if ($order->Lieferadresse != null) {
+        if ($order->Lieferadresse !== null) {
             $data['shippingAddress'] = new stdClass();
             if ($organizationName = utf8_encode(trim($order->Lieferadresse->cFirma))) {
                 $data['shippingAddress']->organizationName = $organizationName;
@@ -431,7 +431,7 @@ class JTLMollie extends PaymentMethod
             }
         }
 
-        /** @var WarenkorbPos $oPosition */
+
         foreach ($order->Positionen as $oPosition) {
 
             $line = new stdClass();
@@ -508,10 +508,6 @@ class JTLMollie extends PaymentMethod
                 'value' => number_format($order->Waehrung->fFaktor * $order->fGuthaben, 2, '.', ''),
                 'currency' => $order->Waehrung->cISO,
             ];
-            $line->unitPrice = (object)[
-                'value' => number_format($order->Waehrung->fFaktor * $order->fGuthaben, 2, '.', ''),
-                'currency' => $order->Waehrung->cISO,
-            ];
             $line->totalAmount = (object)[
                 'value' => number_format($order->Waehrung->fFaktor * $order->fGuthaben, 2, '.', ''),
                 'currency' => $order->Waehrung->cISO,
@@ -531,15 +527,11 @@ class JTLMollie extends PaymentMethod
         }
         if (abs($sum - (float)$data['amount']->value) > 0) {
             $diff = (round((float)$data['amount']->value - $sum, 2));
-            if ($diff != 0) {
+            if ($diff !== 0) {
                 $line = new stdClass();
                 $line->type = $diff > 0 ? OrderLineType::TYPE_SURCHARGE : OrderLineType::TYPE_DISCOUNT;
                 $line->name = 'Rundungsausgleich';
                 $line->quantity = 1;
-                $line->unitPrice = (object)[
-                    'value' => number_format($diff, 2, '.', ''),
-                    'currency' => $order->Waehrung->cISO,
-                ];
                 $line->unitPrice = (object)[
                     'value' => number_format($diff, 2, '.', ''),
                     'currency' => $order->Waehrung->cISO,
@@ -562,7 +554,7 @@ class JTLMollie extends PaymentMethod
     public function optionaleRundung($gesamtsumme)
     {
         $conf = Shop::getSettings([CONF_KAUFABWICKLUNG]);
-        if (isset($conf['kaufabwicklung']['bestellabschluss_runden5']) && $conf['kaufabwicklung']['bestellabschluss_runden5'] == 1) {
+        if (isset($conf['kaufabwicklung']['bestellabschluss_runden5']) && (int)$conf['kaufabwicklung']['bestellabschluss_runden5'] === 1) {
             $waehrung = isset($_SESSION['Waehrung']) ? $_SESSION['Waehrung'] : null;
             if ($waehrung === null || !isset($waehrung->kWaehrung)) {
                 $waehrung = Shop::DB()->select('twaehrung', 'cStandard', 'Y');

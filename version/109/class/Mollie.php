@@ -15,6 +15,7 @@ use Lieferschein;
 use Lieferscheinpos;
 use Mollie\Api\Resources\Order;
 use Mollie\Api\Types\OrderStatus;
+use Mollie\Api\Types\PaymentMethod;
 use Mollie\Api\Types\PaymentStatus;
 use Shop;
 use Shopsetting;
@@ -288,6 +289,11 @@ abstract class Mollie
                         $cHinweis = $order->id;
                     } elseif ($mPayment && Helper::getSetting('wawiPaymentID') === 'tr') {
                         $cHinweis = $mPayment->id;
+                    }
+
+                    if($mPayment->method === PaymentMethod::PAYPAL && isset($mPayment->details->paypalReference)){
+                        $cHinweis = $mPayment->details->paypalReference;
+                        $oIncomingPayment->cZahler = isset($payment->details->paypalPayerId) ? $payment->details->paypalPayerId : '';
                     }
 
                     $oIncomingPayment->fBetrag = $order->amount->value;
