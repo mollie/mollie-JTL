@@ -38,6 +38,7 @@
     </Version>
     <Version nr="109">
       <CreateDate>2020-04-24</CreateDate>
+      <SQL>109.sql</SQL>
     </Version>
     <Hooks>
       <Hook id="131">131_globalinclude.php</Hook>

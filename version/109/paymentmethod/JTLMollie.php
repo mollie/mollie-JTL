@@ -226,7 +226,7 @@ class JTLMollie extends PaymentMethod
     {
 
         return;
-        
+
 //        if (!$oKunde->kKunde || (int)$oKunde->nRegistriert <= 0) {
 //            return;
 //        }
@@ -293,60 +293,6 @@ class JTLMollie extends PaymentMethod
             self::$_mollie->addVersionString("ws_mollie/" . Helper::oPlugin()->nVersion);
         }
         return self::$_mollie;
-    }
-
-    public static function getLocale($cISOSprache, $country = null)
-    {
-        switch ($cISOSprache) {
-            case "ger":
-                if ($country === "AT") {
-                    return "de_AT";
-                }
-                if ($country === "CH") {
-                    return "de_CH";
-                }
-                return "de_DE";
-            case "fre":
-                if ($country === "BE") {
-                    return "fr_BE";
-                }
-                return "fr_FR";
-            case "dut":
-                if ($country === "BE") {
-                    return "nl_BE";
-                }
-                return "nl_NL";
-            case "spa":
-                return "es_ES";
-            case "ita":
-                return "it_IT";
-            case "pol":
-                return "pl_PL";
-            case "hun":
-                return "hu_HU";
-            case "por":
-                return "pt_PT";
-            case "nor":
-                return "nb_NO";
-            case "swe":
-                return "sv_SE";
-            case "fin":
-                return "fi_FI";
-            case "dan":
-                return "da_DK";
-            case "ice":
-                return "is_IS";
-            default:
-                return "en_US";
-        }
-    }
-
-    public static function getMollieCustomerId($kKunde)
-    {
-        //if ($row = Shop::DB()->select('xplugin_ws_mollie_kunde', 'kKunde', (int)$kKunde)) {
-        //    return $row->customerId;
-        //}
-        return false;
     }
 
     /**
@@ -553,6 +499,52 @@ class JTLMollie extends PaymentMethod
         return $data;
     }
 
+    public static function getLocale($cISOSprache, $country = null)
+    {
+        switch ($cISOSprache) {
+            case "ger":
+                if ($country === "AT") {
+                    return "de_AT";
+                }
+                if ($country === "CH") {
+                    return "de_CH";
+                }
+                return "de_DE";
+            case "fre":
+                if ($country === "BE") {
+                    return "fr_BE";
+                }
+                return "fr_FR";
+            case "dut":
+                if ($country === "BE") {
+                    return "nl_BE";
+                }
+                return "nl_NL";
+            case "spa":
+                return "es_ES";
+            case "ita":
+                return "it_IT";
+            case "pol":
+                return "pl_PL";
+            case "hun":
+                return "hu_HU";
+            case "por":
+                return "pt_PT";
+            case "nor":
+                return "nb_NO";
+            case "swe":
+                return "sv_SE";
+            case "fin":
+                return "fi_FI";
+            case "dan":
+                return "da_DK";
+            case "ice":
+                return "is_IS";
+            default:
+                return "en_US";
+        }
+    }
+
     public function optionaleRundung($gesamtsumme)
     {
         $conf = Shop::getSettings([CONF_KAUFABWICKLUNG]);
@@ -570,6 +562,14 @@ class JTLMollie extends PaymentMethod
         }
 
         return $gesamtsumme;
+    }
+
+    public static function getMollieCustomerId($kKunde)
+    {
+        //if ($row = Shop::DB()->select('xplugin_ws_mollie_kunde', 'kKunde', (int)$kKunde)) {
+        //    return $row->customerId;
+        //}
+        return false;
     }
 
     public function updateHash($hash, $orderID)
@@ -592,11 +592,8 @@ class JTLMollie extends PaymentMethod
         $this->doLog('JTLMollie::handleNotification<br/><pre>' . print_r([$hash, $args], 1) . '</pre>', $logData, LOGLEVEL_DEBUG);
 
         try {
-
-
             $oMolliePayment = self::API()->orders->get($args['id'], ['embed' => 'payments']);
             Mollie::handleOrder($oMolliePayment, $order->kBestellung);
-
         } catch (Exception $e) {
             $this->doLog('JTLMollie::handleNotification: ' . $e->getMessage(), $logData);
         }
@@ -607,7 +604,7 @@ class JTLMollie extends PaymentMethod
      * @param string $hash
      * @param array $args
      *
-     * @return true, if $order should be finalized
+     * @return boolean, true, if $order should be finalized
      */
     public function finalizeOrder($order, $hash, $args)
     {
@@ -622,6 +619,9 @@ class JTLMollie extends PaymentMethod
                         $this->doLog("JTLMollie::finalizeOrder::locked ({$args['id']})", $logData, LOGLEVEL_DEBUG);
                     } else {
                         $this->doLog("JTLMollie::finalizeOrder::locked failed ({$args['id']})", $logData, LOGLEVEL_ERROR);
+                        Shop::DB()->executeQueryPrepared("UPDATE xplugin_ws_mollie_payments SET bLockTimeout = 1 WHERE kID = :kID;", [
+                            ':kID' => $args['id']
+                        ], 3);
                         return false;
                     }
 

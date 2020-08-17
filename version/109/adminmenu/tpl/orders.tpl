@@ -28,6 +28,9 @@
                     {if $payment->cMode == 'test'}
                         <span class="label label-danger">TEST</span>
                     {/if}
+                    {if $payment->bLockTimeout}
+                        <span class="label label-danger">LOCK TIMEOUT</span>
+                    {/if}
                 </td>
                 <td>
                     <a href="plugin.php?kPlugin={$oPlugin->kPlugin}&action=order&id={$payment->kID}">{$payment->kID}</a>
