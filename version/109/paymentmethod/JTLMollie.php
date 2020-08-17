@@ -6,7 +6,6 @@ use GuzzleHttp\RequestOptions;
 use Mollie\Api\Exceptions\ApiException;
 use Mollie\Api\Exceptions\IncompatiblePlatform;
 use Mollie\Api\MollieApiClient;
-use Mollie\Api\Resources\Customer;
 use Mollie\Api\Resources\Order;
 use Mollie\Api\Types\OrderLineType;
 use Mollie\Api\Types\OrderStatus;
@@ -225,52 +224,55 @@ class JTLMollie extends PaymentMethod
      */
     public function updateMollieCustomer($oKunde)
     {
-        if (!$oKunde->kKunde || (int)$oKunde->nRegistriert <= 0) {
-            return;
-        }
-        try {
-            $customerId = Shop::DB()->select('xplugin_ws_mollie_kunde', 'kKunde', (int)$oKunde->kKunde);
-            $api = JTLMollie::API();
-            /** @var Customer $customer */
-            $customer = new stdClass();
-            if ($customerId && isset($customerId->customerId)) {
-                try {
-                    $customer = $api->customers->get($customerId->customerId);
-                } catch (Exception $e) {
-                    Helper::logExc($e);
-                }
-            }
 
-            $customer->name = utf8_encode(trim($oKunde->cVorname . ' ' . $oKunde->cNachname));
-            $customer->email = utf8_encode($oKunde->cMail);
-            $customer->locale = self::getLocale($_SESSION['cISOSprache'], $_SESSION['Kunde']->cLand);
-            $customer->metadata = [
-                'kKunde' => (int)$oKunde->kKunde,
-                'kKundengruppe' => (int)$oKunde->kKundengruppe,
-                'cKundenNr' => utf8_encode($oKunde->cKundenNr),
-            ];
-
-            if ($customer instanceof Customer) {
-                $customer->update();
-            } else {
-                if ($customer = $api->customers->create((array)$customer)) {
-                    if (self::getMollieCustomerId($oKunde->kKunde) === false) {
-                        Shop::DB()->insert('xplugin_ws_mollie_kunde', (object)[
-                            'kKunde' => (int)$oKunde->kKunde,
-                            'customerId' => $customer->id,
-                        ]);
-                    } else {
-                        Shop::DB()->update('xplugin_ws_mollie_kunde', 'kKunde', (int)$oKunde->kKunde, (object)[
-                            'customerId' => $customer->id,
-                        ]);
-                    }
-
-                }
-            }
-
-        } catch (Exception $e) {
-            Helper::logExc($e);
-        }
+        return;
+        
+//        if (!$oKunde->kKunde || (int)$oKunde->nRegistriert <= 0) {
+//            return;
+//        }
+//        try {
+//            $customerId = Shop::DB()->select('xplugin_ws_mollie_kunde', 'kKunde', (int)$oKunde->kKunde);
+//            $api = JTLMollie::API();
+//            /** @var Customer $customer */
+//            $customer = new stdClass();
+//            if ($customerId && isset($customerId->customerId)) {
+//                try {
+//                    $customer = $api->customers->get($customerId->customerId);
+//                } catch (Exception $e) {
+//                    Helper::logExc($e);
+//                }
+//            }
+//
+//            $customer->name = utf8_encode(trim($oKunde->cVorname . ' ' . $oKunde->cNachname));
+//            $customer->email = utf8_encode($oKunde->cMail);
+//            $customer->locale = self::getLocale($_SESSION['cISOSprache'], $_SESSION['Kunde']->cLand);
+//            $customer->metadata = [
+//                'kKunde' => (int)$oKunde->kKunde,
+//                'kKundengruppe' => (int)$oKunde->kKundengruppe,
+//                'cKundenNr' => utf8_encode($oKunde->cKundenNr),
+//            ];
+//
+//            if ($customer instanceof Customer) {
+//                $customer->update();
+//            } else {
+//                if ($customer = $api->customers->create((array)$customer)) {
+//                    if (self::getMollieCustomerId($oKunde->kKunde) === false) {
+//                        Shop::DB()->insert('xplugin_ws_mollie_kunde', (object)[
+//                            'kKunde' => (int)$oKunde->kKunde,
+//                            'customerId' => $customer->id,
+//                        ]);
+//                    } else {
+//                        Shop::DB()->update('xplugin_ws_mollie_kunde', 'kKunde', (int)$oKunde->kKunde, (object)[
+//                            'customerId' => $customer->id,
+//                        ]);
+//                    }
+//
+//                }
+//            }
+//
+//        } catch (Exception $e) {
+//            Helper::logExc($e);
+//        }
     }
 
     /**
@@ -341,9 +343,9 @@ class JTLMollie extends PaymentMethod
 
     public static function getMollieCustomerId($kKunde)
     {
-        if ($row = Shop::DB()->select('xplugin_ws_mollie_kunde', 'kKunde', (int)$kKunde)) {
-            return $row->customerId;
-        }
+        //if ($row = Shop::DB()->select('xplugin_ws_mollie_kunde', 'kKunde', (int)$kKunde)) {
+        //    return $row->customerId;
+        //}
         return false;
     }
 
