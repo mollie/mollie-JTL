@@ -94,3 +94,21 @@
 {if file_exists("{$smarty['current_dir']}/_addon.tpl")}
     {include file="{$smarty['current_dir']}/_addon.tpl"}
 {/if}
+{if isset($oPlugin)}
+    <script>
+        // <!--
+
+        $(function () {
+            $(document).on('click', '.nav-tabs .tab a', function () {
+                var target = $(this).attr('href');
+                var res = target.match(/plugin-tab-(\d+)/);
+                if (res !== null) {
+                    var kAdminMenu = parseInt(res[res.index]);
+                    history.replaceState(null, 'emarketing', 'plugin.php?kPlugin={$oPlugin->kPlugin}&kPluginAdminMenu=' + kAdminMenu);
+                }
+            });
+        });
+
+        // -->
+    </script>
+{/if}

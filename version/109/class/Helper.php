@@ -182,6 +182,47 @@ namespace ws_mollie {
             }
 
             /**
+             * @var stdClass[]
+             */
+            public static $alerts = [];
+
+            /**
+             * Usage:
+             *
+             * Helper::addAlert('Success Message', 'success', 'namespace');
+             *
+             * @param $content
+             * @param $type
+             * @param $namespace
+             */
+            public static function addAlert($content, $type, $namespace)
+            {
+                if (!array_key_exists($namespace, self::$alerts)) {
+                    self::$alerts[$namespace] = new stdClass();
+                }
+
+                self::$alerts[$namespace]->{$type . '_' . microtime(true)} = $content;
+            }
+
+            /**
+             * Usage in Smarty:
+             *
+             * {ws_mollie\Helper::showAlerts('namespace')}
+             *
+             * @param $namespace
+             * @return string
+             * @throws \SmartyException
+             */
+            public static function showAlerts($namespace)
+            {
+                if (array_key_exists($namespace, self::$alerts) && file_exists(self::oPlugin()->cAdminmenuPfad . '../tpl/_alerts.tpl')) {
+                    Shop::Smarty()->assign('alerts', self::$alerts[$namespace]);
+                    return Shop::Smarty()->fetch(self::oPlugin()->cAdminmenuPfad . '../tpl/_alerts.tpl');
+                }
+                return '';
+            }
+
+            /**
              * Sets a Plugin Setting and saves it to the DB
              *
              * @param $name
