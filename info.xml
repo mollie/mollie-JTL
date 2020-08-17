@@ -37,8 +37,8 @@
       <CreateDate>2020-04-24</CreateDate>
     </Version>
     <Version nr="109">
-      <CreateDate>2020-04-24</CreateDate>
       <SQL>109.sql</SQL>
+      <CreateDate>2020-08-17</CreateDate>
     </Version>
     <Hooks>
       <Hook id="131">131_globalinclude.php</Hook>
