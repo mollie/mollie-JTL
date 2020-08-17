@@ -13,7 +13,16 @@ try {
     }
     require_once __DIR__ . '/../paymentmethod/JTLMollie.php';
     global $oPlugin;
-    $ordersMsgs = [];
+
+    if (ini_get('session.gc_maxlifetime') < 172800) {
+        Helper::addAlert(sprintf('Session Laufzeit ist derzeit %d Sekunden. Bei Zahlung vor Bestellabschluss sind '
+            . 'die Zahlungslinks jedoch bis zu 48h gültig (<a href="https://docs.mollie.com/payments/status-changes#expiry-times-per-payment-method" target="_blank">details</a>). '
+            . 'Das kann dazu führen, dass Bestellungen, trotz erfolgreicher Zahlung, nicht abgeschlossen werden können. '
+            . 'Die Zahlung muss dann manuell storniert werden. Es wird empfohlen, die Session-Laufzeit mindestens auf '
+            . 'die längste Gültigkeit der verwendeten Zahlungsmethoden einzustellen (z.B. Klarna: 172800 Sekunden).',
+            ini_get('session.gc_maxlifetime')), 'warning', 'orders');
+    }
+
     if (array_key_exists('action', $_REQUEST)) {
         switch ($_REQUEST['action']) {
 
@@ -96,71 +105,69 @@ try {
                     exit();
 
                 } catch (Exception $e) {
-                    $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Fehler:' . $e->getMessage()];
+                    Helper::addAlert('Fehler:' . $e->getMessage(), 'danger', 'orders');
                 }
                 break;
 
             case 'refund':
                 if (!array_key_exists('id', $_REQUEST)) {
-                    $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Keine ID angeben!'];
+                    Helper::addAlert('Keine ID angegeben!', 'danger', 'orders');
                     break;
                 }
                 $payment = Payment::getPaymentMollie($_REQUEST['id']);
                 if (!$payment) {
-                    $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Order nicht gefunden!'];
+                    Helper::addAlert('Order nicht gefunden!', 'danger', 'orders');
                     break;
                 }
 
                 $order = JTLMollie::API()->orders->get($_REQUEST['id']);
-                if ($order->status == OrderStatus::STATUS_CANCELED) {
-                    $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Bestellung bereits storniert'];
+                if ($order->status === OrderStatus::STATUS_CANCELED) {
+                    Helper::addAlert('Bestellung bereits storniert', 'danger', 'orders');
                     break;
                 }
                 $refund = JTLMollie::API()->orderRefunds->createFor($order, ['lines' => []]);
                 Mollie::JTLMollie()->doLog("Order refunded: <br/><pre>" . print_r($refund, 1) . "</pre>", '$' . $payment->kID . '#' . $payment->kBestellung . '§' . $payment->cOrderNumber, LOGLEVEL_NOTICE);
 
                 goto order;
-                break;
 
             case 'cancel':
                 if (!array_key_exists('id', $_REQUEST)) {
-                    $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Keine ID angeben!'];
+                    Helper::addAlert('Keine ID angeben!', 'danger', 'orders');
                     break;
                 }
                 $payment = Payment::getPaymentMollie($_REQUEST['id']);
                 if (!$payment) {
-                    $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Order nicht gefunden!'];
+                    Helper::addAlert('Order nicht gefunden!', 'danger', 'orders');
                     break;
                 }
                 $order = JTLMollie::API()->orders->get($_REQUEST['id']);
                 if ($order->status == OrderStatus::STATUS_CANCELED) {
-                    $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Bestellung bereits storniert'];
+                    Helper::addAlert('Bestellung bereits storniert', 'danger', 'orders');
                     break;
                 }
                 $cancel = JTLMollie::API()->orders->cancel($order->id);
                 Mollie::JTLMollie()->doLog("Order canceled: <br/><pre>" . print_r($cancel, 1) . "</pre>", '$' . $payment->kID . '#' . $payment->kBestellung . '§' . $payment->cOrderNumber, LOGLEVEL_NOTICE);
                 goto order;
-                break;
 
             case 'capture':
                 if (!array_key_exists('id', $_REQUEST)) {
-                    $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Keine ID angeben!'];
+                    Helper::addAlert('Keine ID angeben!', 'danger', 'orders');
                     break;
                 }
                 $payment = Payment::getPaymentMollie($_REQUEST['id']);
                 if (!$payment) {
-                    $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Order nicht gefunden!'];
+                    Helper::addAlert('Order nicht gefunden!', 'danger', 'orders');
                     break;
                 }
                 $order = JTLMollie::API()->orders->get($_REQUEST['id']);
                 if ($order->status !== OrderStatus::STATUS_AUTHORIZED && $order->status !== OrderStatus::STATUS_SHIPPING) {
-                    $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Nur autorisierte Zahlungen können erfasst werden!'];
+                    Helper::addAlert('Nur autorisierte Zahlungen können erfasst werden!', 'danger', 'orders');
                     break;
                 }
 
                 $oBestellung = new Bestellung($payment->kBestellung, true);
                 if (!$oBestellung->kBestellung) {
-                    $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Bestellung konnte nicht geladen werden!'];
+                    Helper::addAlert('Bestellung konnte nicht geladen werden!', 'danger', 'orders');
                     break;
                 }
 
@@ -177,14 +184,14 @@ try {
 
                 // CAPTURE ALL
                 $shipment = JTLMollie::API()->shipments->createFor($order, $options);
-                $ordersMsgs[] = (object)['type' => 'success', 'text' => 'Zahlung wurde erfolgreich erfasst!'];
+                Helper::addAlert('Zahlung wurde erfolgreich erfasst!', 'success', 'orders');
                 Mollie::JTLMollie()->doLog('Shipment created<br/><pre>' . print_r(['options' => $options, 'shipment' => $shipment], 1) . '</pre>', $logData);
                 goto order;
 
             case 'order':
                 order:
                 if (!array_key_exists('id', $_REQUEST)) {
-                    $ordersMsgs[] = (object)['type' => 'danger', 'text' => 'Keine ID angeben!'];
+                    Helper::addAlert('Keine ID angeben!', 'danger', 'orders');
                     break;
                 }
 
@@ -209,8 +216,7 @@ try {
                 Shop::Smarty()->assign('payment', $payment)
                     ->assign('oBestellung', $oBestellung)
                     ->assign('order', $order)
-                    ->assign('logs', $logs)
-                    ->assign('ordersMsgs', $ordersMsgs);
+                    ->assign('logs', $logs);
                 Shop::Smarty()->display($oPlugin->cAdminmenuPfad . '/tpl/order.tpl');
                 return;
         }
@@ -226,7 +232,6 @@ try {
     }
 
     Shop::Smarty()->assign('payments', $payments)
-        ->assign('ordersMsgs', $ordersMsgs)
         ->assign('admRoot', str_replace('http:', '', $oPlugin->cAdminmenuPfadURL))
         ->assign('hasAPIKey', trim(Helper::getSetting("api_key")) !== '');
 

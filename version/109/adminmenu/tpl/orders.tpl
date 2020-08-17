@@ -1,10 +1,4 @@
-<!--suppress HtmlUnknownTarget -->
-{if count($ordersMsgs)}
-    {foreach from=$ordersMsgs item=alert}
-        <div class="alert alert-{$alert->type}">{$alert->text}</div>
-    {/foreach}
-    <br/>
-{/if}
+{ws_mollie\Helper::showAlerts('orders')}
 
 {if $hasAPIKey == false}
     <a href="https://ws-url.de/mollie-pay" target="_blank" style="display: block; text-align: center">

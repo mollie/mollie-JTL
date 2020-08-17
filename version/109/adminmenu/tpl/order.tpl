@@ -19,12 +19,7 @@
     {/if}
 </h2>
 
-{if count($ordersMsgs)}
-    {foreach from=$ordersMsgs item=alert}
-        <div class="alert alert-{$alert->type}">{$alert->text}</div>
-    {/foreach}
-    <br/>
-{/if}
+{ws_mollie\Helper::showAlerts('orders')}
 
 <table class="table table-condensed" style="width: 100%">
     <tr>
