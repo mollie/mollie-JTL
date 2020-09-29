@@ -36,6 +36,10 @@
     <Version nr="108">
       <CreateDate>2020-04-24</CreateDate>
     </Version>
+    <Version nr="109">
+      <SQL>109.sql</SQL>
+      <CreateDate>2020-08-17</CreateDate>
+    </Version>
     <Hooks>
       <Hook id="131">131_globalinclude.php</Hook>
       <Hook id="144">144_notify.php</Hook>
@@ -221,7 +225,7 @@
     <PaymentMethod>
       <Method>
         <Name>mollie</Name>
-        <PictureURL></PictureURL>
+        <PictureURL>img/method/mollie@2x.png</PictureURL>
         <Sort>1</Sort>
         <SendMail>0</SendMail>
         <Provider>mollie.com</Provider>
@@ -241,7 +245,7 @@
       </Method>
       <Method>
         <Name>mollie Kreditkarte</Name>
-        <PictureURL></PictureURL>
+        <PictureURL>img/method/creditcard@2x.png</PictureURL>
         <Sort>3</Sort>
         <SendMail>0</SendMail>
         <Provider>mollie.com</Provider>
@@ -262,7 +266,7 @@
       </Method>
       <Method>
         <Name>mollie Apple Pay</Name>
-        <PictureURL></PictureURL>
+        <PictureURL>img/method/applepay@2x.png</PictureURL>
         <Sort>3</Sort>
         <SendMail>0</SendMail>
         <Provider>mollie.com</Provider>
@@ -282,7 +286,7 @@
       </Method>
       <Method>
         <Name>mollie Bancontact</Name>
-        <PictureURL></PictureURL>
+        <PictureURL>img/method/bancontact@2x.png</PictureURL>
         <Sort>4</Sort>
         <SendMail>0</SendMail>
         <Provider>mollie.com</Provider>
@@ -302,7 +306,7 @@
       </Method>
       <Method>
         <Name>mollie Banktransfer</Name>
-        <PictureURL></PictureURL>
+        <PictureURL>img/method/banktransfer@2x.png</PictureURL>
         <Sort>5</Sort>
         <SendMail>0</SendMail>
         <Provider>mollie.com</Provider>
@@ -322,7 +326,7 @@
       </Method>
       <Method>
         <Name>mollie Belfius</Name>
-        <PictureURL></PictureURL>
+        <PictureURL>img/method/belfius@2x.png</PictureURL>
         <Sort>6</Sort>
         <SendMail>0</SendMail>
         <Provider>mollie.com</Provider>
@@ -342,7 +346,7 @@
       </Method>
       <Method>
         <Name>mollie DirectDebit</Name>
-        <PictureURL></PictureURL>
+        <PictureURL>img/method/directdebit@2x.png</PictureURL>
         <Sort>7</Sort>
         <SendMail>0</SendMail>
         <Provider>mollie.com</Provider>
@@ -362,7 +366,7 @@
       </Method>
       <Method>
         <Name>mollie EPS</Name>
-        <PictureURL></PictureURL>
+        <PictureURL>img/method/eps@2x.png</PictureURL>
         <Sort>2</Sort>
         <SendMail>0</SendMail>
         <Provider>mollie.com</Provider>
@@ -382,7 +386,7 @@
       </Method>
       <Method>
         <Name>mollie Giftcard</Name>
-        <PictureURL></PictureURL>
+        <PictureURL>img/method/giftcard@2x.png</PictureURL>
         <Sort>8</Sort>
         <SendMail>0</SendMail>
         <Provider>mollie.com</Provider>
@@ -402,7 +406,7 @@
       </Method>
       <Method>
         <Name>mollie Giropay</Name>
-        <PictureURL></PictureURL>
+        <PictureURL>img/method/giropay@2x.png</PictureURL>
         <Sort>9</Sort>
         <SendMail>0</SendMail>
         <Provider>mollie.com</Provider>
@@ -422,7 +426,7 @@
       </Method>
       <Method>
         <Name>mollie iDEAL</Name>
-        <PictureURL></PictureURL>
+        <PictureURL>img/method/ideal@2x.png</PictureURL>
         <Sort>10</Sort>
         <SendMail>0</SendMail>
         <Provider>mollie.com</Provider>
@@ -442,7 +446,7 @@
       </Method>
       <Method>
         <Name>mollie ING HomePay</Name>
-        <PictureURL></PictureURL>
+        <PictureURL>img/method/inghomepay@2x.png</PictureURL>
         <Sort>11</Sort>
         <SendMail>0</SendMail>
         <Provider>mollie.com</Provider>
@@ -462,7 +466,7 @@
       </Method>
       <Method>
         <Name>mollie KBC</Name>
-        <PictureURL></PictureURL>
+        <PictureURL>img/method/kbc@2x.png</PictureURL>
         <Sort>12</Sort>
         <SendMail>0</SendMail>
         <Provider>mollie.com</Provider>
@@ -482,7 +486,7 @@
       </Method>
       <Method>
         <Name>mollie PayPal</Name>
-        <PictureURL></PictureURL>
+        <PictureURL>img/method/paypal@2x.png</PictureURL>
         <Sort>13</Sort>
         <SendMail>0</SendMail>
         <Provider>mollie.com</Provider>
@@ -502,7 +506,7 @@
       </Method>
       <Method>
         <Name>mollie paysafecard</Name>
-        <PictureURL></PictureURL>
+        <PictureURL>img/method/paysafecard@2x.png</PictureURL>
         <Sort>14</Sort>
         <SendMail>0</SendMail>
         <Provider>mollie.com</Provider>
@@ -522,7 +526,7 @@
       </Method>
       <Method>
         <Name>mollie SOFORT</Name>
-        <PictureURL></PictureURL>
+        <PictureURL>img/method/sofort@2x.png</PictureURL>
         <Sort>15</Sort>
         <SendMail>0</SendMail>
         <Provider>mollie.com</Provider>
@@ -542,7 +546,7 @@
       </Method>
       <Method>
         <Name>mollie Klarna Pay Later</Name>
-        <PictureURL></PictureURL>
+        <PictureURL>img/method/klarna@2x.png</PictureURL>
         <Sort>16</Sort>
         <SendMail>0</SendMail>
         <Provider>mollie.com</Provider>
@@ -562,7 +566,7 @@
       </Method>
       <Method>
         <Name>mollie Klarna Slice It</Name>
-        <PictureURL></PictureURL>
+        <PictureURL>img/method/klarna@2x.png</PictureURL>
         <Sort>17</Sort>
         <SendMail>0</SendMail>
         <Provider>mollie.com</Provider>
@@ -582,7 +586,7 @@
       </Method>
       <Method>
         <Name>mollie Przelewy24</Name>
-        <PictureURL></PictureURL>
+        <PictureURL>img/method/Przelewy24@2x.png</PictureURL>
         <Sort>17</Sort>
         <SendMail>0</SendMail>
         <Provider>mollie.com</Provider>
@@ -602,7 +606,7 @@
       </Method>
       <Method>
         <Name>mollie MyBank</Name>
-        <PictureURL></PictureURL>
+        <PictureURL>img/method/mybank@2x.png</PictureURL>
         <Sort>17</Sort>
         <SendMail>0</SendMail>
         <Provider>mollie.com</Provider>
