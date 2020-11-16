@@ -20,6 +20,8 @@ require_once __DIR__ . '/../../../../../modules/PaymentMethod.class.php';
 class JTLMollie extends PaymentMethod
 {
 
+    const MAX_EXPIRY_DAYS = 100;
+
     const KUNDENATTRIBUT_CUSTOMERID = 'ws_mollie_customer_id';
 
     const ALLOW_PAYMENT_BEFORE_ORDER = true;
@@ -303,7 +305,7 @@ class JTLMollie extends PaymentMethod
     protected function getOrderData(Bestellung $order, $hash)
     {
         $locale = self::getLocale($_SESSION['cISOSprache'], $_SESSION['Kunde']->cLand);
-
+        $expiryDays = (int)Helper::getSetting('expiryDays') && (int)Helper::getSetting('expiryDays') <= static::MAX_EXPIRY_DAYS ? (int)(int)Helper::getSetting('expiryDays') : static::MAX_EXPIRY_DAYS;
         $_currencyFactor = (float)$order->Waehrung->fFaktor;
 
         $data = [
@@ -320,6 +322,7 @@ class JTLMollie extends PaymentMethod
             'metadata' => ['originalOrderNumber' => utf8_encode($order->cBestellNr)],
             'redirectUrl' => (int)$this->duringCheckout ? Shop::getURL() . '/bestellabschluss.php?mollie=' . md5(trim($hash, '_')) : $this->getReturnURL($order),
             'webhookUrl' => $this->getNotificationURL($hash), // . '&hash=' . md5(trim($hash, '_')),
+            'expiresAt' => date('Y-m-d', strtotime("+{$expiryDays} DAYS"))
         ];
 
         if (static::MOLLIE_METHOD !== '') {

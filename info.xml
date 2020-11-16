@@ -115,7 +115,7 @@
         </Setting>
         <Setting type="selectbox" initialValue="ord_tr" sort="100" conf="Y">
           <Name>TransaktionsID des Zahlungseingangs:</Name>
-          <Description>Welche ID soll an die WAWI übetragen werden?</Description>
+          <Description>Welche ID soll an die WAWI übetragen werden? Bei PayPal wird immer die PayPal Referenz angegeben.</Description>
           <ValueName>wawiPaymentID</ValueName>
           <SelectboxOptions>
             <Option value="ord" sort="1"><![CDATA[Order ID]]></Option>
@@ -127,6 +127,11 @@
           <Name>Workflow-Secret:</Name>
           <Description>Schlüssel, um die WAWI Workflow-Requests zu authentifizieren.</Description>
           <ValueName>workflowSecret</ValueName>
+        </Setting>
+        <Setting type="text" initialValue="100" sort="110" conf="Y">
+          <Name>Max. Gültigenkeit in Tagen:</Name>
+          <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem "bezahlt" Status führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.</Description>
+          <ValueName>expiryDays</ValueName>
         </Setting>
       </Settingslink>
     </Adminmenu>
