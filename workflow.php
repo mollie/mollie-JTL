@@ -19,7 +19,7 @@ try {
     //if (Helper::getSetting('notifyMollie') === 'W') {
     if (array_key_exists('secret', $_REQUEST) && trim($_REQUEST['secret']) !== '' && $_REQUEST['secret'] === Helper::getSetting('workflowSecret')) {
 
-        if(defined('MOLLIE_WORKFLOW_LOG') && MOLLIE_WORKFLOW_LOG){
+        if (defined('MOLLIE_WORKFLOW_LOG') && MOLLIE_WORKFLOW_LOG) {
             file_put_contents(__DIR__ . '/workflow.log', print_r([$_REQUEST, $_SERVER], 1), FILE_APPEND);
         }
 
@@ -33,8 +33,8 @@ try {
             switch (strtolower(trim($_REQUEST['action']))) {
                 case 'storno':
                     if ($oPayment = Payment::getPayment($kBestellung)) {
-                        $logData .= '$' . $oPayment->kID . '�' . $oPayment->cOrderNumber;
-                        $order = Mollie::JTLMollie()::API()->orders->get($oPayment->kID);
+                        $logData .= '$' . $oPayment->kID . 'ï¿½' . $oPayment->cOrderNumber;
+                        $order = JTLMollie::API()->orders->get($oPayment->kID);
                         if (in_array($order->status, [OrderStatus::STATUS_AUTHORIZED])) {
                             $order = JTLMollie::API()->orders->cancel($oPayment->kID);
                             Mollie::JTLMollie()->doLog("mollie//WORKFLOW: kBestellung:{$kBestellung} neuer Status: " . $order->status . ".", $logData, LOGLEVEL_NOTICE);
@@ -65,8 +65,8 @@ try {
                 case 'shipped':
 
                     if ($oPayment = Payment::getPayment($kBestellung)) {
-                        $logData .= '$' . $oPayment->kID . '�' . $oPayment->cOrderNumber;
-                        $order = Mollie::JTLMollie()::API()->orders->get($oPayment->kID);
+                        $logData .= '$' . $oPayment->kID . 'ï¿½' . $oPayment->cOrderNumber;
+                        $order = JTLMollie::API()->orders->get($oPayment->kID);
                         if (in_array($order->status, [OrderStatus::STATUS_PAID, OrderStatus::STATUS_AUTHORIZED, OrderStatus::STATUS_SHIPPING])) {
                             if ($complete) {
                                 $shipment = JTLMollie::API()->shipments->createFor($order, ['lines' => []]);
@@ -91,9 +91,9 @@ try {
             die('kBestellung oder action fehlen');
         }
     } else {
-        Jtllog::writeLog("mollie//WORKFLOW Datei aufgerufen, Secret jedoch nicht g�ltig!");
+        Jtllog::writeLog("mollie//WORKFLOW Datei aufgerufen, Secret jedoch nicht gï¿½ltig!");
         http_response_code(403);
-        die('kBestellung oder action fehlen');
+        die('Secret ungültig');
     }
     //} else {
     //    Jtllog::writeLog("mollie//WORKFLOW Datei aufgerufen, Setting jedoch nicht auf Workflow!");
