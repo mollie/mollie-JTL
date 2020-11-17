@@ -137,6 +137,13 @@
     </Adminmenu>
     <Locales>
       <Variable>
+        <Name>skipComponentsLink</Name>
+        <Description></Description>
+        <VariableLocalized iso="GER"><![CDATA[Überspringen, und Zahlungsinformationen später angeben]]></VariableLocalized>
+        <VariableLocalized iso="ENG"><![CDATA[Skip and provide payment information later]]></VariableLocalized>
+        <VariableLocalized iso="FRE"><![CDATA[Ignorer et fournir les informations de paiement plus tard]]></VariableLocalized>
+      </Variable>
+      <Variable>
         <Name>cctitle</Name>
         <Description></Description>
         <VariableLocalized iso="GER"><![CDATA[Zahlungsinformationen]]></VariableLocalized>

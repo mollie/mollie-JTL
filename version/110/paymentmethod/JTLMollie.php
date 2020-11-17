@@ -192,6 +192,7 @@ class JTLMollie extends PaymentMethod
                 $oMolliePayment = self::API()->orders->create($orderData);
                 $this->updateHash($hash, $oMolliePayment->id);
                 $_SESSION['oMolliePayment'] = $oMolliePayment;
+                unset($_SESSION['mollieCardToken'], $_SESSION['mollieCardTokenTS']);
             } else {
                 $oMolliePayment = $_SESSION['oMolliePayment'];
             }
@@ -329,9 +330,13 @@ class JTLMollie extends PaymentMethod
             $data['method'] = static::MOLLIE_METHOD;
         }
 
-        if (static::MOLLIE_METHOD === \Mollie\Api\Types\PaymentMethod::CREDITCARD && array_key_exists('mollieCardToken', $_SESSION)) {
+        if (static::MOLLIE_METHOD === \Mollie\Api\Types\PaymentMethod::CREDITCARD
+            && array_key_exists('mollieCardToken', $_SESSION)
+            && array_key_exists('mollieCardTokenTS', $_SESSION) && time() < (int)$_SESSION['mollieCardTokenTS']) {
             $data['payment'] = new stdClass();
             $data['payment']->cardToken = trim($_SESSION['mollieCardToken']);
+        } else {
+            unset($_SESSION['mollieCardToken'], $_SESSION['mollieCardTokenTS']);
         }
 
         if (($customerId = self::getMollieCustomerId((int)$_SESSION['Kunde']->kKunde)) !== false) {

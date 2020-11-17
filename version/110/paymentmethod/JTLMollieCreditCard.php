@@ -8,9 +8,14 @@ class JTLMollieCreditCard extends JTLMollie
 {
     const MOLLIE_METHOD = \Mollie\Api\Types\PaymentMethod::CREDITCARD;
 
-
     public function handleAdditional($aPost_arr)
     {
+
+        if(array_key_exists('skip', $aPost_arr) && (int)$aPost_arr['skip']){
+            unset($_SESSION['mollieCardToken'], $_SESSION['mollieCardTokenTS']);
+            return true;
+        }
+
         $profileId = trim(Helper::getSetting('profileId'));
         if ($profileId === '' || strpos($profileId, 'pfl_') !== 0) {
             return true;
@@ -20,8 +25,7 @@ class JTLMollieCreditCard extends JTLMollie
             return true;
         }
 
-        unset($_SESSION['mollieCardToken']);
-        unset($_SESSION['mollieCardTokenTS']);
+        unset($_SESSION['mollieCardToken'], $_SESSION['mollieCardTokenTS']);
 
         if (array_key_exists('cardToken', $aPost_arr) && trim($aPost_arr['cardToken'])) {
             $_SESSION['mollieCardToken'] = trim($aPost_arr['cardToken']);
@@ -38,6 +42,5 @@ class JTLMollieCreditCard extends JTLMollie
 
         return false;
     }
-
 
 }

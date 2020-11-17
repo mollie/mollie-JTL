@@ -48,12 +48,27 @@
                  title="PCI-DSS SAQ-A compliant"/>
         </div>
     {/if}
+    <div class="skip-mollie-components" style="margin: 10px">
+        <a href="#" id="skipMollieComponents">{$mollieLang.skipComponentsLink}</a>
+    </div>
 </div>
 
 <input type="hidden" name="cardToken" id="cardToken"/>
 
 <script src="https://js.mollie.com/v1/mollie.js"></script>
 <script>
+
+    var skipLink = document.getElementById('skipMollieComponents');
+    var cardToken = document.getElementById('cardToken');
+    var form = document.getElementById("form_payment_extra");
+
+    skipLink.addEventListener('click', function (e) {
+        cardToken.setAttribute('name', 'skip');
+        cardToken.setAttribute('value', "1");
+        e.preventDefault();
+        form.submit();
+        return false;
+    });
 
     var errorMessage = {if isset($errorMessage)}{$errorMessage}{else}null{/if};
 
@@ -73,9 +88,14 @@
     var verificationCode = mollie.createComponent('verificationCode');
     verificationCode.mount('#verification-code');
 
-    var form = document.getElementById("form_payment_extra");
+
 
     form.addEventListener('submit', function (e) {
+
+        if(cardToken.getAttribute('name') === 'skip'){
+            return true;
+        }
+
         e.preventDefault();
         var errorDiv = document.getElementById("mollieError");
         errorDiv.innerHTML = '';
