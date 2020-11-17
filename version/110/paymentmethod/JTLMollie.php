@@ -143,6 +143,14 @@ class JTLMollie extends PaymentMethod
 
         $payable = (float)$order->fGesamtsumme > 0;
 
+        $_SESSION['MOLLIE_CHECKBOXES'] = [];
+        foreach ($_POST as $key => $value) {
+            if (strpos($key, 'CheckBox_') !== false) {
+                $_SESSION['MOLLIE_CHECKBOXES'][$key] = $value;
+            }
+        }
+
+
         if ($payable) {
             $this->updateMollieCustomer($_SESSION['Kunde']);
         }
@@ -616,6 +624,9 @@ class JTLMollie extends PaymentMethod
      */
     public function finalizeOrder($order, $hash, $args)
     {
+        if(array_key_exists('MOLLIE_CHECKBOXES', $_SESSION) && is_array($_SESSION['MOLLIE_CHECKBOXES'])){
+            $_POST = array_merge($_POST, $_SESSION['MOLLIE_CHECKBOXES']);
+        }
         $result = false;
         try {
             if ($oZahlungSession = self::getZahlungSession(md5($hash))) {
