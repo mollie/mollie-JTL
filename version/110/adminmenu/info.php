@@ -7,7 +7,7 @@ try {
     Helper::init();
 
     if (array_key_exists("action", $_REQUEST) && $_REQUEST['action'] === 'update-plugin') {
-        Shop::Smarty()->assign('defaultTabbertab', Helper::getAdminmenu('Info'));
+        Shop::Smarty()->assign('defaultTabbertab', Helper::getAdminmenu('Info') + Helper::getAdminmenu('Support'));
         Helper::selfupdate();
     }
 
@@ -24,18 +24,18 @@ try {
     echo "<script type='application/javascript' src='//cdn.webstollen.com/plugin/js/ws.js?p=" . Helper::oPlugin()->cPluginID . '&v=' . Helper::oPlugin()->nVersion . "'></script>";
     echo "<div id='ws-head-bar' class='row'>" .
         "  <div class='col-md-4 text-center'>" .
-        "    <object data='//lic.dash.bar/info/licence?{$svgQuery}' type='image/svg+xml'>" .
-        "      <img src='//lic.dash.bar/info/licence.png?{$svgQuery}' width='370' height='20' alt='Lizenz Informationen'>" .
+        "    <object data='//licence.ws-svc.de/info/licence?{$svgQuery}' type='image/svg+xml'>" .
+        "      <img src='//licence.ws-svc.de/info/licence.png?{$svgQuery}' width='370' height='20' alt='Lizenz Informationen'>" .
         '    </object>' .
         '  </div>' .
         "  <div class='col-md-4 text-center'>" .
-        "    <object data='//lic.dash.bar/info/version?{$svgQuery}' type='image/svg+xml'>" .
-        "      <img src='//lic.dash.bar/info/version.png?{$svgQuery}' width='370' height='20' alt='Update Informationen'>" .
+        "    <object data='//licence.ws-svc.de/info/version?{$svgQuery}' type='image/svg+xml'>" .
+        "      <img src='//licence.ws-svc.de/info/version.png?{$svgQuery}' width='370' height='20' alt='Update Informationen'>" .
         '    </object>' .
         '  </div>' .
         "  <div class='col-md-4 text-center'>" .
-        "    <object data='//lic.dash.bar/info/help?{$svgQuery}' type='image/svg+xml'>" .
-        "      <img src='//lic.dash.bar/info/help.png?{$svgQuery}' width='370' height='20' alt='Plugin informationen'>" .
+        "    <object data='//licence.ws-svc.de/info/help?{$svgQuery}' type='image/svg+xml'>" .
+        "      <img src='//licence.ws-svc.de/info/help.png?{$svgQuery}' width='370' height='20' alt='Plugin informationen'>" .
         '    </object>' .
         '  </div>' .
         '</div>';
