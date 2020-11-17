@@ -70,22 +70,30 @@ abstract class Mollie
 
         $oBestellung = new Bestellung($kBestellung, true);
         if ($newStatus === false) {
-            $newStatus = $oBestellung->cStatus;
+            $newStatus = (int)$oBestellung->cStatus;
         }
         $options = [];
 
         // Tracking Data
-        if ($oBestellung->cTracking) {
-            $tracking = new stdClass();
-            $tracking->carrier = $oBestellung->cVersandartName;
-            $tracking->url = $oBestellung->cTrackingURL;
-            $tracking->code = $oBestellung->cTracking;
-            $options['tracking'] = $tracking;
+        if (isset($oBestellung->oLieferschein_arr)) {
+            $nLS = count($oBestellung->oLieferschein_arr) - 1;
+            if ($nLS >= 0 && isset($oBestellung->oLieferschein_arr[$nLS]) && isset($oBestellung->oLieferschein_arr[$nLS]->oVersand_arr)) {
+                $nV = count($oBestellung->oLieferschein_arr[$nLS]->oVersand_arr) - 1;
+                if ($nV >= 0 && isset($oBestellung->oLieferschein_arr[$nLS]->oVersand_arr[$nV])) {
+                    /** @var \Versand $oVersand */
+                    $oVersand = $oBestellung->oLieferschein_arr[$nLS]->oVersand_arr[$nV];
+                    $tracking = new stdClass();
+                    $tracking->carrier = $oVersand->getLogistik();
+                    $tracking->url = $oVersand->getLogistikURL();
+                    $tracking->code = $oVersand->getIdentCode();
+                    $options['tracking'] = $tracking;
+                }
+            }
         }
 
         $logData = '#' . $oBestellung->kBestellung . '§' . $oBestellung->cBestellNr . '$' . $order->id;
 
-        switch ((int)$newStatus) {
+        switch ($newStatus) {
             case BESTELLUNG_STATUS_VERSANDT:
                 Mollie::JTLMollie()->doLog('181_sync: Bestellung versandt', $logData, LOGLEVEL_DEBUG);
                 $options['lines'] = [];
@@ -291,7 +299,7 @@ abstract class Mollie
                         $cHinweis = $mPayment->id;
                     }
 
-                    if($mPayment->method === PaymentMethod::PAYPAL && isset($mPayment->details->paypalReference)){
+                    if ($mPayment->method === PaymentMethod::PAYPAL && isset($mPayment->details->paypalReference)) {
                         $cHinweis = $mPayment->details->paypalReference;
                         $oIncomingPayment->cZahler = isset($payment->details->paypalPayerId) ? $payment->details->paypalPayerId : '';
                     }
