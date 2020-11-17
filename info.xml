@@ -134,12 +134,21 @@
           <ValueName>expiryDays</ValueName>
         </Setting>
       </Settingslink>
+      <Setting type="selectbox" initialValue="Y" sort="120" conf="Y">
+        <Name>mollie Components überspringbar:</Name>
+        <Description>Wenn diese Einstellung aktiv ist, erscheint beim Zahlungszusatzschritt (Kreditkarte) ein Link, um diesen Schritt zu überspringen.</Description>
+        <ValueName>skipComponents</ValueName>
+        <SelectboxOptions>
+          <Option value="Y" sort="1"><![CDATA[Ja]]></Option>
+          <Option value="N" sort="2"><![CDATA[Nein]]></Option>
+        </SelectboxOptions>
+      </Setting>
     </Adminmenu>
     <Locales>
       <Variable>
         <Name>skipComponentsLink</Name>
         <Description></Description>
-        <VariableLocalized iso="GER"><![CDATA[Überspringen, und Zahlungsinformationen später angeben]]></VariableLocalized>
+        <VariableLocalized iso="GER"><![CDATA[Überspringen und Zahlungsinformationen später angeben]]></VariableLocalized>
         <VariableLocalized iso="ENG"><![CDATA[Skip and provide payment information later]]></VariableLocalized>
         <VariableLocalized iso="FRE"><![CDATA[Ignorer et fournir les informations de paiement plus tard]]></VariableLocalized>
       </Variable>
