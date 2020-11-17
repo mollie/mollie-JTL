@@ -47,7 +47,7 @@
             <input id="cActive" type="checkbox" value="1" name="active"
                    {if "active"|array_key_exists:$smarty.get}checked="checked"{/if}><label for="cActive">Nur aktive
                 ZA</label>
-            <button class="btn btn-primary" type="submit">senden</button>
+            <button class="btn btn-primary" type="submit">Test API</button>
             <a class="btn btn-info" href="plugin.php?kPlugin={$oPlugin->kPlugin}&za=1">reset</a>
         </div>
     </form>
