@@ -58,6 +58,7 @@ class JTLMollie extends PaymentMethod
     {
         parent::__construct($moduleID, $nAgainCheckout);
         Helper::init();
+        $this->cModulId = "kPlugin_" . Helper::oPlugin()->kPlugin . "_mollie{$moduleID}";
     }
 
     /**
@@ -139,7 +140,7 @@ class JTLMollie extends PaymentMethod
      */
     public function preparePaymentProcess($order)
     {
-        $logData = '#' . $order->kBestellung . "§" . $order->cBestellNr;
+        $logData = '#' . $order->kBestellung . "?" . $order->cBestellNr;
 
         $payable = (float)$order->fGesamtsumme > 0;
 
@@ -162,7 +163,7 @@ class JTLMollie extends PaymentMethod
                     $payment = Payment::getPayment($order->kBestellung);
                     $oMolliePayment = self::API()->orders->get($payment->kID, ['embed' => 'payments']);
                     Mollie::handleOrder($oMolliePayment, $order->kBestellung);
-                    if ($payment && in_array($payment->cStatus, [OrderStatus::STATUS_CREATED]) && $payment->cCheckoutURL) {
+                    if ($payment && $payment->cStatus === OrderStatus::STATUS_CREATED && $payment->cCheckoutURL) {
                         $logData .= '$' . $payment->kID;
                         if (!$this->duringCheckout) {
                             Session::getInstance()->cleanUp();
@@ -314,7 +315,7 @@ class JTLMollie extends PaymentMethod
     protected function getOrderData(Bestellung $order, $hash)
     {
         $locale = self::getLocale($_SESSION['cISOSprache'], $_SESSION['Kunde']->cLand);
-        $expiryDays = (int)Helper::getSetting('expiryDays') && (int)Helper::getSetting('expiryDays') <= static::MAX_EXPIRY_DAYS ? (int)(int)Helper::getSetting('expiryDays') : static::MAX_EXPIRY_DAYS;
+        $expiryDays = $this->getExpiryDays();
         $_currencyFactor = (float)$order->Waehrung->fFaktor;
 
         $data = [
@@ -561,6 +562,18 @@ class JTLMollie extends PaymentMethod
         }
     }
 
+    /**
+     * @return int
+     */
+    public function getExpiryDays()
+    {
+        $max = static::MAX_EXPIRY_DAYS;
+        $global = (int)Helper::getSetting('expiryDays');
+        $local = (int)Helper::oPlugin()->oPluginEinstellungAssoc_arr[$this->cModulId . '_expiryDays'];
+
+        return (int)min($local > 0 ? $local : $global, $global, $max);
+    }
+
     public function optionaleRundung($gesamtsumme)
     {
         $conf = Shop::getSettings([CONF_KAUFABWICKLUNG]);
@@ -624,7 +637,7 @@ class JTLMollie extends PaymentMethod
      */
     public function finalizeOrder($order, $hash, $args)
     {
-        if(array_key_exists('MOLLIE_CHECKBOXES', $_SESSION) && is_array($_SESSION['MOLLIE_CHECKBOXES'])){
+        if (array_key_exists('MOLLIE_CHECKBOXES', $_SESSION) && is_array($_SESSION['MOLLIE_CHECKBOXES'])) {
             $_POST = array_merge($_POST, $_SESSION['MOLLIE_CHECKBOXES']);
         }
         $result = false;

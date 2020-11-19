@@ -59,23 +59,53 @@
         <thead>
         <tr>
             <th>Bild</th>
-            <th>ID</th>
-            <th>Name</th>
+            <th>Name / ID</th>
+            <th>Info</th>
             <th>Preise</th>
-            <th>Infos</th>
+            <th>Limits</th>
         </tr>
         </thead>
         <tbody>
         {foreach from=$allMethods item=method}
             <tr>
-                <td><img alt="{$method->description|utf8_decode}" title="{$method->description|utf8_decode}"
-                         src="{$method->image->svg}" height="50"/></td>
-                <td>{$method->id}</td>
-                <td>{$method->description|utf8_decode}</td>
+                <td><img alt="{$method->mollie->description|utf8_decode}"
+                         title="{$method->mollie->description|utf8_decode}"
+                         src="{$method->mollie->image->svg}" height="50"/></td>
+                <td>
+                    <b>{$method->mollie->description|utf8_decode}</b><br/>
+                    <code>{$method->mollie->id}</code>
+                </td>
+                <td>
+                    {if $method->shop && $method->oClass}
+                        {if $method->shop->nWaehrendBestellung}
+                            Zahlung
+                            <b>VOR</b>
+                            Bestellabschluss
+                            {if $method->warning}
+                                <br/>
+                                <b style="color: orange">
+                                    <i class="fa fa-exclamation-triangle"></i>
+                                    Gültigkeit ist länger als Session-Laufzeit ({$method->session}).
+                                </b>
+                            {/if}
+                        {else}
+                            Zahlung
+                            <b>NACH</b>
+                            Bestellabschluss
+                        {/if}
+                        <br/>
+                        <b>Gültigkeit</b>
+                        : {$method->maxExpiryDays} Tage
+
+                    {else}
+                        <b>Derzeit nicht unterstützt.</b>
+                    {/if}
+                </td>
                 <td>
                     <ul>
-                        {foreach from=$method->pricing item=price}
-                            <li>{$price->description|utf8_decode}: {$price->fixed->value} {$price->fixed->currency}
+                        {foreach from=$method->mollie->pricing item=price}
+                            <li>
+                                <b>{$price->description|utf8_decode}</b>: {$price->fixed->value} {$price->fixed->currency}
                                 {if $price->variable > 0.0}
                                     + {$price->variable}%
                                 {/if}
@@ -84,9 +114,9 @@
                     </ul>
                 </td>
                 <td>
-                    Min: {if $method->minimumAmount}{$method->minimumAmount->value} {$method->minimumAmount->currency}{else}n/a{/if}
+                    Min: {if $method->mollie->minimumAmount}{$method->mollie->minimumAmount->value} {$method->mollie->minimumAmount->currency}{else}n/a{/if}
                     <br>
-                    Max: {if $method->maximumAmount}{$method->maximumAmount->value} {$method->maximumAmount->currency}{else}n/a{/if}
+                    Max: {if $method->mollie->maximumAmount}{$method->mollie->maximumAmount->value} {$method->mollie->maximumAmount->currency}{else}n/a{/if}
                 </td>
             </tr>
         {/foreach}

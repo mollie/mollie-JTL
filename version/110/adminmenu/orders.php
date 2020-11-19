@@ -14,15 +14,6 @@ try {
     require_once __DIR__ . '/../paymentmethod/JTLMollie.php';
     global $oPlugin;
 
-    if (ini_get('session.gc_maxlifetime') < 172800) {
-        Helper::addAlert(sprintf('Session Laufzeit ist derzeit %d Sekunden. Bei Zahlung vor Bestellabschluss sind '
-            . 'die Zahlungslinks jedoch bis zu 48h gültig (<a href="https://docs.mollie.com/payments/status-changes#expiry-times-per-payment-method" target="_blank">details</a>). '
-            . 'Das kann dazu führen, dass Bestellungen, trotz erfolgreicher Zahlung, nicht abgeschlossen werden können. '
-            . 'Die Zahlung muss dann manuell storniert werden. Es wird empfohlen, die Session-Laufzeit mindestens auf '
-            . 'die längste Gültigkeit der verwendeten Zahlungsmethoden einzustellen (z.B. Klarna: 172800 Sekunden).',
-            ini_get('session.gc_maxlifetime')), 'warning', 'orders');
-    }
-
     if (array_key_exists('action', $_REQUEST)) {
         switch ($_REQUEST['action']) {
 
