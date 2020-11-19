@@ -1,819 +1,765 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
-<jtlshop3plugin>
-    <Name>mollie</Name>
-    <Description>Zahlungsartplugin für mollie.com</Description>
-    <Author>WebStollen</Author>
-    <URL>https://www.webstollen.de/</URL>
-    <XMLVersion>102</XMLVersion>
-    <PluginID>ws_mollie</PluginID>
-    <Shop4Version>405</Shop4Version>
-    <Install>
-        <Version nr="100">
-            <SQL>100.sql</SQL>
-            <CreateDate>2019-02-11</CreateDate>
-        </Version>
-        <Version nr="101">
-            <CreateDate>2019-02-26</CreateDate>
-        </Version>
-        <Version nr="102">
-            <CreateDate>2019-04-23</CreateDate>
-        </Version>
-        <Version nr="103">
-            <CreateDate>2019-05-22</CreateDate>
-        </Version>
-        <Version nr="104">
-            <CreateDate>2019-07-12</CreateDate>
-        </Version>
-        <Version nr="105">
-            <CreateDate>2019-11-26</CreateDate>
-        </Version>
-        <Version nr="106">
-            <CreateDate>2019-12-18</CreateDate>
-        </Version>
-        <Version nr="107">
-            <SQL>107.sql</SQL>
-            <CreateDate>2020-03-02</CreateDate>
-        </Version>
-        <Version nr="108">
-            <CreateDate>2020-04-24</CreateDate>
-        </Version>
-        <Version nr="109">
-            <SQL>109.sql</SQL>
-            <CreateDate>2020-08-17</CreateDate>
-        </Version>
-        <Version nr="110">
-            <CreateDate>2020-08-17</CreateDate>
-        </Version>
-        <Hooks>
-            <Hook id="131">131_globalinclude.php</Hook>
-            <Hook id="144">144_notify.php</Hook>
-            <Hook id="181">181_sync.php</Hook>
-            <Hook id="140">140_smarty.php</Hook>
-        </Hooks>
-        <Adminmenu>
-            <Customlink sort="10">
-                <Name>Bestellungen</Name>
-                <Filename>orders.php</Filename>
-            </Customlink>
-            <Customlink sort="20">
-                <Name>Zahlungsarten</Name>
-                <Filename>paymentmethods.php</Filename>
-            </Customlink>
-            <Customlink sort="999">
-                <Name>Info</Name>
-                <Filename>info.php</Filename>
-            </Customlink>
-            <Settingslink sort="998">
-                <Name>Einstellungen</Name>
-                <Setting type="text" initialValue="" sort="10" conf="Y">
-                    <Name>API Key:</Name>
-                    <Description>Füge hier deinen mollie API Key ein</Description>
-                    <ValueName>api_key</ValueName>
-                </Setting>
-                <Setting type="text" initialValue="" sort="15" conf="Y">
-                    <Name>Profile ID:</Name>
-                    <Description>Füge hier deinen mollie Profil ID (pfl_) ein. Wird benötigt um mollie Components zu
-                        aktivieren
-                    </Description>
-                    <ValueName>profileId</ValueName>
-                </Setting>
-                <Setting type="selectbox" initialValue="Y" sort="19" conf="Y">
-                    <Name>Trust-Grafik bei mollie Components anzeigen:</Name>
-                    <Description>Bindet eine Trust-Grafik unterhalb des Kreditkartenformulars ein.</Description>
-                    <ValueName>loadTrust</ValueName>
-                    <SelectboxOptions>
-                        <Option value="N" sort="1"><![CDATA[Nein]]></Option>
-                        <Option value="Y" sort="2"><![CDATA[Ja]]></Option>
-                    </SelectboxOptions>
-                </Setting>
-                <Setting type="selectbox" initialValue="S" sort="20" conf="Y">
-                    <Name>Zahlungsart Daten syncronisiernen</Name>
-                    <Description>Lädt Name / Bild für die jeweilige Sprache automatisch von mollie, und speichert diese&#xA;
-                        in der Datenbank&#xA;
-                    </Description>
-                    <ValueName>paymentmethod_sync</ValueName>
-                    <SelectboxOptions>
-                        <Option value="N" sort="1"><![CDATA[Nein]]></Option>
-                        <Option value="size1x" sort="2"><![CDATA[Ja, Bildgröße 1x]]></Option>
-                        <Option value="size2x" sort="3"><![CDATA[Ja, Bildgröße 2x]]></Option>
-                        <Option value="svg" sort="4"><![CDATA[Ja, Bild SVG]]></Option>
-                    </SelectboxOptions>
-                </Setting>
-                <Setting type="selectbox" initialValue="N" sort="30" conf="Y">
-                    <Name>Checkout Styles laden</Name>
-                    <Description>Lädt Stylesheets für das Evo Template, um den Checkout zu verschönern.</Description>
-                    <ValueName>load_styles</ValueName>
-                    <SelectboxOptions>
-                        <Option value="N" sort="1"><![CDATA[Nein]]></Option>
-                        <Option value="Y" sort="2"><![CDATA[Ja, nur Mollie]]></Option>
-                        <Option value="A" sort="3"><![CDATA[Ja, alle]]></Option>
-                    </SelectboxOptions>
-                </Setting>
-                <Setting type="selectbox" initialValue="N" sort="40" conf="Y">
-                    <Name>Artikel mit rationalen Stückzahlen</Name>
-                    <Description>Artikel mit rationalen Stückzahlen werden dann unterstützt, jedoch als ein Artikel
-                        behandelt. KEIN Teilversand hierfür möglich!
-                    </Description>
-                    <ValueName>supportQ</ValueName>
-                    <SelectboxOptions>
-                        <Option value="Y" sort="1"><![CDATA[Ja, mollie hier anbieten]]></Option>
-                        <Option value="N" sort="2"><![CDATA[Nein, mollie hier nicht anbieten]]></Option>
-                    </SelectboxOptions>
-                </Setting>
-                <Setting type="selectbox" initialValue="ord_tr" sort="100" conf="Y">
-                    <Name>TransaktionsID des Zahlungseingangs:</Name>
-                    <Description>Welche ID soll an die WAWI übetragen werden? Bei PayPal wird immer die PayPal Referenz
-                        angegeben.
-                    </Description>
-                    <ValueName>wawiPaymentID</ValueName>
-                    <SelectboxOptions>
-                        <Option value="ord" sort="1"><![CDATA[Order ID]]></Option>
-                        <Option value="tr" sort="2"><![CDATA[Payment ID]]></Option>
-                        <Option value="ord_tr" sort="3"><![CDATA[Order ID / Payment ID]]></Option>
-                    </SelectboxOptions>
-                </Setting>
-                <Setting type="text" initialValue="" sort="110" conf="Y">
-                    <Name>Workflow-Secret:</Name>
-                    <Description>Schlüssel, um die WAWI Workflow-Requests zu authentifizieren.</Description>
-                    <ValueName>workflowSecret</ValueName>
-                </Setting>
-                <Setting type="text" initialValue="100" sort="110" conf="Y">
-                    <Name>Max. Gültigenkeit in Tagen:</Name>
-                    <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem "bezahlt" Status
-                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.
-                    </Description>
-                    <ValueName>expiryDays</ValueName>
-                </Setting>
-
-                <Setting type="selectbox" initialValue="Y" sort="120" conf="Y">
-                    <Name>mollie Components überspringbar:</Name>
-                    <Description>Wenn diese Einstellung aktiv ist, erscheint beim Zahlungszusatzschritt (Kreditkarte)
-                        ein Link, um diesen Schritt zu überspringen.
-                    </Description>
-                    <ValueName>skipComponents</ValueName>
-                    <SelectboxOptions>
-                        <Option value="Y" sort="1"><![CDATA[Ja]]></Option>
-                        <Option value="N" sort="2"><![CDATA[Nein]]></Option>
-                    </SelectboxOptions>
-                </Setting>
-            </Settingslink>
-        </Adminmenu>
-        <Locales>
-            <Variable>
-                <Name>skipComponentsLink</Name>
-                <Description></Description>
-                <VariableLocalized iso="GER">
-                    <![CDATA[Überspringen und Zahlungsinformationen später angeben]]></VariableLocalized>
-                <VariableLocalized iso="ENG"><![CDATA[Skip and provide payment information later]]></VariableLocalized>
-                <VariableLocalized iso="FRE">
-                    <![CDATA[Ignorer et fournir les informations de paiement plus tard]]></VariableLocalized>
-            </Variable>
-            <Variable>
-                <Name>cctitle</Name>
-                <Description></Description>
-                <VariableLocalized iso="GER"><![CDATA[Zahlungsinformationen]]></VariableLocalized>
-                <VariableLocalized iso="ENG"><![CDATA[Enter your payment information]]></VariableLocalized>
-                <VariableLocalized iso="FRE"><![CDATA[Informations de paiement]]></VariableLocalized>
-            </Variable>
-            <Variable>
-                <Name>error_canceled</Name>
-                <Description></Description>
-                <VariableLocalized iso="GER"><![CDATA[Die Zahlung wurde von Ihnen abgebrochen. Wählen Sie ggf. eine andere
+<?xml version="1.0" encoding="ISO-8859-1"?><jtlshop3plugin>
+  <Name>mollie</Name>
+  <Description>Zahlungsartplugin für mollie.com</Description>
+  <Author>WebStollen</Author>
+  <URL>https://www.webstollen.de/</URL>
+  <XMLVersion>102</XMLVersion>
+  <PluginID>ws_mollie</PluginID>
+  <Shop4Version>405</Shop4Version>
+  <Install>
+    <Version nr="100">
+      <SQL>100.sql</SQL>
+      <CreateDate>2019-02-11</CreateDate>
+    </Version>
+    <Version nr="101">
+      <CreateDate>2019-02-26</CreateDate>
+    </Version>
+    <Version nr="102">
+      <CreateDate>2019-04-23</CreateDate>
+    </Version>
+    <Version nr="103">
+      <CreateDate>2019-05-22</CreateDate>
+    </Version>
+    <Version nr="104">
+      <CreateDate>2019-07-12</CreateDate>
+    </Version>
+    <Version nr="105">
+      <CreateDate>2019-11-26</CreateDate>
+    </Version>
+    <Version nr="106">
+      <CreateDate>2019-12-18</CreateDate>
+    </Version>
+    <Version nr="107">
+      <SQL>107.sql</SQL>
+      <CreateDate>2020-03-02</CreateDate>
+    </Version>
+    <Version nr="108">
+      <CreateDate>2020-04-24</CreateDate>
+    </Version>
+    <Version nr="109">
+      <SQL>109.sql</SQL>
+      <CreateDate>2020-08-17</CreateDate>
+    </Version>
+    <Version nr="110">
+      <CreateDate>2020-11-19</CreateDate>
+    </Version>
+    <Hooks>
+      <Hook id="131">131_globalinclude.php</Hook>
+      <Hook id="144">144_notify.php</Hook>
+      <Hook id="181">181_sync.php</Hook>
+      <Hook id="140">140_smarty.php</Hook>
+    </Hooks>
+    <Adminmenu>
+      <Customlink sort="10">
+        <Name>Bestellungen</Name>
+        <Filename>orders.php</Filename>
+      </Customlink>
+      <Customlink sort="20">
+        <Name>Zahlungsarten</Name>
+        <Filename>paymentmethods.php</Filename>
+      </Customlink>
+      <Customlink sort="999">
+        <Name>Info</Name>
+        <Filename>info.php</Filename>
+      </Customlink>
+      <Settingslink sort="998">
+        <Name>Einstellungen</Name>
+        <Setting type="text" initialValue="" sort="10" conf="Y">
+          <Name>API Key:</Name>
+          <Description>Füge hier deinen mollie API Key ein</Description>
+          <ValueName>api_key</ValueName>
+        </Setting>
+        <Setting type="text" initialValue="" sort="15" conf="Y">
+          <Name>Profile ID:</Name>
+          <Description>Füge hier deinen mollie Profil ID (pfl_) ein. Wird benötigt um mollie Components zu&#xA;                        aktivieren&#xA;                    </Description>
+          <ValueName>profileId</ValueName>
+        </Setting>
+        <Setting type="selectbox" initialValue="Y" sort="19" conf="Y">
+          <Name>Trust-Grafik bei mollie Components anzeigen:</Name>
+          <Description>Bindet eine Trust-Grafik unterhalb des Kreditkartenformulars ein.</Description>
+          <ValueName>loadTrust</ValueName>
+          <SelectboxOptions>
+            <Option value="N" sort="1"><![CDATA[Nein]]></Option>
+            <Option value="Y" sort="2"><![CDATA[Ja]]></Option>
+          </SelectboxOptions>
+        </Setting>
+        <Setting type="selectbox" initialValue="S" sort="20" conf="Y">
+          <Name>Zahlungsart Daten syncronisiernen</Name>
+          <Description>Lädt Name / Bild für die jeweilige Sprache automatisch von mollie, und speichert diese&#xA;&#xA;                        in der Datenbank&#xA;&#xA;                    </Description>
+          <ValueName>paymentmethod_sync</ValueName>
+          <SelectboxOptions>
+            <Option value="N" sort="1"><![CDATA[Nein]]></Option>
+            <Option value="size1x" sort="2"><![CDATA[Ja, Bildgröße 1x]]></Option>
+            <Option value="size2x" sort="3"><![CDATA[Ja, Bildgröße 2x]]></Option>
+            <Option value="svg" sort="4"><![CDATA[Ja, Bild SVG]]></Option>
+          </SelectboxOptions>
+        </Setting>
+        <Setting type="selectbox" initialValue="N" sort="30" conf="Y">
+          <Name>Checkout Styles laden</Name>
+          <Description>Lädt Stylesheets für das Evo Template, um den Checkout zu verschönern.</Description>
+          <ValueName>load_styles</ValueName>
+          <SelectboxOptions>
+            <Option value="N" sort="1"><![CDATA[Nein]]></Option>
+            <Option value="Y" sort="2"><![CDATA[Ja, nur Mollie]]></Option>
+            <Option value="A" sort="3"><![CDATA[Ja, alle]]></Option>
+          </SelectboxOptions>
+        </Setting>
+        <Setting type="selectbox" initialValue="N" sort="40" conf="Y">
+          <Name>Artikel mit rationalen Stückzahlen</Name>
+          <Description>Artikel mit rationalen Stückzahlen werden dann unterstützt, jedoch als ein Artikel&#xA;                        behandelt. KEIN Teilversand hierfür möglich!&#xA;                    </Description>
+          <ValueName>supportQ</ValueName>
+          <SelectboxOptions>
+            <Option value="Y" sort="1"><![CDATA[Ja, mollie hier anbieten]]></Option>
+            <Option value="N" sort="2"><![CDATA[Nein, mollie hier nicht anbieten]]></Option>
+          </SelectboxOptions>
+        </Setting>
+        <Setting type="selectbox" initialValue="ord_tr" sort="100" conf="Y">
+          <Name>TransaktionsID des Zahlungseingangs:</Name>
+          <Description>Welche ID soll an die WAWI übetragen werden? Bei PayPal wird immer die PayPal Referenz&#xA;                        angegeben.&#xA;                    </Description>
+          <ValueName>wawiPaymentID</ValueName>
+          <SelectboxOptions>
+            <Option value="ord" sort="1"><![CDATA[Order ID]]></Option>
+            <Option value="tr" sort="2"><![CDATA[Payment ID]]></Option>
+            <Option value="ord_tr" sort="3"><![CDATA[Order ID / Payment ID]]></Option>
+          </SelectboxOptions>
+        </Setting>
+        <Setting type="text" initialValue="" sort="110" conf="Y">
+          <Name>Workflow-Secret:</Name>
+          <Description>Schlüssel, um die WAWI Workflow-Requests zu authentifizieren.</Description>
+          <ValueName>workflowSecret</ValueName>
+        </Setting>
+        <Setting type="text" initialValue="100" sort="110" conf="Y">
+          <Name>Max. Gültigenkeit in Tagen:</Name>
+          <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem &#34;bezahlt&#34; Status&#xA;                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.&#xA;                    </Description>
+          <ValueName>expiryDays</ValueName>
+        </Setting>
+        <Setting type="selectbox" initialValue="Y" sort="120" conf="Y">
+          <Name>mollie Components überspringbar:</Name>
+          <Description>Wenn diese Einstellung aktiv ist, erscheint beim Zahlungszusatzschritt (Kreditkarte)&#xA;                        ein Link, um diesen Schritt zu überspringen.&#xA;                    </Description>
+          <ValueName>skipComponents</ValueName>
+          <SelectboxOptions>
+            <Option value="Y" sort="1"><![CDATA[Ja]]></Option>
+            <Option value="N" sort="2"><![CDATA[Nein]]></Option>
+          </SelectboxOptions>
+        </Setting>
+      </Settingslink>
+    </Adminmenu>
+    <Locales>
+      <Variable>
+        <Name>skipComponentsLink</Name>
+        <Description></Description>
+        <VariableLocalized iso="GER"><![CDATA[
+                    Überspringen und Zahlungsinformationen später angeben]]></VariableLocalized>
+        <VariableLocalized iso="ENG"><![CDATA[Skip and provide payment information later]]></VariableLocalized>
+        <VariableLocalized iso="FRE"><![CDATA[
+                    Ignorer et fournir les informations de paiement plus tard]]></VariableLocalized>
+      </Variable>
+      <Variable>
+        <Name>cctitle</Name>
+        <Description></Description>
+        <VariableLocalized iso="GER"><![CDATA[Zahlungsinformationen]]></VariableLocalized>
+        <VariableLocalized iso="ENG"><![CDATA[Enter your payment information]]></VariableLocalized>
+        <VariableLocalized iso="FRE"><![CDATA[Informations de paiement]]></VariableLocalized>
+      </Variable>
+      <Variable>
+        <Name>error_canceled</Name>
+        <Description></Description>
+        <VariableLocalized iso="GER"><![CDATA[Die Zahlung wurde von Ihnen abgebrochen. Wählen Sie ggf. eine andere
                     Zahlart aus.
                 ]]></VariableLocalized>
-                <VariableLocalized iso="ENG">
-                    <![CDATA[You canceled the payment. Please select a different payment method if necessary.]]></VariableLocalized>
-                <VariableLocalized iso="FRE">
-                    <![CDATA[Votre paiement a été annulé. Veuillez sélectionner un autre mode de paiement si nécessaire.]]></VariableLocalized>
-            </Variable>
-            <Variable>
-                <Name>error_expired</Name>
-                <Description></Description>
-                <VariableLocalized iso="GER"><![CDATA[Ihre Zahlungssession ist abgelaufen, bitte versuchen Sie es erneut.
+        <VariableLocalized iso="ENG"><![CDATA[
+                    You canceled the payment. Please select a different payment method if necessary.]]></VariableLocalized>
+        <VariableLocalized iso="FRE"><![CDATA[
+                    Votre paiement a été annulé. Veuillez sélectionner un autre mode de paiement si nécessaire.]]></VariableLocalized>
+      </Variable>
+      <Variable>
+        <Name>error_expired</Name>
+        <Description></Description>
+        <VariableLocalized iso="GER"><![CDATA[Ihre Zahlungssession ist abgelaufen, bitte versuchen Sie es erneut.
                 ]]></VariableLocalized>
-                <VariableLocalized iso="ENG">
-                    <![CDATA[Your payment session has expired, please try again.]]></VariableLocalized>
-                <VariableLocalized iso="FRE">
-                    <![CDATA[Votre session de paiement a expiré, s'il vous plaît essayer à nouveau.]]></VariableLocalized>
-            </Variable>
-            <Variable>
-                <Name>error_open</Name>
-                <Description></Description>
-                <VariableLocalized iso="GER"><![CDATA[Bei der Zahlung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut,
+        <VariableLocalized iso="ENG"><![CDATA[
+                    Your payment session has expired, please try again.]]></VariableLocalized>
+        <VariableLocalized iso="FRE"><![CDATA[
+                    Votre session de paiement a expiré, s'il vous plaît essayer à nouveau.]]></VariableLocalized>
+      </Variable>
+      <Variable>
+        <Name>error_open</Name>
+        <Description></Description>
+        <VariableLocalized iso="GER"><![CDATA[Bei der Zahlung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut,
                     oder wählen Sie eine andere Zahlungsart.
                 ]]></VariableLocalized>
-                <VariableLocalized iso="ENG">
-                    <![CDATA[The payment process failed. Please try again or choose a different payment method.]]></VariableLocalized>
-                <VariableLocalized iso="FRE">
-                    <![CDATA[Une erreur s'est produite lors du paiement. Veuillez réessayer ou choisir un autre mode de paiement.]]></VariableLocalized>
-            </Variable>
-            <Variable>
-                <Name>error_failed</Name>
-                <Description></Description>
-                <VariableLocalized iso="GER"><![CDATA[Bei der Zahlung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut,
+        <VariableLocalized iso="ENG"><![CDATA[
+                    The payment process failed. Please try again or choose a different payment method.]]></VariableLocalized>
+        <VariableLocalized iso="FRE"><![CDATA[
+                    Une erreur s'est produite lors du paiement. Veuillez réessayer ou choisir un autre mode de paiement.]]></VariableLocalized>
+      </Variable>
+      <Variable>
+        <Name>error_failed</Name>
+        <Description></Description>
+        <VariableLocalized iso="GER"><![CDATA[Bei der Zahlung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut,
                     oder wählen Sie eine andere Zahlungsart.
                 ]]></VariableLocalized>
-                <VariableLocalized iso="ENG">
-                    <![CDATA[The payment process failed. Please try again or choose a different paymentmethod.]]></VariableLocalized>
-                <VariableLocalized iso="FRE">
-                    <![CDATA[Une erreur s'est produite lors du paiement. Veuillez réessayer ou choisir un autre mode de paiement.]]></VariableLocalized>
-            </Variable>
-            <Variable>
-                <Name>lbl_cardHolder</Name>
-                <Description></Description>
-                <VariableLocalized iso="GER"><![CDATA[Karteninhaber:]]></VariableLocalized>
-                <VariableLocalized iso="ENG"><![CDATA[Card holder:]]></VariableLocalized>
-                <VariableLocalized iso="FRE"><![CDATA[Titulaire de la carte:]]></VariableLocalized>
-            </Variable>
-            <Variable>
-                <Name>lbl_cardNumber</Name>
-                <Description></Description>
-                <VariableLocalized iso="GER"><![CDATA[Kartennummer:]]></VariableLocalized>
-                <VariableLocalized iso="ENG"><![CDATA[Card number:]]></VariableLocalized>
-                <VariableLocalized iso="FRE"><![CDATA[Numéro de carte:]]></VariableLocalized>
-            </Variable>
-            <Variable>
-                <Name>lbl_expiryDate</Name>
-                <Description></Description>
-                <VariableLocalized iso="GER"><![CDATA[Ablaufdatum:]]></VariableLocalized>
-                <VariableLocalized iso="ENG"><![CDATA[Expiry date:]]></VariableLocalized>
-                <VariableLocalized iso="FRE"><![CDATA[Date d'expiration:]]></VariableLocalized>
-            </Variable>
-            <Variable>
-                <Name>lbl_varificationCode</Name>
-                <Description></Description>
-                <VariableLocalized iso="GER"><![CDATA[CVC/CVV:]]></VariableLocalized>
-                <VariableLocalized iso="ENG"><![CDATA[CVC/CVV:]]></VariableLocalized>
-                <VariableLocalized iso="FRE"><![CDATA[CVC/CVV:]]></VariableLocalized>
-            </Variable>
-            <Variable>
-                <Name>cvchint_1</Name>
-                <Description></Description>
-                <VariableLocalized iso="GER"><![CDATA[So findet man die CVV/CVC Nummer]]></VariableLocalized>
-                <VariableLocalized iso="ENG"><![CDATA[How to find the CVV/CVC number]]></VariableLocalized>
-                <VariableLocalized iso="FRE"><![CDATA[Comment trouver le numéro CVC/CVV]]></VariableLocalized>
-            </Variable>
-            <Variable>
-                <Name>cvchint_2</Name>
-                <Description></Description>
-                <VariableLocalized iso="GER"><![CDATA[Die dreistellige CVV/CVC Nummer wird bei Visa und Mastercard auf der Rückseite,
+        <VariableLocalized iso="ENG"><![CDATA[
+                    The payment process failed. Please try again or choose a different paymentmethod.]]></VariableLocalized>
+        <VariableLocalized iso="FRE"><![CDATA[
+                    Une erreur s'est produite lors du paiement. Veuillez réessayer ou choisir un autre mode de paiement.]]></VariableLocalized>
+      </Variable>
+      <Variable>
+        <Name>lbl_cardHolder</Name>
+        <Description></Description>
+        <VariableLocalized iso="GER"><![CDATA[Karteninhaber:]]></VariableLocalized>
+        <VariableLocalized iso="ENG"><![CDATA[Card holder:]]></VariableLocalized>
+        <VariableLocalized iso="FRE"><![CDATA[Titulaire de la carte:]]></VariableLocalized>
+      </Variable>
+      <Variable>
+        <Name>lbl_cardNumber</Name>
+        <Description></Description>
+        <VariableLocalized iso="GER"><![CDATA[Kartennummer:]]></VariableLocalized>
+        <VariableLocalized iso="ENG"><![CDATA[Card number:]]></VariableLocalized>
+        <VariableLocalized iso="FRE"><![CDATA[Numéro de carte:]]></VariableLocalized>
+      </Variable>
+      <Variable>
+        <Name>lbl_expiryDate</Name>
+        <Description></Description>
+        <VariableLocalized iso="GER"><![CDATA[Ablaufdatum:]]></VariableLocalized>
+        <VariableLocalized iso="ENG"><![CDATA[Expiry date:]]></VariableLocalized>
+        <VariableLocalized iso="FRE"><![CDATA[Date d'expiration:]]></VariableLocalized>
+      </Variable>
+      <Variable>
+        <Name>lbl_varificationCode</Name>
+        <Description></Description>
+        <VariableLocalized iso="GER"><![CDATA[CVC/CVV:]]></VariableLocalized>
+        <VariableLocalized iso="ENG"><![CDATA[CVC/CVV:]]></VariableLocalized>
+        <VariableLocalized iso="FRE"><![CDATA[CVC/CVV:]]></VariableLocalized>
+      </Variable>
+      <Variable>
+        <Name>cvchint_1</Name>
+        <Description></Description>
+        <VariableLocalized iso="GER"><![CDATA[So findet man die CVV/CVC Nummer]]></VariableLocalized>
+        <VariableLocalized iso="ENG"><![CDATA[How to find the CVV/CVC number]]></VariableLocalized>
+        <VariableLocalized iso="FRE"><![CDATA[Comment trouver le numéro CVC/CVV]]></VariableLocalized>
+      </Variable>
+      <Variable>
+        <Name>cvchint_2</Name>
+        <Description></Description>
+        <VariableLocalized iso="GER"><![CDATA[Die dreistellige CVV/CVC Nummer wird bei Visa und Mastercard auf der Rückseite,
                     bei American Express auf der Vorderseite der Karte abgebildet.
                 ]]></VariableLocalized>
-                <VariableLocalized iso="ENG">
-                    <![CDATA[The three-digit CVV/CVC number is shown on the reverse for Visa and Mastercard, and on the front of the card for American Express.]]></VariableLocalized>
-                <VariableLocalized iso="FRE">
-                    <![CDATA[Le numéro CVC/CVV à trois chiffres est indiqué au dos de Visa et Mastercard et au recto de la carte American Express.]]></VariableLocalized>
-            </Variable>
-            <Variable>
-                <Name>mcErrorMessage</Name>
-                <Description>Ein oder mehrere Felder sind ungültig.</Description>
-                <VariableLocalized iso="GER"><![CDATA[Ein oder mehrere Felder sind ungültig.]]></VariableLocalized>
-                <VariableLocalized iso="ENG"><![CDATA[One or more fields are invalid.]]></VariableLocalized>
-                <VariableLocalized iso="FRE"><![CDATA[Un ou plusieurs champs ne sont pas valides.]]></VariableLocalized>
-            </Variable>
-        </Locales>
-        <PaymentMethod>
-            <Method>
-                <Name>mollie</Name>
-                <PictureURL>img/method/mollie@2x.png</PictureURL>
-                <Sort>1</Sort>
-                <SendMail>0</SendMail>
-                <Provider>mollie.com</Provider>
-                <TSCode>OTHER</TSCode>
-                <PreOrder>0</PreOrder>
-                <Soap>0</Soap>
-                <Curl>1</Curl>
-                <Sockets>0</Sockets>
-                <ClassFile>JTLMollie.php</ClassFile>
-                <ClassName>JTLMollie</ClassName>
-                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-                <MethodLanguage iso="GER">
-                    <Name>mollie</Name>
-                    <ChargeName>mollie</ChargeName>
-                    <InfoText>Bezahlen Sie bequem mit verschiedenen Zahlungsmethoden.</InfoText>
-                </MethodLanguage>
-                <Setting type="text" initialValue="100" sort="1" conf="Y">
-                    <Name>Max. Gültigenkeit in Tagen:</Name>
-                    <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem "bezahlt" Status
-                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.
-                    </Description>
-                    <ValueName>expiryDays</ValueName>
-                </Setting>
-            </Method>
-            <Method>
-                <Name>mollie Kreditkarte</Name>
-                <PictureURL>img/method/creditcard@2x.png</PictureURL>
-                <Sort>3</Sort>
-                <SendMail>0</SendMail>
-                <Provider>mollie.com</Provider>
-                <TSCode>CREDIT_CARD</TSCode>
-                <PreOrder>1</PreOrder>
-                <Soap>0</Soap>
-                <Curl>1</Curl>
-                <Sockets>0</Sockets>
-                <ClassFile>JTLMollieCreditCard.php</ClassFile>
-                <ClassName>JTLMollieCreditCard</ClassName>
-                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-                <AdditionalTemplateFile>tpl/mollieComponents.tpl</AdditionalTemplateFile>
-                <MethodLanguage iso="GER">
-                    <Name>Kreditkarte</Name>
-                    <ChargeName>mollie</ChargeName>
-                    <InfoText>Bezahlen Sie bequem mit Kreditkarte.</InfoText>
-                </MethodLanguage>
-                <Setting type="text" initialValue="100" sort="1" conf="Y">
-                    <Name>Max. Gültigenkeit in Tagen:</Name>
-                    <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem "bezahlt" Status
-                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.
-                    </Description>
-                    <ValueName>expiryDays</ValueName>
-                </Setting>
-            </Method>
-            <Method>
-                <Name>mollie Apple Pay</Name>
-                <PictureURL>img/method/applepay@2x.png</PictureURL>
-                <Sort>3</Sort>
-                <SendMail>0</SendMail>
-                <Provider>mollie.com</Provider>
-                <TSCode>OTHER</TSCode>
-                <PreOrder>1</PreOrder>
-                <Soap>0</Soap>
-                <Curl>1</Curl>
-                <Sockets>0</Sockets>
-                <ClassFile>JTLMollieApplePay.php</ClassFile>
-                <ClassName>JTLMollieApplePay</ClassName>
-                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-                <MethodLanguage iso="GER">
-                    <Name>Apple Pay</Name>
-                    <ChargeName>mollie</ChargeName>
-                    <InfoText>Bezahlen Sie bequem mit Apple Pay.</InfoText>
-                </MethodLanguage>
-                <Setting type="text" initialValue="100" sort="1" conf="Y">
-                    <Name>Max. Gültigenkeit in Tagen:</Name>
-                    <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem "bezahlt" Status
-                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.
-                    </Description>
-                    <ValueName>expiryDays</ValueName>
-                </Setting>
-            </Method>
-            <Method>
-                <Name>mollie Bancontact</Name>
-                <PictureURL>img/method/bancontact@2x.png</PictureURL>
-                <Sort>4</Sort>
-                <SendMail>0</SendMail>
-                <Provider>mollie.com</Provider>
-                <TSCode>OTHER</TSCode>
-                <PreOrder>1</PreOrder>
-                <Soap>0</Soap>
-                <Curl>1</Curl>
-                <Sockets>0</Sockets>
-                <ClassFile>JTLMollieBancontact.php</ClassFile>
-                <ClassName>JTLMollieBancontact</ClassName>
-                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-                <MethodLanguage iso="GER">
-                    <Name>Bancontact</Name>
-                    <ChargeName>mollie</ChargeName>
-                    <InfoText>Bezahlen Sie bequem mit Bancontact.</InfoText>
-                </MethodLanguage>
-                <Setting type="text" initialValue="100" sort="1" conf="Y">
-                    <Name>Max. Gültigenkeit in Tagen:</Name>
-                    <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem "bezahlt" Status
-                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.
-                    </Description>
-                    <ValueName>expiryDays</ValueName>
-                </Setting>
-            </Method>
-            <Method>
-                <Name>mollie Banktransfer</Name>
-                <PictureURL>img/method/banktransfer@2x.png</PictureURL>
-                <Sort>5</Sort>
-                <SendMail>0</SendMail>
-                <Provider>mollie.com</Provider>
-                <TSCode>OTHER</TSCode>
-                <PreOrder>0</PreOrder>
-                <Soap>0</Soap>
-                <Curl>1</Curl>
-                <Sockets>0</Sockets>
-                <ClassFile>JTLMollieBanktransfer.php</ClassFile>
-                <ClassName>JTLMollieBanktransfer</ClassName>
-                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-                <MethodLanguage iso="GER">
-                    <Name>SEPA Überweisung</Name>
-                    <ChargeName>mollie</ChargeName>
-                    <InfoText>Bezahlen Sie bequem mit SEPA Überweisung.</InfoText>
-                </MethodLanguage>
-                <Setting type="text" initialValue="100" sort="1" conf="Y">
-                    <Name>Max. Gültigenkeit in Tagen:</Name>
-                    <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem "bezahlt" Status
-                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.
-                    </Description>
-                    <ValueName>expiryDays</ValueName>
-                </Setting>
-            </Method>
-            <Method>
-                <Name>mollie Belfius</Name>
-                <PictureURL>img/method/belfius@2x.png</PictureURL>
-                <Sort>6</Sort>
-                <SendMail>0</SendMail>
-                <Provider>mollie.com</Provider>
-                <TSCode>OTHER</TSCode>
-                <PreOrder>1</PreOrder>
-                <Soap>0</Soap>
-                <Curl>1</Curl>
-                <Sockets>0</Sockets>
-                <ClassFile>JTLMollieBelfius.php</ClassFile>
-                <ClassName>JTLMollieBelfius</ClassName>
-                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-                <MethodLanguage iso="GER">
-                    <Name>Belfius</Name>
-                    <ChargeName>mollie</ChargeName>
-                    <InfoText>Bezahlen Sie bequem mit Belfius.</InfoText>
-                </MethodLanguage>
-                <Setting type="text" initialValue="100" sort="1" conf="Y">
-                    <Name>Max. Gültigenkeit in Tagen:</Name>
-                    <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem "bezahlt" Status
-                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.
-                    </Description>
-                    <ValueName>expiryDays</ValueName>
-                </Setting>
-            </Method>
-            <Method>
-                <Name>mollie DirectDebit</Name>
-                <PictureURL>img/method/directdebit@2x.png</PictureURL>
-                <Sort>7</Sort>
-                <SendMail>0</SendMail>
-                <Provider>mollie.com</Provider>
-                <TSCode>DIRECT_DEBIT</TSCode>
-                <PreOrder>1</PreOrder>
-                <Soap>0</Soap>
-                <Curl>1</Curl>
-                <Sockets>0</Sockets>
-                <ClassFile>JTLMollieDirectDebit.php</ClassFile>
-                <ClassName>JTLMollieDirectDebit</ClassName>
-                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-                <MethodLanguage iso="GER">
-                    <Name>SEPA Lastschrift</Name>
-                    <ChargeName>mollie</ChargeName>
-                    <InfoText>Bezahlen Sie bequem mit SEPA Lastschrift.</InfoText>
-                </MethodLanguage>
-                <Setting type="text" initialValue="100" sort="1" conf="Y">
-                    <Name>Max. Gültigenkeit in Tagen:</Name>
-                    <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem "bezahlt" Status
-                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.
-                    </Description>
-                    <ValueName>expiryDays</ValueName>
-                </Setting>
-            </Method>
-            <Method>
-                <Name>mollie EPS</Name>
-                <PictureURL>img/method/eps@2x.png</PictureURL>
-                <Sort>2</Sort>
-                <SendMail>0</SendMail>
-                <Provider>mollie.com</Provider>
-                <TSCode>OTHER</TSCode>
-                <PreOrder>1</PreOrder>
-                <Soap>0</Soap>
-                <Curl>1</Curl>
-                <Sockets>0</Sockets>
-                <ClassFile>JTLMollieEPS.php</ClassFile>
-                <ClassName>JTLMollieEPS</ClassName>
-                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-                <MethodLanguage iso="GER">
-                    <Name>EPS</Name>
-                    <ChargeName>mollie</ChargeName>
-                    <InfoText>Bezahlen Sie bequem mit EPS.</InfoText>
-                </MethodLanguage>
-                <Setting type="text" initialValue="100" sort="1" conf="Y">
-                    <Name>Max. Gültigenkeit in Tagen:</Name>
-                    <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem "bezahlt" Status
-                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.
-                    </Description>
-                    <ValueName>expiryDays</ValueName>
-                </Setting>
-            </Method>
-            <Method>
-                <Name>mollie Giftcard</Name>
-                <PictureURL>img/method/giftcard@2x.png</PictureURL>
-                <Sort>8</Sort>
-                <SendMail>0</SendMail>
-                <Provider>mollie.com</Provider>
-                <TSCode>OTHER</TSCode>
-                <PreOrder>1</PreOrder>
-                <Soap>0</Soap>
-                <Curl>1</Curl>
-                <Sockets>0</Sockets>
-                <ClassFile>JTLMollieGiftcard.php</ClassFile>
-                <ClassName>JTLMollieGiftcard</ClassName>
-                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-                <MethodLanguage iso="GER">
-                    <Name>Gift cards</Name>
-                    <ChargeName>mollie</ChargeName>
-                    <InfoText>Bezahlen Sie bequem mit Gift cards.</InfoText>
-                </MethodLanguage>
-                <Setting type="text" initialValue="100" sort="1" conf="Y">
-                    <Name>Max. Gültigenkeit in Tagen:</Name>
-                    <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem "bezahlt" Status
-                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.
-                    </Description>
-                    <ValueName>expiryDays</ValueName>
-                </Setting>
-            </Method>
-            <Method>
-                <Name>mollie Giropay</Name>
-                <PictureURL>img/method/giropay@2x.png</PictureURL>
-                <Sort>9</Sort>
-                <SendMail>0</SendMail>
-                <Provider>mollie.com</Provider>
-                <TSCode>GIROPAY</TSCode>
-                <PreOrder>1</PreOrder>
-                <Soap>0</Soap>
-                <Curl>1</Curl>
-                <Sockets>0</Sockets>
-                <ClassFile>JTLMollieGiropay.php</ClassFile>
-                <ClassName>JTLMollieGiropay</ClassName>
-                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-                <MethodLanguage iso="GER">
-                    <Name>Giropay</Name>
-                    <ChargeName>mollie</ChargeName>
-                    <InfoText>Bezahlen Sie bequem mit Giropay.</InfoText>
-                </MethodLanguage>
-                <Setting type="text" initialValue="100" sort="1" conf="Y">
-                    <Name>Max. Gültigenkeit in Tagen:</Name>
-                    <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem "bezahlt" Status
-                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.
-                    </Description>
-                    <ValueName>expiryDays</ValueName>
-                </Setting>
-            </Method>
-            <Method>
-                <Name>mollie iDEAL</Name>
-                <PictureURL>img/method/ideal@2x.png</PictureURL>
-                <Sort>10</Sort>
-                <SendMail>0</SendMail>
-                <Provider>mollie.com</Provider>
-                <TSCode>OTHER</TSCode>
-                <PreOrder>1</PreOrder>
-                <Soap>0</Soap>
-                <Curl>1</Curl>
-                <Sockets>0</Sockets>
-                <ClassFile>JTLMollieIDEAL.php</ClassFile>
-                <ClassName>JTLMollieIDEAL</ClassName>
-                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-                <MethodLanguage iso="GER">
-                    <Name>iDEAL</Name>
-                    <ChargeName>mollie</ChargeName>
-                    <InfoText>Bezahlen Sie bequem mit iDEAL.</InfoText>
-                </MethodLanguage>
-                <Setting type="text" initialValue="100" sort="1" conf="Y">
-                    <Name>Max. Gültigenkeit in Tagen:</Name>
-                    <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem "bezahlt" Status
-                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.
-                    </Description>
-                    <ValueName>expiryDays</ValueName>
-                </Setting>
-            </Method>
-            <Method>
-                <Name>mollie ING HomePay</Name>
-                <PictureURL>img/method/inghomepay@2x.png</PictureURL>
-                <Sort>11</Sort>
-                <SendMail>0</SendMail>
-                <Provider>mollie.com</Provider>
-                <TSCode>OTHER</TSCode>
-                <PreOrder>1</PreOrder>
-                <Soap>0</Soap>
-                <Curl>1</Curl>
-                <Sockets>0</Sockets>
-                <ClassFile>JTLMollieINGHomePay.php</ClassFile>
-                <ClassName>JTLMollieINGHomePay</ClassName>
-                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-                <MethodLanguage iso="GER">
-                    <Name>ING HomePay</Name>
-                    <ChargeName>mollie</ChargeName>
-                    <InfoText>Bezahlen Sie bequem mit ING HomePay.</InfoText>
-                </MethodLanguage>
-                <Setting type="text" initialValue="100" sort="1" conf="Y">
-                    <Name>Max. Gültigenkeit in Tagen:</Name>
-                    <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem "bezahlt" Status
-                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.
-                    </Description>
-                    <ValueName>expiryDays</ValueName>
-                </Setting>
-            </Method>
-            <Method>
-                <Name>mollie KBC</Name>
-                <PictureURL>img/method/kbc@2x.png</PictureURL>
-                <Sort>12</Sort>
-                <SendMail>0</SendMail>
-                <Provider>mollie.com</Provider>
-                <TSCode>OTHER</TSCode>
-                <PreOrder>1</PreOrder>
-                <Soap>0</Soap>
-                <Curl>1</Curl>
-                <Sockets>0</Sockets>
-                <ClassFile>JTLMollieKBC.php</ClassFile>
-                <ClassName>JTLMollieKBC</ClassName>
-                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-                <MethodLanguage iso="GER">
-                    <Name>KBC</Name>
-                    <ChargeName>mollie</ChargeName>
-                    <InfoText>Bezahlen Sie bequem mit KBC.</InfoText>
-                </MethodLanguage>
-                <Setting type="text" initialValue="100" sort="1" conf="Y">
-                    <Name>Max. Gültigenkeit in Tagen:</Name>
-                    <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem "bezahlt" Status
-                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.
-                    </Description>
-                    <ValueName>expiryDays</ValueName>
-                </Setting>
-            </Method>
-            <Method>
-                <Name>mollie PayPal</Name>
-                <PictureURL>img/method/paypal@2x.png</PictureURL>
-                <Sort>13</Sort>
-                <SendMail>0</SendMail>
-                <Provider>mollie.com</Provider>
-                <TSCode>PAYPAL</TSCode>
-                <PreOrder>1</PreOrder>
-                <Soap>0</Soap>
-                <Curl>1</Curl>
-                <Sockets>0</Sockets>
-                <ClassFile>JTLMolliePayPal.php</ClassFile>
-                <ClassName>JTLMolliePayPal</ClassName>
-                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-                <MethodLanguage iso="GER">
-                    <Name>PayPal</Name>
-                    <ChargeName>mollie</ChargeName>
-                    <InfoText>Bezahlen Sie bequem mit PayPal.</InfoText>
-                </MethodLanguage>
-                <Setting type="text" initialValue="100" sort="1" conf="Y">
-                    <Name>Max. Gültigenkeit in Tagen:</Name>
-                    <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem "bezahlt" Status
-                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.
-                    </Description>
-                    <ValueName>expiryDays</ValueName>
-                </Setting>
-            </Method>
-            <Method>
-                <Name>mollie paysafecard</Name>
-                <PictureURL>img/method/paysafecard@2x.png</PictureURL>
-                <Sort>14</Sort>
-                <SendMail>0</SendMail>
-                <Provider>mollie.com</Provider>
-                <TSCode>OTHER</TSCode>
-                <PreOrder>1</PreOrder>
-                <Soap>0</Soap>
-                <Curl>1</Curl>
-                <Sockets>0</Sockets>
-                <ClassFile>JTLMolliePaysafecard.php</ClassFile>
-                <ClassName>JTLMolliePaysafecard</ClassName>
-                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-                <MethodLanguage iso="GER">
-                    <Name>paysafecard</Name>
-                    <ChargeName>mollie</ChargeName>
-                    <InfoText>Bezahlen Sie bequem mit paysafecard.</InfoText>
-                </MethodLanguage>
-                <Setting type="text" initialValue="100" sort="1" conf="Y">
-                    <Name>Max. Gültigenkeit in Tagen:</Name>
-                    <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem "bezahlt" Status
-                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.
-                    </Description>
-                    <ValueName>expiryDays</ValueName>
-                </Setting>
-            </Method>
-            <Method>
-                <Name>mollie SOFORT</Name>
-                <PictureURL>img/method/sofort@2x.png</PictureURL>
-                <Sort>15</Sort>
-                <SendMail>0</SendMail>
-                <Provider>mollie.com</Provider>
-                <TSCode>DIRECT_E_BANKING</TSCode>
-                <PreOrder>1</PreOrder>
-                <Soap>0</Soap>
-                <Curl>1</Curl>
-                <Sockets>0</Sockets>
-                <ClassFile>JTLMollieSofort.php</ClassFile>
-                <ClassName>JTLMollieSofort</ClassName>
-                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-                <MethodLanguage iso="GER">
-                    <Name>SOFORT</Name>
-                    <ChargeName>mollie</ChargeName>
-                    <InfoText>Bezahlen Sie bequem mit SOFORT.</InfoText>
-                </MethodLanguage>
-                <Setting type="text" initialValue="100" sort="1" conf="Y">
-                    <Name>Max. Gültigenkeit in Tagen:</Name>
-                    <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem "bezahlt" Status
-                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.
-                    </Description>
-                    <ValueName>expiryDays</ValueName>
-                </Setting>
-            </Method>
-            <Method>
-                <Name>mollie Klarna Pay Later</Name>
-                <PictureURL>img/method/klarna@2x.png</PictureURL>
-                <Sort>16</Sort>
-                <SendMail>0</SendMail>
-                <Provider>mollie.com</Provider>
-                <TSCode>INVOICE</TSCode>
-                <PreOrder>1</PreOrder>
-                <Soap>0</Soap>
-                <Curl>1</Curl>
-                <Sockets>0</Sockets>
-                <ClassFile>JTLMollieKlarnaPayLater.php</ClassFile>
-                <ClassName>JTLMollieKlarnaPayLater</ClassName>
-                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-                <MethodLanguage iso="GER">
-                    <Name>Klarna Pay Later</Name>
-                    <ChargeName>mollie</ChargeName>
-                    <InfoText>Bezahlen Sie bequem mit Klarna Pay Later.</InfoText>
-                </MethodLanguage>
-                <Setting type="text" initialValue="28" sort="1" conf="Y">
-                    <Name>Max. Gültigenkeit in Tagen:</Name>
-                    <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem "bezahlt" Status
-                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.
-                    </Description>
-                    <ValueName>expiryDays</ValueName>
-                </Setting>
-            </Method>
-            <Method>
-                <Name>mollie Klarna Slice It</Name>
-                <PictureURL>img/method/klarna@2x.png</PictureURL>
-                <Sort>17</Sort>
-                <SendMail>0</SendMail>
-                <Provider>mollie.com</Provider>
-                <TSCode>FINANCING</TSCode>
-                <PreOrder>1</PreOrder>
-                <Soap>0</Soap>
-                <Curl>1</Curl>
-                <Sockets>0</Sockets>
-                <ClassFile>JTLMollieKlarnaSliceIt.php</ClassFile>
-                <ClassName>JTLMollieKlarnaSliceIt</ClassName>
-                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-                <MethodLanguage iso="GER">
-                    <Name>Klarna Slice It</Name>
-                    <ChargeName>mollie</ChargeName>
-                    <InfoText>Bezahlen Sie bequem mit Klarna Slice It.</InfoText>
-                </MethodLanguage>
-                <Setting type="text" initialValue="28" sort="1" conf="Y">
-                    <Name>Max. Gültigenkeit in Tagen:</Name>
-                    <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem "bezahlt" Status
-                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.
-                    </Description>
-                    <ValueName>expiryDays</ValueName>
-                </Setting>
-            </Method>
-            <Method>
-                <Name>mollie Przelewy24</Name>
-                <PictureURL>img/method/Przelewy24@2x.png</PictureURL>
-                <Sort>17</Sort>
-                <SendMail>0</SendMail>
-                <Provider>mollie.com</Provider>
-                <TSCode>OTHER</TSCode>
-                <PreOrder>1</PreOrder>
-                <Soap>0</Soap>
-                <Curl>1</Curl>
-                <Sockets>0</Sockets>
-                <ClassFile>JTLMolliePrzelewy24.php</ClassFile>
-                <ClassName>JTLMolliePrzelewy24</ClassName>
-                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-                <MethodLanguage iso="GER">
-                    <Name>Przelewy24</Name>
-                    <ChargeName>mollie</ChargeName>
-                    <InfoText>Bezahlen Sie bequem mit Przelewy24.</InfoText>
-                </MethodLanguage>
-                <Setting type="text" initialValue="100" sort="1" conf="Y">
-                    <Name>Max. Gültigenkeit in Tagen:</Name>
-                    <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem "bezahlt" Status
-                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.
-                    </Description>
-                    <ValueName>expiryDays</ValueName>
-                </Setting>
-            </Method>
-            <Method>
-                <Name>mollie MyBank</Name>
-                <PictureURL>img/method/mybank@2x.png</PictureURL>
-                <Sort>17</Sort>
-                <SendMail>0</SendMail>
-                <Provider>mollie.com</Provider>
-                <TSCode>OTHER</TSCode>
-                <PreOrder>1</PreOrder>
-                <Soap>0</Soap>
-                <Curl>1</Curl>
-                <Sockets>0</Sockets>
-                <ClassFile>JTLMollieMyBank.php</ClassFile>
-                <ClassName>JTLMollieMyBank</ClassName>
-                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-                <MethodLanguage iso="GER">
-                    <Name>MyBank</Name>
-                    <ChargeName>mollie</ChargeName>
-                    <InfoText>Bezahlen Sie bequem mit MyBank.</InfoText>
-                </MethodLanguage>
-                <Setting type="text" initialValue="100" sort="1" conf="Y">
-                    <Name>Max. Gültigenkeit in Tagen:</Name>
-                    <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem "bezahlt" Status
-                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.
-                    </Description>
-                    <ValueName>expiryDays</ValueName>
-                </Setting>
-            </Method>
-        </PaymentMethod>
-    </Install>
+        <VariableLocalized iso="ENG"><![CDATA[
+                    The three-digit CVV/CVC number is shown on the reverse for Visa and Mastercard, and on the front of the card for American Express.]]></VariableLocalized>
+        <VariableLocalized iso="FRE"><![CDATA[
+                    Le numéro CVC/CVV à trois chiffres est indiqué au dos de Visa et Mastercard et au recto de la carte American Express.]]></VariableLocalized>
+      </Variable>
+      <Variable>
+        <Name>mcErrorMessage</Name>
+        <Description>Ein oder mehrere Felder sind ungültig.</Description>
+        <VariableLocalized iso="GER"><![CDATA[Ein oder mehrere Felder sind ungültig.]]></VariableLocalized>
+        <VariableLocalized iso="ENG"><![CDATA[One or more fields are invalid.]]></VariableLocalized>
+        <VariableLocalized iso="FRE"><![CDATA[Un ou plusieurs champs ne sont pas valides.]]></VariableLocalized>
+      </Variable>
+    </Locales>
+    <PaymentMethod>
+      <Method>
+        <Name>mollie</Name>
+        <PictureURL>img/method/mollie@2x.png</PictureURL>
+        <Sort>1</Sort>
+        <SendMail>0</SendMail>
+        <Provider>mollie.com</Provider>
+        <TSCode>OTHER</TSCode>
+        <PreOrder>0</PreOrder>
+        <Soap>0</Soap>
+        <Curl>1</Curl>
+        <Sockets>0</Sockets>
+        <ClassFile>JTLMollie.php</ClassFile>
+        <ClassName>JTLMollie</ClassName>
+        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+        <MethodLanguage iso="GER">
+          <Name>mollie</Name>
+          <ChargeName>mollie</ChargeName>
+          <InfoText>Bezahlen Sie bequem mit verschiedenen Zahlungsmethoden.</InfoText>
+        </MethodLanguage>
+        <Setting type="text" initialValue="100" sort="1" conf="Y">
+          <Name>Max. Gültigenkeit in Tagen:</Name>
+          <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem &#34;bezahlt&#34; Status&#xA;                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.&#xA;                    </Description>
+          <ValueName>expiryDays</ValueName>
+        </Setting>
+      </Method>
+      <Method>
+        <Name>mollie Kreditkarte</Name>
+        <PictureURL>img/method/creditcard@2x.png</PictureURL>
+        <Sort>3</Sort>
+        <SendMail>0</SendMail>
+        <Provider>mollie.com</Provider>
+        <TSCode>CREDIT_CARD</TSCode>
+        <PreOrder>1</PreOrder>
+        <Soap>0</Soap>
+        <Curl>1</Curl>
+        <Sockets>0</Sockets>
+        <ClassFile>JTLMollieCreditCard.php</ClassFile>
+        <ClassName>JTLMollieCreditCard</ClassName>
+        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+        <AdditionalTemplateFile>tpl/mollieComponents.tpl</AdditionalTemplateFile>
+        <MethodLanguage iso="GER">
+          <Name>Kreditkarte</Name>
+          <ChargeName>mollie</ChargeName>
+          <InfoText>Bezahlen Sie bequem mit Kreditkarte.</InfoText>
+        </MethodLanguage>
+        <Setting type="text" initialValue="100" sort="1" conf="Y">
+          <Name>Max. Gültigenkeit in Tagen:</Name>
+          <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem &#34;bezahlt&#34; Status&#xA;                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.&#xA;                    </Description>
+          <ValueName>expiryDays</ValueName>
+        </Setting>
+      </Method>
+      <Method>
+        <Name>mollie Apple Pay</Name>
+        <PictureURL>img/method/applepay@2x.png</PictureURL>
+        <Sort>3</Sort>
+        <SendMail>0</SendMail>
+        <Provider>mollie.com</Provider>
+        <TSCode>OTHER</TSCode>
+        <PreOrder>1</PreOrder>
+        <Soap>0</Soap>
+        <Curl>1</Curl>
+        <Sockets>0</Sockets>
+        <ClassFile>JTLMollieApplePay.php</ClassFile>
+        <ClassName>JTLMollieApplePay</ClassName>
+        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+        <MethodLanguage iso="GER">
+          <Name>Apple Pay</Name>
+          <ChargeName>mollie</ChargeName>
+          <InfoText>Bezahlen Sie bequem mit Apple Pay.</InfoText>
+        </MethodLanguage>
+        <Setting type="text" initialValue="100" sort="1" conf="Y">
+          <Name>Max. Gültigenkeit in Tagen:</Name>
+          <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem &#34;bezahlt&#34; Status&#xA;                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.&#xA;                    </Description>
+          <ValueName>expiryDays</ValueName>
+        </Setting>
+      </Method>
+      <Method>
+        <Name>mollie Bancontact</Name>
+        <PictureURL>img/method/bancontact@2x.png</PictureURL>
+        <Sort>4</Sort>
+        <SendMail>0</SendMail>
+        <Provider>mollie.com</Provider>
+        <TSCode>OTHER</TSCode>
+        <PreOrder>1</PreOrder>
+        <Soap>0</Soap>
+        <Curl>1</Curl>
+        <Sockets>0</Sockets>
+        <ClassFile>JTLMollieBancontact.php</ClassFile>
+        <ClassName>JTLMollieBancontact</ClassName>
+        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+        <MethodLanguage iso="GER">
+          <Name>Bancontact</Name>
+          <ChargeName>mollie</ChargeName>
+          <InfoText>Bezahlen Sie bequem mit Bancontact.</InfoText>
+        </MethodLanguage>
+        <Setting type="text" initialValue="100" sort="1" conf="Y">
+          <Name>Max. Gültigenkeit in Tagen:</Name>
+          <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem &#34;bezahlt&#34; Status&#xA;                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.&#xA;                    </Description>
+          <ValueName>expiryDays</ValueName>
+        </Setting>
+      </Method>
+      <Method>
+        <Name>mollie Banktransfer</Name>
+        <PictureURL>img/method/banktransfer@2x.png</PictureURL>
+        <Sort>5</Sort>
+        <SendMail>0</SendMail>
+        <Provider>mollie.com</Provider>
+        <TSCode>OTHER</TSCode>
+        <PreOrder>0</PreOrder>
+        <Soap>0</Soap>
+        <Curl>1</Curl>
+        <Sockets>0</Sockets>
+        <ClassFile>JTLMollieBanktransfer.php</ClassFile>
+        <ClassName>JTLMollieBanktransfer</ClassName>
+        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+        <MethodLanguage iso="GER">
+          <Name>SEPA Überweisung</Name>
+          <ChargeName>mollie</ChargeName>
+          <InfoText>Bezahlen Sie bequem mit SEPA Überweisung.</InfoText>
+        </MethodLanguage>
+        <Setting type="text" initialValue="100" sort="1" conf="Y">
+          <Name>Max. Gültigenkeit in Tagen:</Name>
+          <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem &#34;bezahlt&#34; Status&#xA;                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.&#xA;                    </Description>
+          <ValueName>expiryDays</ValueName>
+        </Setting>
+      </Method>
+      <Method>
+        <Name>mollie Belfius</Name>
+        <PictureURL>img/method/belfius@2x.png</PictureURL>
+        <Sort>6</Sort>
+        <SendMail>0</SendMail>
+        <Provider>mollie.com</Provider>
+        <TSCode>OTHER</TSCode>
+        <PreOrder>1</PreOrder>
+        <Soap>0</Soap>
+        <Curl>1</Curl>
+        <Sockets>0</Sockets>
+        <ClassFile>JTLMollieBelfius.php</ClassFile>
+        <ClassName>JTLMollieBelfius</ClassName>
+        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+        <MethodLanguage iso="GER">
+          <Name>Belfius</Name>
+          <ChargeName>mollie</ChargeName>
+          <InfoText>Bezahlen Sie bequem mit Belfius.</InfoText>
+        </MethodLanguage>
+        <Setting type="text" initialValue="100" sort="1" conf="Y">
+          <Name>Max. Gültigenkeit in Tagen:</Name>
+          <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem &#34;bezahlt&#34; Status&#xA;                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.&#xA;                    </Description>
+          <ValueName>expiryDays</ValueName>
+        </Setting>
+      </Method>
+      <Method>
+        <Name>mollie DirectDebit</Name>
+        <PictureURL>img/method/directdebit@2x.png</PictureURL>
+        <Sort>7</Sort>
+        <SendMail>0</SendMail>
+        <Provider>mollie.com</Provider>
+        <TSCode>DIRECT_DEBIT</TSCode>
+        <PreOrder>1</PreOrder>
+        <Soap>0</Soap>
+        <Curl>1</Curl>
+        <Sockets>0</Sockets>
+        <ClassFile>JTLMollieDirectDebit.php</ClassFile>
+        <ClassName>JTLMollieDirectDebit</ClassName>
+        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+        <MethodLanguage iso="GER">
+          <Name>SEPA Lastschrift</Name>
+          <ChargeName>mollie</ChargeName>
+          <InfoText>Bezahlen Sie bequem mit SEPA Lastschrift.</InfoText>
+        </MethodLanguage>
+        <Setting type="text" initialValue="100" sort="1" conf="Y">
+          <Name>Max. Gültigenkeit in Tagen:</Name>
+          <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem &#34;bezahlt&#34; Status&#xA;                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.&#xA;                    </Description>
+          <ValueName>expiryDays</ValueName>
+        </Setting>
+      </Method>
+      <Method>
+        <Name>mollie EPS</Name>
+        <PictureURL>img/method/eps@2x.png</PictureURL>
+        <Sort>2</Sort>
+        <SendMail>0</SendMail>
+        <Provider>mollie.com</Provider>
+        <TSCode>OTHER</TSCode>
+        <PreOrder>1</PreOrder>
+        <Soap>0</Soap>
+        <Curl>1</Curl>
+        <Sockets>0</Sockets>
+        <ClassFile>JTLMollieEPS.php</ClassFile>
+        <ClassName>JTLMollieEPS</ClassName>
+        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+        <MethodLanguage iso="GER">
+          <Name>EPS</Name>
+          <ChargeName>mollie</ChargeName>
+          <InfoText>Bezahlen Sie bequem mit EPS.</InfoText>
+        </MethodLanguage>
+        <Setting type="text" initialValue="100" sort="1" conf="Y">
+          <Name>Max. Gültigenkeit in Tagen:</Name>
+          <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem &#34;bezahlt&#34; Status&#xA;                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.&#xA;                    </Description>
+          <ValueName>expiryDays</ValueName>
+        </Setting>
+      </Method>
+      <Method>
+        <Name>mollie Giftcard</Name>
+        <PictureURL>img/method/giftcard@2x.png</PictureURL>
+        <Sort>8</Sort>
+        <SendMail>0</SendMail>
+        <Provider>mollie.com</Provider>
+        <TSCode>OTHER</TSCode>
+        <PreOrder>1</PreOrder>
+        <Soap>0</Soap>
+        <Curl>1</Curl>
+        <Sockets>0</Sockets>
+        <ClassFile>JTLMollieGiftcard.php</ClassFile>
+        <ClassName>JTLMollieGiftcard</ClassName>
+        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+        <MethodLanguage iso="GER">
+          <Name>Gift cards</Name>
+          <ChargeName>mollie</ChargeName>
+          <InfoText>Bezahlen Sie bequem mit Gift cards.</InfoText>
+        </MethodLanguage>
+        <Setting type="text" initialValue="100" sort="1" conf="Y">
+          <Name>Max. Gültigenkeit in Tagen:</Name>
+          <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem &#34;bezahlt&#34; Status&#xA;                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.&#xA;                    </Description>
+          <ValueName>expiryDays</ValueName>
+        </Setting>
+      </Method>
+      <Method>
+        <Name>mollie Giropay</Name>
+        <PictureURL>img/method/giropay@2x.png</PictureURL>
+        <Sort>9</Sort>
+        <SendMail>0</SendMail>
+        <Provider>mollie.com</Provider>
+        <TSCode>GIROPAY</TSCode>
+        <PreOrder>1</PreOrder>
+        <Soap>0</Soap>
+        <Curl>1</Curl>
+        <Sockets>0</Sockets>
+        <ClassFile>JTLMollieGiropay.php</ClassFile>
+        <ClassName>JTLMollieGiropay</ClassName>
+        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+        <MethodLanguage iso="GER">
+          <Name>Giropay</Name>
+          <ChargeName>mollie</ChargeName>
+          <InfoText>Bezahlen Sie bequem mit Giropay.</InfoText>
+        </MethodLanguage>
+        <Setting type="text" initialValue="100" sort="1" conf="Y">
+          <Name>Max. Gültigenkeit in Tagen:</Name>
+          <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem &#34;bezahlt&#34; Status&#xA;                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.&#xA;                    </Description>
+          <ValueName>expiryDays</ValueName>
+        </Setting>
+      </Method>
+      <Method>
+        <Name>mollie iDEAL</Name>
+        <PictureURL>img/method/ideal@2x.png</PictureURL>
+        <Sort>10</Sort>
+        <SendMail>0</SendMail>
+        <Provider>mollie.com</Provider>
+        <TSCode>OTHER</TSCode>
+        <PreOrder>1</PreOrder>
+        <Soap>0</Soap>
+        <Curl>1</Curl>
+        <Sockets>0</Sockets>
+        <ClassFile>JTLMollieIDEAL.php</ClassFile>
+        <ClassName>JTLMollieIDEAL</ClassName>
+        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+        <MethodLanguage iso="GER">
+          <Name>iDEAL</Name>
+          <ChargeName>mollie</ChargeName>
+          <InfoText>Bezahlen Sie bequem mit iDEAL.</InfoText>
+        </MethodLanguage>
+        <Setting type="text" initialValue="100" sort="1" conf="Y">
+          <Name>Max. Gültigenkeit in Tagen:</Name>
+          <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem &#34;bezahlt&#34; Status&#xA;                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.&#xA;                    </Description>
+          <ValueName>expiryDays</ValueName>
+        </Setting>
+      </Method>
+      <Method>
+        <Name>mollie ING HomePay</Name>
+        <PictureURL>img/method/inghomepay@2x.png</PictureURL>
+        <Sort>11</Sort>
+        <SendMail>0</SendMail>
+        <Provider>mollie.com</Provider>
+        <TSCode>OTHER</TSCode>
+        <PreOrder>1</PreOrder>
+        <Soap>0</Soap>
+        <Curl>1</Curl>
+        <Sockets>0</Sockets>
+        <ClassFile>JTLMollieINGHomePay.php</ClassFile>
+        <ClassName>JTLMollieINGHomePay</ClassName>
+        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+        <MethodLanguage iso="GER">
+          <Name>ING HomePay</Name>
+          <ChargeName>mollie</ChargeName>
+          <InfoText>Bezahlen Sie bequem mit ING HomePay.</InfoText>
+        </MethodLanguage>
+        <Setting type="text" initialValue="100" sort="1" conf="Y">
+          <Name>Max. Gültigenkeit in Tagen:</Name>
+          <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem &#34;bezahlt&#34; Status&#xA;                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.&#xA;                    </Description>
+          <ValueName>expiryDays</ValueName>
+        </Setting>
+      </Method>
+      <Method>
+        <Name>mollie KBC</Name>
+        <PictureURL>img/method/kbc@2x.png</PictureURL>
+        <Sort>12</Sort>
+        <SendMail>0</SendMail>
+        <Provider>mollie.com</Provider>
+        <TSCode>OTHER</TSCode>
+        <PreOrder>1</PreOrder>
+        <Soap>0</Soap>
+        <Curl>1</Curl>
+        <Sockets>0</Sockets>
+        <ClassFile>JTLMollieKBC.php</ClassFile>
+        <ClassName>JTLMollieKBC</ClassName>
+        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+        <MethodLanguage iso="GER">
+          <Name>KBC</Name>
+          <ChargeName>mollie</ChargeName>
+          <InfoText>Bezahlen Sie bequem mit KBC.</InfoText>
+        </MethodLanguage>
+        <Setting type="text" initialValue="100" sort="1" conf="Y">
+          <Name>Max. Gültigenkeit in Tagen:</Name>
+          <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem &#34;bezahlt&#34; Status&#xA;                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.&#xA;                    </Description>
+          <ValueName>expiryDays</ValueName>
+        </Setting>
+      </Method>
+      <Method>
+        <Name>mollie PayPal</Name>
+        <PictureURL>img/method/paypal@2x.png</PictureURL>
+        <Sort>13</Sort>
+        <SendMail>0</SendMail>
+        <Provider>mollie.com</Provider>
+        <TSCode>PAYPAL</TSCode>
+        <PreOrder>1</PreOrder>
+        <Soap>0</Soap>
+        <Curl>1</Curl>
+        <Sockets>0</Sockets>
+        <ClassFile>JTLMolliePayPal.php</ClassFile>
+        <ClassName>JTLMolliePayPal</ClassName>
+        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+        <MethodLanguage iso="GER">
+          <Name>PayPal</Name>
+          <ChargeName>mollie</ChargeName>
+          <InfoText>Bezahlen Sie bequem mit PayPal.</InfoText>
+        </MethodLanguage>
+        <Setting type="text" initialValue="100" sort="1" conf="Y">
+          <Name>Max. Gültigenkeit in Tagen:</Name>
+          <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem &#34;bezahlt&#34; Status&#xA;                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.&#xA;                    </Description>
+          <ValueName>expiryDays</ValueName>
+        </Setting>
+      </Method>
+      <Method>
+        <Name>mollie paysafecard</Name>
+        <PictureURL>img/method/paysafecard@2x.png</PictureURL>
+        <Sort>14</Sort>
+        <SendMail>0</SendMail>
+        <Provider>mollie.com</Provider>
+        <TSCode>OTHER</TSCode>
+        <PreOrder>1</PreOrder>
+        <Soap>0</Soap>
+        <Curl>1</Curl>
+        <Sockets>0</Sockets>
+        <ClassFile>JTLMolliePaysafecard.php</ClassFile>
+        <ClassName>JTLMolliePaysafecard</ClassName>
+        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+        <MethodLanguage iso="GER">
+          <Name>paysafecard</Name>
+          <ChargeName>mollie</ChargeName>
+          <InfoText>Bezahlen Sie bequem mit paysafecard.</InfoText>
+        </MethodLanguage>
+        <Setting type="text" initialValue="100" sort="1" conf="Y">
+          <Name>Max. Gültigenkeit in Tagen:</Name>
+          <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem &#34;bezahlt&#34; Status&#xA;                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.&#xA;                    </Description>
+          <ValueName>expiryDays</ValueName>
+        </Setting>
+      </Method>
+      <Method>
+        <Name>mollie SOFORT</Name>
+        <PictureURL>img/method/sofort@2x.png</PictureURL>
+        <Sort>15</Sort>
+        <SendMail>0</SendMail>
+        <Provider>mollie.com</Provider>
+        <TSCode>DIRECT_E_BANKING</TSCode>
+        <PreOrder>1</PreOrder>
+        <Soap>0</Soap>
+        <Curl>1</Curl>
+        <Sockets>0</Sockets>
+        <ClassFile>JTLMollieSofort.php</ClassFile>
+        <ClassName>JTLMollieSofort</ClassName>
+        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+        <MethodLanguage iso="GER">
+          <Name>SOFORT</Name>
+          <ChargeName>mollie</ChargeName>
+          <InfoText>Bezahlen Sie bequem mit SOFORT.</InfoText>
+        </MethodLanguage>
+        <Setting type="text" initialValue="100" sort="1" conf="Y">
+          <Name>Max. Gültigenkeit in Tagen:</Name>
+          <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem &#34;bezahlt&#34; Status&#xA;                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.&#xA;                    </Description>
+          <ValueName>expiryDays</ValueName>
+        </Setting>
+      </Method>
+      <Method>
+        <Name>mollie Klarna Pay Later</Name>
+        <PictureURL>img/method/klarna@2x.png</PictureURL>
+        <Sort>16</Sort>
+        <SendMail>0</SendMail>
+        <Provider>mollie.com</Provider>
+        <TSCode>INVOICE</TSCode>
+        <PreOrder>1</PreOrder>
+        <Soap>0</Soap>
+        <Curl>1</Curl>
+        <Sockets>0</Sockets>
+        <ClassFile>JTLMollieKlarnaPayLater.php</ClassFile>
+        <ClassName>JTLMollieKlarnaPayLater</ClassName>
+        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+        <MethodLanguage iso="GER">
+          <Name>Klarna Pay Later</Name>
+          <ChargeName>mollie</ChargeName>
+          <InfoText>Bezahlen Sie bequem mit Klarna Pay Later.</InfoText>
+        </MethodLanguage>
+        <Setting type="text" initialValue="28" sort="1" conf="Y">
+          <Name>Max. Gültigenkeit in Tagen:</Name>
+          <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem &#34;bezahlt&#34; Status&#xA;                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.&#xA;                    </Description>
+          <ValueName>expiryDays</ValueName>
+        </Setting>
+      </Method>
+      <Method>
+        <Name>mollie Klarna Slice It</Name>
+        <PictureURL>img/method/klarna@2x.png</PictureURL>
+        <Sort>17</Sort>
+        <SendMail>0</SendMail>
+        <Provider>mollie.com</Provider>
+        <TSCode>FINANCING</TSCode>
+        <PreOrder>1</PreOrder>
+        <Soap>0</Soap>
+        <Curl>1</Curl>
+        <Sockets>0</Sockets>
+        <ClassFile>JTLMollieKlarnaSliceIt.php</ClassFile>
+        <ClassName>JTLMollieKlarnaSliceIt</ClassName>
+        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+        <MethodLanguage iso="GER">
+          <Name>Klarna Slice It</Name>
+          <ChargeName>mollie</ChargeName>
+          <InfoText>Bezahlen Sie bequem mit Klarna Slice It.</InfoText>
+        </MethodLanguage>
+        <Setting type="text" initialValue="28" sort="1" conf="Y">
+          <Name>Max. Gültigenkeit in Tagen:</Name>
+          <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem &#34;bezahlt&#34; Status&#xA;                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.&#xA;                    </Description>
+          <ValueName>expiryDays</ValueName>
+        </Setting>
+      </Method>
+      <Method>
+        <Name>mollie Przelewy24</Name>
+        <PictureURL>img/method/Przelewy24@2x.png</PictureURL>
+        <Sort>17</Sort>
+        <SendMail>0</SendMail>
+        <Provider>mollie.com</Provider>
+        <TSCode>OTHER</TSCode>
+        <PreOrder>1</PreOrder>
+        <Soap>0</Soap>
+        <Curl>1</Curl>
+        <Sockets>0</Sockets>
+        <ClassFile>JTLMolliePrzelewy24.php</ClassFile>
+        <ClassName>JTLMolliePrzelewy24</ClassName>
+        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+        <MethodLanguage iso="GER">
+          <Name>Przelewy24</Name>
+          <ChargeName>mollie</ChargeName>
+          <InfoText>Bezahlen Sie bequem mit Przelewy24.</InfoText>
+        </MethodLanguage>
+        <Setting type="text" initialValue="100" sort="1" conf="Y">
+          <Name>Max. Gültigenkeit in Tagen:</Name>
+          <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem &#34;bezahlt&#34; Status&#xA;                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.&#xA;                    </Description>
+          <ValueName>expiryDays</ValueName>
+        </Setting>
+      </Method>
+      <Method>
+        <Name>mollie MyBank</Name>
+        <PictureURL>img/method/mybank@2x.png</PictureURL>
+        <Sort>17</Sort>
+        <SendMail>0</SendMail>
+        <Provider>mollie.com</Provider>
+        <TSCode>OTHER</TSCode>
+        <PreOrder>1</PreOrder>
+        <Soap>0</Soap>
+        <Curl>1</Curl>
+        <Sockets>0</Sockets>
+        <ClassFile>JTLMollieMyBank.php</ClassFile>
+        <ClassName>JTLMollieMyBank</ClassName>
+        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+        <MethodLanguage iso="GER">
+          <Name>MyBank</Name>
+          <ChargeName>mollie</ChargeName>
+          <InfoText>Bezahlen Sie bequem mit MyBank.</InfoText>
+        </MethodLanguage>
+        <Setting type="text" initialValue="100" sort="1" conf="Y">
+          <Name>Max. Gültigenkeit in Tagen:</Name>
+          <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem &#34;bezahlt&#34; Status&#xA;                        führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28 Tage.&#xA;                    </Description>
+          <ValueName>expiryDays</ValueName>
+        </Setting>
+      </Method>
+    </PaymentMethod>
+  </Install>
 </jtlshop3plugin>
