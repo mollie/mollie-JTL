@@ -412,7 +412,7 @@ class JTLMollie extends PaymentMethod
                     && fmod($oPosition->nAnzahl, 1) !== 0.0) {
                     $_netto *= $_amount;
                     $_amount = 1;
-                    $line->name .= sprintf(" (%.2f %s)", (float)$oPosition->nAnzahl, $oPosition->cEinheit);
+                    $line->name .= utf8_encode(sprintf(" (%.2f %s)", (float)$oPosition->nAnzahl, $oPosition->cEinheit));
                 }
             }
 
