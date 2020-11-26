@@ -108,19 +108,16 @@
         errorDiv.innerHTML = '';
 
         mollie.createToken().then(function (result) {
-            const {
-                token, error
-            } = result;
-            if (error) {
+            if (result.error) {
                 var alert = document.createElement('div');
                 alert.className = 'alert alert-danger';
                 alert.id = 'mollieErrorContent';
-                alert.textContent = errorMessage ? errorMessage : error.message;
+                alert.textContent = errorMessage ? errorMessage : result.error.message;
                 errorDiv.append(alert);
             } else {
                 // Add token to the form
                 const tokenInput = document.getElementById("cardToken");
-                tokenInput.value = token;
+                tokenInput.value = result.token;
                 // Re-submit form to the server
                 form.submit();
             }
