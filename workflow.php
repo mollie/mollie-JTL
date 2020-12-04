@@ -16,6 +16,8 @@ try {
         return;
     }
 
+    require_once $oPlugin->cAdminmenuPfad . '../paymentmethod/JTLMollie.php';
+
     //if (Helper::getSetting('notifyMollie') === 'W') {
     if (array_key_exists('secret', $_REQUEST) && trim($_REQUEST['secret']) !== '' && $_REQUEST['secret'] === Helper::getSetting('workflowSecret')) {
 
@@ -33,9 +35,10 @@ try {
             switch (strtolower(trim($_REQUEST['action']))) {
                 case 'storno':
                     if ($oPayment = Payment::getPayment($kBestellung)) {
-                        $logData .= '$' . $oPayment->kID . 'ï¿½' . $oPayment->cOrderNumber;
+                        $logData .= '$' . $oPayment->kID . '�' . $oPayment->cOrderNumber;
                         $order = JTLMollie::API()->orders->get($oPayment->kID);
-                        if (in_array($order->status, [OrderStatus::STATUS_AUTHORIZED])) {
+
+                        if ($order->status === OrderStatus::STATUS_AUTHORIZED) {
                             $order = JTLMollie::API()->orders->cancel($oPayment->kID);
                             Mollie::JTLMollie()->doLog("mollie//WORKFLOW: kBestellung:{$kBestellung} neuer Status: " . $order->status . ".", $logData, LOGLEVEL_NOTICE);
                         } elseif ($order->status === OrderStatus::STATUS_PAID || $order->status === OrderStatus::STATUS_COMPLETED) {
@@ -65,7 +68,7 @@ try {
                 case 'shipped':
 
                     if ($oPayment = Payment::getPayment($kBestellung)) {
-                        $logData .= '$' . $oPayment->kID . 'ï¿½' . $oPayment->cOrderNumber;
+                        $logData .= '$' . $oPayment->kID . '�' . $oPayment->cOrderNumber;
                         $order = JTLMollie::API()->orders->get($oPayment->kID);
                         if (in_array($order->status, [OrderStatus::STATUS_PAID, OrderStatus::STATUS_AUTHORIZED, OrderStatus::STATUS_SHIPPING])) {
                             if ($complete) {
@@ -91,9 +94,9 @@ try {
             die('kBestellung oder action fehlen');
         }
     } else {
-        Jtllog::writeLog("mollie//WORKFLOW Datei aufgerufen, Secret jedoch nicht gï¿½ltig!");
+        Jtllog::writeLog("mollie//WORKFLOW Datei aufgerufen, Secret jedoch nicht g�ltig!");
         http_response_code(403);
-        die('Secret ungültig');
+        die('Secret ung�ltig');
     }
     //} else {
     //    Jtllog::writeLog("mollie//WORKFLOW Datei aufgerufen, Setting jedoch nicht auf Workflow!");
