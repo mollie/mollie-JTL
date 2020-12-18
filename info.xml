@@ -87,7 +87,7 @@
           </SelectboxOptions>
         </Setting>
         <Setting type="selectbox" initialValue="S" sort="20" conf="Y">
-          <Name>Zahlungsart Daten syncronisiernen</Name>
+          <Name>Zahlungsart Daten synchronisieren</Name>
           <Description>Lädt Name / Bild für die jeweilige Sprache automatisch von mollie, und speichert diese&#xA;&#xA;                        in der Datenbank&#xA;&#xA;                    </Description>
           <ValueName>paymentmethod_sync</ValueName>
           <SelectboxOptions>
