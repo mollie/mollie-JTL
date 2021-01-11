@@ -299,7 +299,7 @@ abstract class Mollie
                         $cHinweis = $mPayment->id;
                     }
 
-                    if ($mPayment->method === PaymentMethod::PAYPAL && isset($mPayment->details->paypalReference)) {
+                    if ($mPayment->method === PaymentMethod::PAYPAL && isset($mPayment->details, $mPayment->details->paypalReference)) {
                         $cHinweis = $mPayment->details->paypalReference;
                         $oIncomingPayment->cZahler = isset($payment->details->paypalPayerId) ? $payment->details->paypalPayerId : '';
                     }

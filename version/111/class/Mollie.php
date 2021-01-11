@@ -259,6 +259,9 @@ abstract class Mollie
                     ':mollieId1' => $mPayment->id,
                     ':mollieId2' => $mPayment->id,
                 ], 3);
+            }else{
+                self::JTLMollie()->doLog('Mollie::handleOrder: kein Payment gefunden', $logData);
+                return false;
             }
 
             try {
@@ -301,7 +304,7 @@ abstract class Mollie
                         $cHinweis = $mPayment->id;
                     }
 
-                    if ($mPayment->method === PaymentMethod::PAYPAL && isset($mPayment->details->paypalReference)) {
+                    if ($mPayment->method === PaymentMethod::PAYPAL && isset($mPayment->details, $mPayment->details->paypalReference)) {
                         $cHinweis = $mPayment->details->paypalReference;
                         $oIncomingPayment->cZahler = isset($payment->details->paypalPayerId) ? $payment->details->paypalPayerId : '';
                     }
