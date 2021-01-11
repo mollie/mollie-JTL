@@ -83,10 +83,12 @@ abstract class Mollie
                     /** @var \Versand $oVersand */
                     $oVersand = $oBestellung->oLieferschein_arr[$nLS]->oVersand_arr[$nV];
                     $tracking = new stdClass();
-                    $tracking->carrier = utf8_encode($oVersand->getLogistik());
-                    $tracking->url = utf8_encode($oVersand->getLogistikURL());
-                    $tracking->code = utf8_encode($oVersand->getIdentCode());
-                    $options['tracking'] = $tracking;
+                    $tracking->carrier = utf8_encode(trim($oVersand->getLogistik()));
+                    $tracking->url = utf8_encode(trim($oVersand->getLogistikURL()));
+                    $tracking->code = utf8_encode(trim($oVersand->getIdentCode()));
+                    if ($tracking->code && $tracking->carrier) {
+                        $options['tracking'] = $tracking;
+                    }
                 }
             }
         }
