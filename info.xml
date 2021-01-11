@@ -46,6 +46,9 @@
     <Version nr="111">
       <CreateDate>2021-01-11</CreateDate>
     </Version>
+    <Version nr="112">
+      <CreateDate>2021-01-11</CreateDate>
+    </Version>
     <Hooks>
       <Hook id="131">131_globalinclude.php</Hook>
       <Hook id="144">144_notify.php</Hook>
