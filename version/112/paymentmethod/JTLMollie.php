@@ -687,6 +687,7 @@ class JTLMollie extends PaymentMethod
      *
      * @return bool
      */
+
     public function isSelectable()
     {
 
@@ -751,7 +752,13 @@ class JTLMollie extends PaymentMethod
     {
         $key = md5(serialize([$locale, $billingCountry, $amount, $currency]));
         if (!array_key_exists($key, self::$_possiblePaymentMethods)) {
-            self::$_possiblePaymentMethods[$key] = self::API()->methods->allActive(['amount' => ['currency' => $currency, 'value' => number_format($amount, 2, '.', '')], 'billingCountry' => $_SESSION['Kunde']->cLand, 'locale' => $locale, 'includeWallets' => 'applepay', 'include' => 'pricing,issuers', 'resource' => 'orders']);
+            self::$_possiblePaymentMethods[$key] = self::API()->methods->allActive([
+                'amount' => ['currency' => $currency, 'value' => number_format($amount, 2, '.', '')],
+                'billingCountry' => $_SESSION['Kunde']->cLand,
+                'locale' => $locale,
+                'includeWallets' => 'applepay',
+                'include' => 'pricing,issuers',
+                'resource' => 'orders']);
         }
 
         if ($method !== null) {
