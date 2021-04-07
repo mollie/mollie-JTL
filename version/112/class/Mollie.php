@@ -23,6 +23,11 @@ use stdClass;
 use WarenkorbPos;
 use ws_mollie\Model\Payment;
 
+/**
+ * Class Mollie
+ * @package ws_mollie
+ * @deprecated
+ */
 abstract class Mollie
 {
     protected static $_jtlmollie;

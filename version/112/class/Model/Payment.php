@@ -7,10 +7,44 @@ use Mollie\Api\Resources\Order;
 use Shop;
 use ws_mollie\Mollie;
 
+/**
+ * Class Payment
+ * @package ws_mollie\Model
+ *
+ * @property string $kID
+ * @property int $kBestellung
+ * @property string $cMode
+ * @property string $cStatus
+ * @property string $cHash
+ * @property float $fAmount
+ * @property string $cOrderNumber
+ * @property string $cCurrency
+ * @property string $cMethod
+ * @property string $cLocale
+ * @property bool $bCancelable
+ * @property string $cWebhookURL
+ * @property string $cRedirectURL
+ * @property string $cCheckoutURL
+ * @property float $fAmountCaptured
+ * @property float $fAmountRefunded
+ * @property string $dCreatedAt
+ * @property bool $bLockTimeout
+ * @property bool $bSynced
+ */
 class Payment extends AbstractModel
 {
     const TABLE = 'xplugin_ws_mollie_payments';
 
+    const PRIMARY = 'kID';
+
+    /**
+     * @param Order $oMolliePayment
+     * @param null $kBestellung
+     * @param null $hash
+     * @return array|bool|int|object
+     * @throws \Exception
+     * @deprecated
+     */
     public static function updateFromPayment(Order $oMolliePayment, $kBestellung = null, $hash = null)
     {
         $logData = '#' . $kBestellung . '$' . $oMolliePayment->id;
@@ -51,6 +85,11 @@ class Payment extends AbstractModel
         );
     }
 
+    /**
+     * @param $kBestellung
+     * @return array|bool|int|object
+     * @deprecated
+     */
     public static function getPayment($kBestellung)
     {
         $payment = Shop::DB()->executeQueryPrepared('SELECT * FROM ' . self::TABLE . ' WHERE kBestellung = :kBestellung', [':kBestellung' => $kBestellung], 1);
@@ -60,6 +99,11 @@ class Payment extends AbstractModel
         return $payment;
     }
 
+    /**
+     * @param $kID
+     * @return array|bool|int|object
+     * @deprecated
+     */
     public static function getPaymentMollie($kID)
     {
         $payment = Shop::DB()->executeQueryPrepared('SELECT * FROM ' . self::TABLE . ' WHERE kID = :kID', [':kID' => $kID], 1);
@@ -72,6 +116,7 @@ class Payment extends AbstractModel
     /**
      * @param $cHash
      * @return array|int|object
+     * @deprecated
      */
     public static function getPaymentHash($cHash)
     {
@@ -80,5 +125,13 @@ class Payment extends AbstractModel
             $payment->oBestellung = new Bestellung($payment->kBestellung, false);
         }
         return $payment;
+    }
+
+    public function save()
+    {
+        if (!$this->dCreatedAt) {
+            $this->dCreatedAt = date('Y-m-d H:i:s');
+        }
+        return parent::save();
     }
 }

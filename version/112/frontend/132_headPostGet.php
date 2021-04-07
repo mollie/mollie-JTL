@@ -3,11 +3,14 @@
 use ws_mollie\Helper;
 use ws_mollie\Hook\Queue;
 
+
+require_once __DIR__ . '/../class/Helper.php';
+
+
 try {
-    require_once __DIR__ . '/../class/Helper.php';
     Helper::init();
 
-    Queue::xmlBestellStatus(isset($args_arr) ? $args_arr : []);
+    Queue::headPostGet();
 
 } catch (Exception $e) {
     Helper::logExc($e);

@@ -4,5 +4,5 @@ require_once __DIR__ . '/JTLMollie.php';
 
 class JTLMollieIDEAL extends JTLMollie
 {
-    const MOLLIE_METHOD = \Mollie\Api\Types\PaymentMethod::IDEAL;
+    const METHOD = \Mollie\Api\Types\PaymentMethod::IDEAL;
 }

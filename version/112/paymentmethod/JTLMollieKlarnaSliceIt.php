@@ -6,5 +6,5 @@ class JTLMollieKlarnaSliceIt extends JTLMollie
 {
     const MAX_EXPIRY_DAYS = 28;
 
-    const MOLLIE_METHOD = \Mollie\Api\Types\PaymentMethod::KLARNA_SLICE_IT;
+    const METHOD = \Mollie\Api\Types\PaymentMethod::KLARNA_SLICE_IT;
 }

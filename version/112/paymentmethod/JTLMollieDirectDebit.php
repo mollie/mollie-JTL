@@ -2,7 +2,16 @@
 
 require_once __DIR__ . '/JTLMollie.php';
 
+/**
+ * Class JTLMollieDirectDebit
+ * @deprecated since 112
+ */
 class JTLMollieDirectDebit extends JTLMollie
 {
-    const MOLLIE_METHOD = \Mollie\Api\Types\PaymentMethod::DIRECTDEBIT;
+    const METHOD = \Mollie\Api\Types\PaymentMethod::DIRECTDEBIT;
+
+    public function isSelectable()
+    {
+        return false;
+    }
 }
