@@ -187,13 +187,12 @@ try {
                     break;
                 }
 
-                $order = JTLMollie::API()->orders->get($_REQUEST['id'], ['embed' => 'payments,refunds']);
-                $payment = Payment::getPaymentMollie($_REQUEST['id']);
+                $checkout = \ws_mollie\Checkout\AbstractCheckout::fromID($_REQUEST['id']);
                 $oBestellung = null;
-                if ($payment) {
-                    $oBestellung = new Bestellung($payment->kBestellung, false);
+                if ($checkout) {
+                    $oBestellung = $checkout->getBestellung();
                     //\ws_mollie\Model\Payment::updateFromPayment($order, $oBestellung->kBestellung);
-                    if ($oBestellung->kBestellung && $oBestellung->cBestellNr !== $payment->cOrderNumber) {
+                    if ($oBestellung->kBestellung && $oBestellung->cBestellNr !== $oBestellung->cBestellNr) {
                         Shop::DB()->executeQueryPrepared("UPDATE xplugin_ws_mollie_payments SET cOrderNumber = :cBestellNr WHERE kID = :kID", [
                             ':cBestellNr' => $oBestellung->cBestellNr,
                             ':kID' => $payment->kID,
@@ -201,14 +200,14 @@ try {
                     }
                 }
                 $logs = Shop::DB()->executeQueryPrepared("SELECT * FROM tzahlungslog WHERE cLogData LIKE :kBestellung OR cLogData LIKE :cBestellNr OR cLogData LIKE :MollieID ORDER BY dDatum DESC, cLog DESC", [
-                    ':kBestellung' => '%#' . ($payment->kBestellung ?: '##') . '%',
-                    ':cBestellNr' => '%§' . ($payment->cOrderNumber ?: '§§') . '%',
-                    ':MollieID' => '%$' . ($payment->kID ?: '$$') . '%',
+                    ':kBestellung' => '%#' . ($oBestellung->kBestellung ?: '##') . '%',
+                    ':cBestellNr' => '%§' . ($oBestellung->cBestellNr ?: '§§') . '%',
+                    ':MollieID' => '%$' . ($checkout->getMollie()->id ?: '$$') . '%',
                 ], 2);
 
-                Shop::Smarty()->assign('payment', $payment)
+                Shop::Smarty()->assign('payment', $checkout->getModel())
                     ->assign('oBestellung', $oBestellung)
-                    ->assign('order', $order)
+                    ->assign('order', $checkout->getMollie())
                     ->assign('logs', $logs);
                 Shop::Smarty()->display($oPlugin->cAdminmenuPfad . '/tpl/order.tpl');
                 return;

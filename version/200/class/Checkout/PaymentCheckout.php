@@ -58,10 +58,16 @@ class PaymentCheckout extends AbstractCheckout
         if ($this->getModel()->kID) {
             try {
                 $this->payment = $this->API()->Client()->payments->get($this->getModel()->kID);
+                if ($this->payment->status === PaymentStatus::STATUS_PAID) {
+                    throw new RuntimeException(self::Plugin()->oPluginSprachvariableAssoc_arr['errAlreadyPaid']);
+                }
                 if ($this->payment->status === PaymentStatus::STATUS_OPEN) {
-                    $this->updateModel()->updateModel();
+                    $this->updateModel()->saveModel();
                     return $this->payment;
                 }
+            }catch (RuntimeException $e){
+                //$this->PaymentMethod()->doLog(sprintf("PaymentCheckout::create: Letzte Transaktion '%s' konnte nicht geladen werden: %s", $this->getModel()->kID, $e->getMessage()), LOGLEVEL_ERROR);
+                throw $e;
             } catch (Exception $e) {
                 $this->PaymentMethod()->doLog(sprintf("PaymentCheckout::create: Letzte Transaktion '%s' konnte nicht geladen werden: %s, versuche neue zu erstellen.", $this->getModel()->kID, $e->getMessage()), LOGLEVEL_ERROR);
             }

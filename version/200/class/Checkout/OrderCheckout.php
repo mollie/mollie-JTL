@@ -70,6 +70,7 @@ class OrderCheckout extends AbstractCheckout
             try {
                 $this->order = $this->API()->Client()->orders->get($this->getModel()->kID, ['embed' => 'payments']);
                 if (in_array($this->order->status, [OrderStatus::STATUS_COMPLETED, OrderStatus::STATUS_PAID, OrderStatus::STATUS_AUTHORIZED, OrderStatus::STATUS_PENDING], true)) {
+                    $this->handleNotification();
                     throw new RuntimeException(self::Plugin()->oPluginSprachvariableAssoc_arr['errAlreadyPaid']);
                 }
                 if ($this->order->status === OrderStatus::STATUS_CREATED) {
@@ -88,6 +89,9 @@ class OrderCheckout extends AbstractCheckout
                     $this->updateModel()->saveModel();
                     return $this->getMollie(true);
                 }
+            }catch (RuntimeException $e){
+                //$this->PaymentMethod()->doLog(sprintf("OrderCheckout::create: Letzte Order '%s' konnte nicht geladen werden: %s", $this->getModel()->kID, $e->getMessage()), LOGLEVEL_ERROR);
+                throw $e;
             } catch (Exception $e) {
                 $this->PaymentMethod()->doLog(sprintf("OrderCheckout::create: Letzte Order '%s' konnte nicht geladen werden: %s, versuche neue zu erstellen.", $this->getModel()->kID, $e->getMessage()), LOGLEVEL_ERROR);
             }

@@ -33,7 +33,7 @@ class Customer extends AbstractModel
 
         $customer = new stdClass();
         if (!$mCustomer->customerId) {
-            if (!array_key_exists('mollie_create_customer', $_SESSION['cPost_arr']) || $_SESSION['cPost_arr']['mollie_create_customer'] !== 'on') {
+            if (!array_key_exists('mollie_create_customer', $_SESSION['cPost_arr']?:[]) || $_SESSION['cPost_arr']['mollie_create_customer'] !== 'on') {
                 return null;
             }
         } else {

@@ -72,12 +72,24 @@
                          title="{$method->mollie->description|utf8_decode}"
                          src="{$method->mollie->image->svg}" height="50"/></td>
                 <td>
+                    {if $method->mollie->status === 'activated'}
+                        <span class="fa fa-check" style="color: green; cursor:help;"
+                              title="Mollie Status: aktiv"></span>
+                    {else}
+                        <span class="fa fa-times" style="color: red; cursor:help;"
+                              title="Mollie Status: inaktiv"></span>
+                    {/if}
                     <b>{$method->mollie->description|utf8_decode}</b><br/>
                     <code>{$method->mollie->id}</code>
                 </td>
                 <td>
                     {if $method->shop && $method->oClass}
-                        {if $method->shop->nWaehrendBestellung}
+
+                        {if intval($method->shop->nWaehrendBestellung) === 1}
+                            <span style="color: red">Zahlung <b>VOR</b> Bestellabschluss nicht unterstützt!</span>
+                        {/if}
+
+                        {*if $method->shop->nWaehrendBestellung}
                             Zahlung
                             <b>VOR</b>
                             Bestellabschluss
@@ -92,10 +104,9 @@
                             Zahlung
                             <b>NACH</b>
                             Bestellabschluss
-                        {/if}
+                        {/if*}
                         <br/>
-                        <b>Gültigkeit</b>
-                        : {$method->maxExpiryDays} Tage
+                        <b>Gültigkeit</b>: {$method->maxExpiryDays} Tage
 
                     {else}
                         <b>Derzeit nicht unterstützt.</b>

@@ -51,7 +51,7 @@ class Queue extends AbstractHook
      */
     protected static function saveToQueue($hook, $args_arr, $type = 'hook')
     {
-        $mQueue = new QueueModel(Shop::DB());
+        $mQueue = new QueueModel();
         $mQueue->cType = $type . ':' . $hook;
         $mQueue->cData = serialize($args_arr);
         try {

@@ -48,9 +48,9 @@
                  title="PCI-DSS SAQ-A compliant"/>
         </div>
     {/if}
-    {if $skipComponents == 'Y'}
-        <div class="skip-mollie-components" style="margin: 10px">
-            <a href="#" id="skipMollieComponents">{$mollieLang.skipComponentsLink}</a>
+    {if $components == 'S'}
+        <div class="skip-mollie-components" style="margin: 10px; text-align: right">
+            <a href="#" class="btn btn-primary" id="skipMollieComponents">{$mollieLang.skipComponentsLink}</a>
         </div>
     {/if}
 </div>
@@ -79,7 +79,7 @@
 
     const form = document.getElementById("form_payment_extra");
     const cardToken = document.getElementById('cardToken');
-    const errorMessage = {if isset($errorMessage)}{$errorMessage}{else}null;
+    const errorMessage = {if isset($errorMessage)}{$errorMessage}{else}null{/if};
     const mollie = Mollie('{$profileId}', {
         locale: '{$locale}'{if $testmode}, testMode: true{/if}
     });

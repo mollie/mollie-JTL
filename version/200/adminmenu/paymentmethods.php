@@ -19,28 +19,26 @@ try {
     $mollie->setApiKey(Helper::getSetting("api_key"));
 
     $profile = $mollie->profiles->get('me');
-    /*    $methods = $mollie->methods->all([
-            //'locale' => 'de_DE',
-            'include' => 'pricing',
-        ]);*/
 
     $za = filter_input(INPUT_GET, 'za', FILTER_VALIDATE_BOOLEAN);
     $active = filter_input(INPUT_GET, 'active', FILTER_VALIDATE_BOOLEAN);
     $amount = filter_input(INPUT_GET, 'amount', FILTER_VALIDATE_FLOAT) ?: null;
-    $locale = filter_input(INPUT_GET, 'locale', FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/^[a-zA-Z]{2}_[a-zA-Z]{2}$/']]) ?: null;
+    $locale = filter_input(INPUT_GET, 'locale', FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/^[a-zA-Z]{2}_[a-zA-Z]{2}$/']]) ?: \ws_mollie\Checkout\Payment\Locale::getLocale();
     $currency = filter_input(INPUT_GET, 'currency', FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/^[a-zA-Z]{3}$/']]) ?: 'EUR';
 
     if ($za) {
         Shop::Smarty()->assign('defaultTabbertab', Helper::getAdminmenu("Zahlungsarten"));
     }
 
-    $params = ['include' => 'pricing,issuers'];
-    if ($amount && $currency && $locale) {
+    $params = [
+        'include' => 'pricing,issuers',
+        'locale' => $locale
+    ];
+    if ($amount && $currency) {
         $params['amount'] = ['value' => number_format($amount, 2, '.', ''), 'currency' => $currency];
-        $params['locale'] = $locale;
         if ($active) {
             $params['includeWallets'] = 'applepay';
-            $params['resource'] = 'orders';
+            //$params['resource'] = 'orders';
         }
     }
 
@@ -63,7 +61,7 @@ try {
         $shop = null;
         $oClass = null;
 
-        if (array_key_exists($key, $oPlugin->oPluginZahlungsKlasseAssoc_arr)) {
+        if (!in_array($id, ['voucher', 'giftcard', 'directdebit'], true) && array_key_exists($key, $oPlugin->oPluginZahlungsKlasseAssoc_arr)) {
             $class = $oPlugin->oPluginZahlungsKlasseAssoc_arr[$key];
             include_once($oPlugin->cPluginPfad . 'paymentmethod/' . $class->cClassPfad);
             /** @var JTLMollie $oClass */

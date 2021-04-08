@@ -55,7 +55,7 @@ class JTLMollie extends PaymentMethod
      * Tells Template Engine.
      *
      * @param Bestellung $order
-     * @return bool|string
+     * @return void
      */
     public function preparePaymentProcess($order)
     {
@@ -65,13 +65,13 @@ class JTLMollie extends PaymentMethod
         try {
 
             if ($this->duringCheckout) {
-                $this->doLog(sprintf("Zahlung vor Bestellabschluss nicht unterstützt (%s)!", $order->cBestellNr), LOGLEVEL_ERROR);
+                $this->Log(sprintf("Zahlung vor Bestellabschluss nicht unterstützt (%s)!", $order->cBestellNr), LOGLEVEL_ERROR);
                 return;
             }
 
             $payable = (float)$order->fGesamtsumme > 0;
             if (!$payable) {
-                $this->doLog(sprintf("Bestellung '%s': Gesamtsumme %.2f, keine Zahlung notwendig!", $order->cBestellNr, $order->fGesamtsumme), LOGLEVEL_NOTICE);
+                $this->Log(sprintf("Bestellung '%s': Gesamtsumme %.2f, keine Zahlung notwendig!", $order->cBestellNr, $order->fGesamtsumme), LOGLEVEL_NOTICE);
                 return;
             }
 
@@ -104,10 +104,9 @@ class JTLMollie extends PaymentMethod
                 header('Location: ' . $url);
             }
         } catch (Exception $e) {
-            $this->doLog('mollie::preparePaymentProcess: ' . $e->getMessage() . ' - ' . print_r(['cBestellNr' => $order->cBestellNr], 1), LOGLEVEL_ERROR);
+            $this->Log('mollie::preparePaymentProcess: ' . $e->getMessage() . ' - ' . print_r(['cBestellNr' => $order->cBestellNr], 1), LOGLEVEL_ERROR);
             Shop::Smarty()->assign('oMollieException', $e);
         }
-        return $this;
     }
 
     /**
@@ -176,9 +175,9 @@ class JTLMollie extends PaymentMethod
     {
 
         if (API::getMode()) {
-            $selectable = trim(self::Plugin()->oPluginEinstellungAssoc_arr['test_apiKey']) !== '';
+            $selectable = trim(self::Plugin()->oPluginEinstellungAssoc_arr['test_api_key']) !== '';
         } else {
-            $selectable = trim(self::Plugin()->oPluginEinstellungAssoc_arr['apiKey']) !== '';
+            $selectable = trim(self::Plugin()->oPluginEinstellungAssoc_arr['api_key']) !== '';
             if (!$selectable) {
                 $this->doLog("Live API Key missing!", LOGLEVEL_ERROR);
             }

@@ -158,7 +158,7 @@ class OrderLine implements JsonSerializable
     {
         $sum = .0;
         foreach ($orderLines as $line) {
-            $sum += (float)$line->totalAmount->value;
+            $sum += (float)$line->totalAmount->value();
         }
         if (abs($sum - (float)$amount->value()) > 0) {
             $diff = (round((float)$amount->value() - $sum, 2));

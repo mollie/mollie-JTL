@@ -494,7 +494,7 @@
                 <Name>Mollie</Name>
                 <PictureURL>img/method/mollie@2x.png</PictureURL>
                 <Sort>1</Sort>
-                <SendMail>0</SendMail>
+                <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
                 <PreOrder>0</PreOrder>
@@ -528,10 +528,10 @@
                 <Name>Mollie Kreditkarte</Name>
                 <PictureURL>img/method/creditcard@2x.png</PictureURL>
                 <Sort>3</Sort>
-                <SendMail>0</SendMail>
+                <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>CREDIT_CARD</TSCode>
-                <PreOrder>1</PreOrder>
+                <PreOrder>0</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -584,10 +584,10 @@
                 <Name>Mollie Apple Pay</Name>
                 <PictureURL>img/method/applepay@2x.png</PictureURL>
                 <Sort>3</Sort>
-                <SendMail>0</SendMail>
+                <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
-                <PreOrder>1</PreOrder>
+                <PreOrder>0</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -618,10 +618,10 @@
                 <Name>Mollie Bancontact</Name>
                 <PictureURL>img/method/bancontact@2x.png</PictureURL>
                 <Sort>4</Sort>
-                <SendMail>0</SendMail>
+                <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
-                <PreOrder>1</PreOrder>
+                <PreOrder>0</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -652,7 +652,7 @@
                 <Name>Mollie Banktransfer</Name>
                 <PictureURL>img/method/banktransfer@2x.png</PictureURL>
                 <Sort>5</Sort>
-                <SendMail>0</SendMail>
+                <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
                 <PreOrder>0</PreOrder>
@@ -686,10 +686,10 @@
                 <Name>Mollie Belfius</Name>
                 <PictureURL>img/method/belfius@2x.png</PictureURL>
                 <Sort>6</Sort>
-                <SendMail>0</SendMail>
+                <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
-                <PreOrder>1</PreOrder>
+                <PreOrder>0</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -720,10 +720,10 @@
                 <Name>Mollie DirectDebit</Name>
                 <PictureURL>img/method/directdebit@2x.png</PictureURL>
                 <Sort>7</Sort>
-                <SendMail>0</SendMail>
+                <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>DIRECT_DEBIT</TSCode>
-                <PreOrder>1</PreOrder>
+                <PreOrder>0</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -740,10 +740,10 @@
                 <Name>Mollie EPS</Name>
                 <PictureURL>img/method/eps@2x.png</PictureURL>
                 <Sort>2</Sort>
-                <SendMail>0</SendMail>
+                <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
-                <PreOrder>1</PreOrder>
+                <PreOrder>0</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -774,10 +774,10 @@
                 <Name>Mollie Giftcard</Name>
                 <PictureURL>img/method/giftcard@2x.png</PictureURL>
                 <Sort>8</Sort>
-                <SendMail>0</SendMail>
+                <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
-                <PreOrder>1</PreOrder>
+                <PreOrder>0</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -794,10 +794,10 @@
                 <Name>Mollie Giropay</Name>
                 <PictureURL>img/method/giropay@2x.png</PictureURL>
                 <Sort>9</Sort>
-                <SendMail>0</SendMail>
+                <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>GIROPAY</TSCode>
-                <PreOrder>1</PreOrder>
+                <PreOrder>0</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -828,10 +828,10 @@
                 <Name>Mollie iDEAL</Name>
                 <PictureURL>img/method/ideal@2x.png</PictureURL>
                 <Sort>10</Sort>
-                <SendMail>0</SendMail>
+                <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
-                <PreOrder>1</PreOrder>
+                <PreOrder>0</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -862,10 +862,10 @@
                 <Name>Mollie ING HomePay</Name>
                 <PictureURL>img/method/inghomepay@2x.png</PictureURL>
                 <Sort>11</Sort>
-                <SendMail>0</SendMail>
+                <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
-                <PreOrder>1</PreOrder>
+                <PreOrder>0</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -882,10 +882,10 @@
                 <Name>Mollie KBC</Name>
                 <PictureURL>img/method/kbc@2x.png</PictureURL>
                 <Sort>12</Sort>
-                <SendMail>0</SendMail>
+                <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
-                <PreOrder>1</PreOrder>
+                <PreOrder>0</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -916,10 +916,10 @@
                 <Name>Mollie PayPal</Name>
                 <PictureURL>img/method/paypal@2x.png</PictureURL>
                 <Sort>13</Sort>
-                <SendMail>0</SendMail>
+                <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>PAYPAL</TSCode>
-                <PreOrder>1</PreOrder>
+                <PreOrder>0</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -950,10 +950,10 @@
                 <Name>Mollie paysafecard</Name>
                 <PictureURL>img/method/paysafecard@2x.png</PictureURL>
                 <Sort>14</Sort>
-                <SendMail>0</SendMail>
+                <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
-                <PreOrder>1</PreOrder>
+                <PreOrder>0</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -984,10 +984,10 @@
                 <Name>Mollie SOFORT</Name>
                 <PictureURL>img/method/sofort@2x.png</PictureURL>
                 <Sort>15</Sort>
-                <SendMail>0</SendMail>
+                <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>DIRECT_E_BANKING</TSCode>
-                <PreOrder>1</PreOrder>
+                <PreOrder>0</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -1018,10 +1018,10 @@
                 <Name>mollie Klarna Pay Later</Name>
                 <PictureURL>img/method/klarna@2x.png</PictureURL>
                 <Sort>16</Sort>
-                <SendMail>0</SendMail>
+                <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>INVOICE</TSCode>
-                <PreOrder>1</PreOrder>
+                <PreOrder>0</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -1043,10 +1043,10 @@
                 <Name>Mollie Klarna Slice It</Name>
                 <PictureURL>img/method/klarna@2x.png</PictureURL>
                 <Sort>17</Sort>
-                <SendMail>0</SendMail>
+                <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>FINANCING</TSCode>
-                <PreOrder>1</PreOrder>
+                <PreOrder>0</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -1068,10 +1068,10 @@
                 <Name>Mollie Przelewy24</Name>
                 <PictureURL>img/method/Przelewy24@2x.png</PictureURL>
                 <Sort>17</Sort>
-                <SendMail>0</SendMail>
+                <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
-                <PreOrder>1</PreOrder>
+                <PreOrder>0</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -1102,10 +1102,10 @@
                 <Name>Mollie MyBank</Name>
                 <PictureURL>img/method/mybank@2x.png</PictureURL>
                 <Sort>17</Sort>
-                <SendMail>0</SendMail>
+                <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
-                <PreOrder>1</PreOrder>
+                <PreOrder>0</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>

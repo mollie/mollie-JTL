@@ -7,7 +7,9 @@ namespace ws_mollie;
 use Exception;
 use Generator;
 use Jtllog;
+use RuntimeException;
 use Shop;
+use ws_mollie\Checkout\AbstractCheckout;
 use ws_mollie\Model\Queue as QueueModel;
 use ws_mollie\Traits\Plugin;
 
@@ -58,7 +60,12 @@ class Queue
 
     protected static function handleWebhook($id, QueueModel $todo)
     {
-        //TODO
+        $checkout = AbstractCheckout::fromID($id);
+        if ($checkout->getBestellung()->kBestellung && $checkout->PaymentMethod()) {
+            $checkout->handleNotification();
+            return $todo->done('Status: ' . $checkout->getMollie()->status);
+        }
+        throw new RuntimeException("Bestellung oder Zahlungsart konnte nicht geladen werden: {$id}");
     }
 
     protected static function handleHook($hook, QueueModel $todo)

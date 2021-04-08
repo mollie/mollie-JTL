@@ -4,10 +4,10 @@
     </div>
 {/if}
 
-{if $redirect != ''}
+{if isset($redirect) && $redirect != ''}
     <div class="row">
         <div class="col-md-4 col-lg-3 col-xl-2">
-            <button type="link" href="{$redirect}" class="primary block">
+            <button type="link" href="{$redirect}" class="btn btn-primary btn-lg block">
                 {lang key='payNow' section='global'}
             </button>
         </div>

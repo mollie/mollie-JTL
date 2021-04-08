@@ -32,7 +32,7 @@ class Amount implements JsonSerializable
         if ($useRounding) {
             $value = $this->optionaleRundung($value);
         }
-        $this->data['value'] = number_format($value, 2, '.', '');
+        $this->data['value'] = number_format(round($value,2), 2, '.', '');
 
         $this->data['currency'] = $currency->cISO;
     }
@@ -41,12 +41,12 @@ class Amount implements JsonSerializable
     {
         $conf = Shop::getSettings([CONF_KAUFABWICKLUNG]);
         if (isset($conf['kaufabwicklung']['bestellabschluss_runden5']) && (int)$conf['kaufabwicklung']['bestellabschluss_runden5'] === 1) {
-            $faktor = $this->currency->fFaktor;
-            $gesamtsumme *= $faktor;
+            //$faktor = $this->currency->fFaktor;
+            //$gesamtsumme *= $faktor;
 
             // simplification. see https://de.wikipedia.org/wiki/Rundung#Rappenrundung
             $gesamtsumme = round($gesamtsumme * 20) / 20;
-            $gesamtsumme /= $faktor;
+            //$gesamtsumme /= $faktor;
         }
 
         return $gesamtsumme;
