@@ -33,7 +33,7 @@ class Customer extends AbstractModel
 
         $customer = new stdClass();
         if (!$mCustomer->customerId) {
-            if (!array_key_exists('mollie_create_customer', $_SESSION['cPost_arr']?:[]) || $_SESSION['cPost_arr']['mollie_create_customer'] !== 'on') {
+            if (!array_key_exists('mollie_create_customer', $_SESSION['cPost_arr']?:[]) || $_SESSION['cPost_arr']['mollie_create_customer'] !== 'Y') {
                 return null;
             }
         } else {
@@ -60,6 +60,7 @@ class Customer extends AbstractModel
             } else {
                 $customer = $api->Client()->customers->create((array)$customer);
                 $mCustomer->customerId = $customer->id;
+                $mCustomer->kKunde = $oKunde->kKunde;
                 $mCustomer->save();
             }
         } catch (Exception $e) {

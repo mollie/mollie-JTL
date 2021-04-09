@@ -10,8 +10,7 @@ try {
     Helper::init();
 
     if (Helper::oPlugin()->oPluginEinstellungAssoc_arr['useCustomerAPI'] === 'C') {
-        // TODO
-        // Checkbox::execute(isset($args_arr) ? $args_arr : []);
+        \ws_mollie\Hook\Checkbox::execute($args_arr);
     }
 
 } catch (Exception $e) {

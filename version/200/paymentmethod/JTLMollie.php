@@ -81,8 +81,7 @@ class JTLMollie extends PaymentMethod
                 $paymentOptions['customerId'] = $customerID;
             }
 
-            // TODO: Options in info XML anlegen
-            $api = self::Plugin()->oPluginEinstellungAssoc_arr[$this->moduleID . '_api'];
+            $api = array_key_exists($this->moduleID . '_api', self::Plugin()->oPluginEinstellungAssoc_arr) ? self::Plugin()->oPluginEinstellungAssoc_arr[$this->moduleID . '_api'] : 'order';
 
             $paymentOptions = array_merge($paymentOptions, $this->getPaymentOptions($order, $api));
 

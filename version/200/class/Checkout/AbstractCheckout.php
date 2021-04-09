@@ -149,24 +149,21 @@ abstract class AbstractCheckout
         $this->updateModel()->saveModel();
         if (!$this->getBestellung()->dBezahltDatum || $this->getBestellung()->dBezahltDatum === '0000-00-00') {
             if ($incoming = $this->getIncomingPayment()) {
-                if (!$this->completlyPaid()) {
-                    if ($incoming->fBetrag >= $this->getBestellung()->fGesamtsummeKundenwaehrung) {
-                        $this->PaymentMethod()->setOrderStatusToPaid($this->getBestellung());
-                        static::makeFetchable($this->getBestellung(), $this->getModel());
-                        $this->PaymentMethod()->deletePaymentHash($this->getHash());
+                $this->PaymentMethod()->addIncomingPayment($this->getBestellung(), $incoming);
+                if ($this->completlyPaid()) {
 
-                        $this->PaymentMethod()->doLog(sprintf("Checkout::handleNotification: Bestellung '%s' als bezahlt markiert: %.2f %s", $this->getBestellung()->cBestellNr, (float)$incoming->fBetrag, $incoming->cISO), LOGLEVEL_NOTICE);
+                    $this->PaymentMethod()->setOrderStatusToPaid($this->getBestellung());
+                    static::makeFetchable($this->getBestellung(), $this->getModel());
+                    $this->PaymentMethod()->deletePaymentHash($this->getHash());
+                    $this->PaymentMethod()->doLog(sprintf("Checkout::handleNotification: Bestellung '%s' als bezahlt markiert: %.2f %s", $this->getBestellung()->cBestellNr, (float)$incoming->fBetrag, $incoming->cISO), LOGLEVEL_NOTICE);
 
-                        $oZahlungsart = Shop::DB()->selectSingleRow('tzahlungsart', 'cModulId', $this->PaymentMethod()->moduleID);
-                        if ($oZahlungsart && (int)$oZahlungsart->nMailSenden === 1) {
-                            require_once PFAD_ROOT . 'includes/mailTools.php';
-                            $this->PaymentMethod()->sendConfirmationMail($this->getBestellung());
-                        }
-                    }else{
-                        $this->PaymentMethod()->doLog(sprintf("Checkout::handleNotification: Bestellung '%s': nicht komplett bezahlt: %.2f %s", $this->getBestellung()->cBestellNr, (float)$incoming->fBetrag, $incoming->cISO), LOGLEVEL_ERROR);
+                    $oZahlungsart = Shop::DB()->selectSingleRow('tzahlungsart', 'cModulId', $this->PaymentMethod()->moduleID);
+                    if ($oZahlungsart && (int)$oZahlungsart->nMailSenden === 1) {
+                        require_once PFAD_ROOT . 'includes/mailTools.php';
+                        $this->PaymentMethod()->sendConfirmationMail($this->getBestellung());
                     }
                 } else {
-                    $this->PaymentMethod()->doLog(sprintf("Checkout::handleNotification: Bestellung '%s': bereits komplett bezahlt: %.2f %s", $this->getBestellung()->cBestellNr, (float)$incoming->fBetrag, $incoming->cISO), LOGLEVEL_ERROR);
+                    $this->PaymentMethod()->doLog(sprintf("Checkout::handleNotification: Bestellung '%s': nicht komplett bezahlt: %.2f %s", $this->getBestellung()->cBestellNr, (float)$incoming->fBetrag, $incoming->cISO), LOGLEVEL_ERROR);
                 }
             }
         }
