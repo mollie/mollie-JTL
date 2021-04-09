@@ -89,21 +89,22 @@ class OrderCheckout extends AbstractCheckout
                     $this->updateModel()->saveModel();
                     return $this->getMollie(true);
                 }
-            }catch (RuntimeException $e){
-                //$this->PaymentMethod()->doLog(sprintf("OrderCheckout::create: Letzte Order '%s' konnte nicht geladen werden: %s", $this->getModel()->kID, $e->getMessage()), LOGLEVEL_ERROR);
+            } catch (RuntimeException $e) {
+                //$this->Log(sprintf("OrderCheckout::create: Letzte Order '%s' konnte nicht geladen werden: %s", $this->getModel()->kID, $e->getMessage()), LOGLEVEL_ERROR);
                 throw $e;
             } catch (Exception $e) {
-                $this->PaymentMethod()->doLog(sprintf("OrderCheckout::create: Letzte Order '%s' konnte nicht geladen werden: %s, versuche neue zu erstellen.", $this->getModel()->kID, $e->getMessage()), LOGLEVEL_ERROR);
+                $this->Log(sprintf("OrderCheckout::create: Letzte Order '%s' konnte nicht geladen werden: %s, versuche neue zu erstellen.", $this->getModel()->kID, $e->getMessage()), LOGLEVEL_ERROR);
             }
         }
 
         try {
             $req = $this->loadRequest($paymentOptions)->getRequestData();
             $this->order = $this->API()->Client()->orders->create($req);
+            $this->Log(sprintf("Order für '%s' wurde erfolgreich angelegt: %s", $this->getBestellung()->cBestellNr, $this->order->id));
             $this->updateModel()->saveModel();
         } catch (Exception $e) {
-            $this->PaymentMethod()->doLog(sprintf("OrderCheckout::create: Neue Order '%s' konnte nicht erstellt werden: %s.", $this->getBestellung()->cBestellNr, $e->getMessage()), LOGLEVEL_ERROR);
-            throw new RuntimeException('Order konnte nicht angelegt werden.');
+            $this->Log(sprintf("OrderCheckout::create: Neue Order '%s' konnte nicht erstellt werden: %s.", $this->getBestellung()->cBestellNr, $e->getMessage()), LOGLEVEL_ERROR);
+            throw new RuntimeException(sprintf("Order für '%s' konnte nicht angelegt werden: %s", $this->getBestellung()->cBestellNr, $e->getMessage()));
         }
         return $this->order;
     }
@@ -136,6 +137,12 @@ class OrderCheckout extends AbstractCheckout
 
     public function loadRequest($options = [])
     {
+
+        if ((int)$this->getBestellung()->oKunde->nRegistriert
+            && ($customer = $this->getCustomer(array_key_exists('mollie_create_customer', $_SESSION['cPost_arr'] ?: []) || $_SESSION['cPost_arr']['mollie_create_customer'] !== 'Y'))
+            && isset($customer)) {
+            $options['customerId'] = $customer->id;
+        }
 
         $this->setRequestData('locale', Locale::getLocale(Session::getInstance()->Language()->getIso(), Session::getInstance()->Customer()->cLand))
             ->setRequestData('amount', new Amount($this->getBestellung()->fGesamtsumme, $this->getBestellung()->Waehrung, true, true))

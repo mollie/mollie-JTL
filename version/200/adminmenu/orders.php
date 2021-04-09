@@ -118,7 +118,7 @@ try {
                     break;
                 }
                 $refund = JTLMollie::API()->orderRefunds->createFor($order, ['lines' => []]);
-                Mollie::JTLMollie()->doLog("Order refunded: <br/><pre>" . print_r($refund, 1) . "</pre>", '$' . $payment->kID . '#' . $payment->kBestellung . '§' . $payment->cOrderNumber);
+                Mollie::JTLMollie()->Log("Order refunded: <br/><pre>" . print_r($refund, 1) . "</pre>", '$' . $payment->kID . '#' . $payment->kBestellung . '§' . $payment->cOrderNumber);
 
                 goto order;
 
@@ -138,7 +138,7 @@ try {
                     break;
                 }
                 $cancel = JTLMollie::API()->orders->cancel($order->id);
-                Mollie::JTLMollie()->doLog("Order canceled: <br/><pre>" . print_r($cancel, 1) . "</pre>", '$' . $payment->kID . '#' . $payment->kBestellung . '§' . $payment->cOrderNumber);
+                Mollie::JTLMollie()->Log("Order canceled: <br/><pre>" . print_r($cancel, 1) . "</pre>", '$' . $payment->kID . '#' . $payment->kBestellung . '§' . $payment->cOrderNumber);
                 goto order;
 
             case 'capture':
@@ -177,7 +177,7 @@ try {
                 // CAPTURE ALL
                 $shipment = JTLMollie::API()->shipments->createFor($order, $options);
                 Helper::addAlert('Zahlung wurde erfolgreich erfasst!', 'success', 'orders');
-                Mollie::JTLMollie()->doLog('Shipment created<br/><pre>' . print_r(['options' => $options, 'shipment' => $shipment], 1) . '</pre>', $logData);
+                Mollie::JTLMollie()->Log('Shipment created<br/><pre>' . print_r(['options' => $options, 'shipment' => $shipment], 1) . '</pre>', $logData);
                 goto order;
 
             case 'order':

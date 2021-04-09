@@ -5,7 +5,6 @@ use ws_mollie\API;
 use ws_mollie\Checkout\OrderCheckout;
 use ws_mollie\Checkout\PaymentCheckout;
 use ws_mollie\Helper;
-use ws_mollie\Model\Customer;
 
 require_once __DIR__ . '/../../../vendor/autoload.php';
 require_once __DIR__ . '/../class/Helper.php';
@@ -77,10 +76,6 @@ class JTLMollie extends PaymentMethod
 
             $paymentOptions = [];
 
-            if ((int)Session::getInstance()->Customer()->nRegistriert && ($customerID = Customer::createOrUpdate(Session::getInstance()->Customer()))) {
-                $paymentOptions['customerId'] = $customerID;
-            }
-
             $api = array_key_exists($this->moduleID . '_api', self::Plugin()->oPluginEinstellungAssoc_arr) ? self::Plugin()->oPluginEinstellungAssoc_arr[$this->moduleID . '_api'] : 'order';
 
             $paymentOptions = array_merge($paymentOptions, $this->getPaymentOptions($order, $api));
@@ -108,14 +103,7 @@ class JTLMollie extends PaymentMethod
         }
     }
 
-    /**
-     * @param string $msg
-     * @param null $data
-     * @param int $level
-     * @return $this
-     * @deprecated
-     */
-    public function doLog($msg, $data = null, $level = LOGLEVEL_NOTICE)
+    public function Log($msg, $data = null, $level = LOGLEVEL_NOTICE)
     {
         ZahlungsLog::add($this->moduleID, "[" . microtime(true) . " - " . $_SERVER['PHP_SELF'] . "] " . $msg, $data, $level);
         return $this;
@@ -124,12 +112,6 @@ class JTLMollie extends PaymentMethod
     public function getPaymentOptions(Bestellung $order, $apiType)
     {
         return [];
-    }
-
-    public function Log($msg, $data = null, $level = LOGLEVEL_NOTICE)
-    {
-        ZahlungsLog::add($this->moduleID, "[" . microtime(true) . " - " . $_SERVER['PHP_SELF'] . "] " . $msg, $data, $level);
-        return $this;
     }
 
     /**
@@ -151,8 +133,7 @@ class JTLMollie extends PaymentMethod
             $checkout->handleNotification($hash);
 
         } catch (Exception $e) {
-            $this->doLog("mollie::handleNotification: Bestellung '{$order->cBestellNr}': {$e->getMessage()}", LOGLEVEL_ERROR);
-            Jtllog::writeLog($e->getMessage() . print_r($_REQUEST));
+            $checkout->Log(sprintf("mollie::handleNotification: Fehler bei Bestellung '%s': %s\n%s", $order->cBestellNr, $e->getMessage(), print_r($args, 1)), LOGLEVEL_ERROR);
         }
     }
 
@@ -178,7 +159,7 @@ class JTLMollie extends PaymentMethod
         } else {
             $selectable = trim(self::Plugin()->oPluginEinstellungAssoc_arr['api_key']) !== '';
             if (!$selectable) {
-                $this->doLog("Live API Key missing!", LOGLEVEL_ERROR);
+                Jtllog::writeLog("Live API Key missing!");
             }
         }
         if ($selectable) {
@@ -196,59 +177,11 @@ class JTLMollie extends PaymentMethod
                     $amount
                 );
             } catch (Exception $e) {
+                Helper::logExc($e);
                 $selectable = false;
             }
         }
         return $selectable && parent::isSelectable();
-        /*
-
-
-        if (array_key_exists('mollieDeleteToken', $_REQUEST) && (int)$_REQUEST['mollieDeleteToken'] === 1) {
-            unset($_SESSION['mollieCardToken']);
-            unset($_SESSION['mollieCardTokenTS']);
-        }
-
-
-        $wk = $_SESSION['Warenkorb'];
-        if (Helper::getSetting("supportQ") !== 'Y') {
-            // Rationale Stückzahlen vorhanden?
-            foreach ($wk->PositionenArr as $oPosition) {
-                if ((int)$oPosition->nPosTyp === (int)C_WARENKORBPOS_TYP_ARTIKEL && $oPosition->Artikel && $oPosition->Artikel->cTeilbar === 'Y'
-                    && fmod($oPosition->nAnzahl, 1) !== 0.0) {
-                    return false;
-                }
-            }
-        }
-
-        $locale = self::getLocale($_SESSION['cISOSprache'], $_SESSION['Kunde']->cLand);
-        if (static::MOLLIE_METHOD !== '') {
-            try {
-                $amount = $wk->gibGesamtsummeWaren(true) * $_SESSION['Waehrung']->fFaktor;
-                if ($amount <= 0) {
-                    $amount = 0.01;
-                }
-                $method = self::PossiblePaymentMethods(static::MOLLIE_METHOD, $locale, $_SESSION['Kunde']->cLand, $_SESSION['Waehrung']->cISO, $amount);
-                if ($method !== null) {
-
-                    if ((int)$this->duringCheckout === 1 && !static::ALLOW_PAYMENT_BEFORE_ORDER) {
-                        $this->doLog(static::MOLLIE_METHOD . " cannot be used for payment before order.");
-                        return false;
-                    }
-
-                    $this->updatePaymentMethod($_SESSION['cISOSprache'], $method);
-                    $this->cBild = $method->image->size2x;
-                    return true;
-                }
-                return false;
-            } catch (Exception $e) {
-                $this->doLog('Method ' . static::MOLLIE_METHOD . ' not selectable:' . $e->getMessage());
-                return false;
-            }
-        } else if ((int)$this->duringCheckout === 0 && static::MOLLIE_METHOD === '') {
-            return true;
-        }
-        return false;
-        */
     }
 
     /**

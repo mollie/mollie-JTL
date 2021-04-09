@@ -65,27 +65,35 @@ class PaymentCheckout extends AbstractCheckout
                     $this->updateModel()->saveModel();
                     return $this->payment;
                 }
-            }catch (RuntimeException $e){
-                //$this->PaymentMethod()->doLog(sprintf("PaymentCheckout::create: Letzte Transaktion '%s' konnte nicht geladen werden: %s", $this->getModel()->kID, $e->getMessage()), LOGLEVEL_ERROR);
+            } catch (RuntimeException $e) {
+                //$this->Log(sprintf("PaymentCheckout::create: Letzte Transaktion '%s' konnte nicht geladen werden: %s", $this->getModel()->kID, $e->getMessage()), LOGLEVEL_ERROR);
                 throw $e;
             } catch (Exception $e) {
-                $this->PaymentMethod()->doLog(sprintf("PaymentCheckout::create: Letzte Transaktion '%s' konnte nicht geladen werden: %s, versuche neue zu erstellen.", $this->getModel()->kID, $e->getMessage()), LOGLEVEL_ERROR);
+                $this->Log(sprintf("PaymentCheckout::create: Letzte Transaktion '%s' konnte nicht geladen werden: %s, versuche neue zu erstellen.", $this->getModel()->kID, $e->getMessage()), LOGLEVEL_ERROR);
             }
         }
 
         try {
             $req = $this->loadRequest($paymentOptions)->getRequestData();
             $this->payment = $this->API()->Client()->payments->create($req);
+            $this->Log(sprintf("Payment für '%s' wurde erfolgreich angelegt: %s", $this->getBestellung()->cBestellNr, $this->payment->id));
             $this->updateModel()->saveModel();
         } catch (Exception $e) {
-            $this->PaymentMethod()->doLog(sprintf("PaymentCheckout::create: Neue Transaktion '%s' konnte nicht erstellt werden: %s.", $this->getBestellung()->cBestellNr, $e->getMessage()), LOGLEVEL_ERROR);
-            throw new RuntimeException(sprintf('Mollie-Payment \'%s\' konnte nicht geladen werden: %s', $this->getModel()->kID, $e->getMessage()));
+            $this->Log(sprintf("PaymentCheckout::create: Neue Transaktion für '%s' konnte nicht erstellt werden: %s.", $this->getBestellung()->cBestellNr, $e->getMessage()), LOGLEVEL_ERROR);
+            throw new RuntimeException(sprintf('Mollie-Payment \'%s\' konnte nicht geladen werden: %s', $this->getBestellung()->cBestellNr, $e->getMessage()));
         }
         return $this->payment;
     }
 
     public function loadRequest($options = [])
     {
+
+        if ((int)$this->getBestellung()->oKunde->nRegistriert
+            && ($customer = $this->getCustomer(array_key_exists('mollie_create_customer', $_SESSION['cPost_arr'] ?: []) || $_SESSION['cPost_arr']['mollie_create_customer'] !== 'Y'))
+            && isset($customer)) {
+            $options['customerId'] = $customer->id;
+        }
+
         $this->setRequestData('amount', new Amount($this->getBestellung()->fGesamtsumme, $this->getBestellung()->Waehrung, true, true))
             ->setRequestData('description', 'Order ' . $this->getBestellung()->cBestellNr)
             ->setRequestData('redirectUrl', $this->PaymentMethod()->getReturnURL($this->getBestellung()))

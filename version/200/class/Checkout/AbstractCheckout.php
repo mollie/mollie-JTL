@@ -8,15 +8,21 @@ use Bestellung;
 use Exception;
 use Jtllog;
 use JTLMollie;
+use Mollie\Api\Exceptions\ApiException;
 use Mollie\Api\Resources\Order;
 use PaymentMethod;
 use RuntimeException;
+use Session;
 use Shop;
 use stdClass;
 use ws_mollie\API;
+use ws_mollie\Checkout\Payment\Locale;
+use ws_mollie\Helper;
+use ws_mollie\Model\Customer;
 use ws_mollie\Model\Payment;
 use ws_mollie\Traits\Plugin;
 use ws_mollie\Traits\RequestData;
+use ZahlungsLog;
 
 abstract class AbstractCheckout
 {
@@ -25,20 +31,32 @@ abstract class AbstractCheckout
 
     use RequestData;
 
-    private $hash;
+    /**
+     * @var \Mollie\Api\Resources\Customer|null
+     */
+    protected $customer;
 
+    /**
+     * @var string
+     */
+    private $hash;
     /**
      * @var API
      */
     private $api;
 
+    /**
+     * @var JTLMollie
+     */
     private $paymentMethod;
-
     /**
      * @var Bestellung
      */
     private $oBestellung;
 
+    /**
+     * @var Payment
+     */
     private $model;
 
     /**
@@ -129,58 +147,75 @@ abstract class AbstractCheckout
         // TODO
     }
 
-    abstract public function cancelOrRefund();
-
     /**
-     * @param array $paymentOptions
-     * @return Payment|Order
+     * @return \Mollie\Api\Resources\Customer|null
      */
-    abstract public function create(array $paymentOptions = []);
-
-    /**
-     * @param null $hash
-     */
-    public function handleNotification($hash = null)
+    public function getCustomer($createOrUpdate = false)
     {
-        if (!$this->getHash()) {
-            $this->getModel()->cHash = $hash;
-        }
+        if (!$this->customer) {
+            $customerModel = Customer::fromID($this->getBestellung()->oKunde->kKunde, 'kKunde');
+            if ($customerModel->customerId) {
+                try {
+                    $this->customer = $this->API()->Client()->customers->get($customerModel->customerId);
+                } catch (ApiException $e) {
+                    $this->Log(sprintf("Fehler beim laden des Mollie Customers %s (kKunde: %d): %s", $customerModel->customerId, $customerModel->kKunde, $e->getMessage()), LOGLEVEL_ERROR);
+                }
+            }
 
-        $this->updateModel()->saveModel();
-        if (!$this->getBestellung()->dBezahltDatum || $this->getBestellung()->dBezahltDatum === '0000-00-00') {
-            if ($incoming = $this->getIncomingPayment()) {
-                $this->PaymentMethod()->addIncomingPayment($this->getBestellung(), $incoming);
-                if ($this->completlyPaid()) {
+            if ($createOrUpdate) {
+                $oKunde = $this->getBestellung()->oKunde;
 
-                    $this->PaymentMethod()->setOrderStatusToPaid($this->getBestellung());
-                    static::makeFetchable($this->getBestellung(), $this->getModel());
-                    $this->PaymentMethod()->deletePaymentHash($this->getHash());
-                    $this->PaymentMethod()->doLog(sprintf("Checkout::handleNotification: Bestellung '%s' als bezahlt markiert: %.2f %s", $this->getBestellung()->cBestellNr, (float)$incoming->fBetrag, $incoming->cISO), LOGLEVEL_NOTICE);
+                $customer = [
+                    'name' => trim($oKunde->cVorname . ' ' . $oKunde->cNachname),
+                    'email' => $oKunde->cMail,
+                    'locale' => Locale::getLocale(Session::getInstance()->Language()->getIso(), $oKunde->cLand),
+                    'metadata' => (object)[
+                        'kKunde' => $oKunde->kKunde,
+                        'kKundengruppe' => $oKunde->kKundengruppe,
+                        'cKundenNr' => $oKunde->cKundenNr,
+                    ],
+                ];
 
-                    $oZahlungsart = Shop::DB()->selectSingleRow('tzahlungsart', 'cModulId', $this->PaymentMethod()->moduleID);
-                    if ($oZahlungsart && (int)$oZahlungsart->nMailSenden === 1) {
-                        require_once PFAD_ROOT . 'includes/mailTools.php';
-                        $this->PaymentMethod()->sendConfirmationMail($this->getBestellung());
+                if ($this->customer) { // UPDATE
+
+                    $this->customer->name = $customer['name'];
+                    $this->customer->email = $customer['email'];
+                    $this->customer->locale = $customer['locale'];
+                    $this->customer->metadata = $customer['metadata'];
+
+                    try {
+                        $this->customer->update();
+                    } catch (Exception $e) {
+                        $this->Log(sprintf("Fehler beim aktualisieren des Mollie Customers %s: %s\n%s", $this->customer->id, $e->getMessage(), print_r($customer, 1)), LOGLEVEL_ERROR);
                     }
-                } else {
-                    $this->PaymentMethod()->doLog(sprintf("Checkout::handleNotification: Bestellung '%s': nicht komplett bezahlt: %.2f %s", $this->getBestellung()->cBestellNr, (float)$incoming->fBetrag, $incoming->cISO), LOGLEVEL_ERROR);
+
+
+                } else { // create
+
+                    try {
+                        $this->customer = $this->API()->Client()->customers->create($customer);
+                        $customerModel->kKunde = $oKunde->kKunde;
+                        $customerModel->customerId = $this->customer->id;
+                        $customerModel->save();
+                        $this->Log(sprintf("Customer '%s' für Kunde %s (%d) bei Mollie angelegt.", $this->customer->id, $this->customer->name, $this->getBestellung()->kKunde));
+                    } catch (Exception $e) {
+                        $this->Log(sprintf("Fehler beim anlegen eines Mollie Customers: %s\n%s", $e->getMessage(), print_r($customer, 1)), LOGLEVEL_ERROR);
+                    }
                 }
             }
         }
+        return $this->customer;
     }
 
     /**
-     * @return string
+     * @return Bestellung
      */
-    public function getHash()
+    public function getBestellung()
     {
-        if ($this->getModel()->cHash) {
-            return $this->getModel()->cHash;
+        if (!$this->oBestellung && $this->getModel()->kBestellung) {
+            $this->oBestellung = new Bestellung($this->getModel()->kBestellung, true);
         }
-        if (!$this->hash) {
-            $this->hash = $this->PaymentMethod()->generateHash($this->oBestellung);
-        }
-        return $this->hash;
+        return $this->oBestellung;
     }
 
     /**
@@ -209,6 +244,40 @@ abstract class AbstractCheckout
     }
 
     /**
+     * @return API
+     */
+    public function API()
+    {
+        if (!$this->api) {
+            if ($this->getModel()->kID) {
+                $this->api = new API($this->getModel()->cMode === 'test');
+            } else {
+                $this->api = new API(API::getMode());
+            }
+        }
+        return $this->api;
+    }
+
+    public function Log($msg, $level = LOGLEVEL_NOTICE)
+    {
+        $data = '';
+        if ($this->getBestellung()) {
+            $data .= '#' . $this->getBestellung()->kBestellung;
+        }
+        if ($this->getMollie()) {
+            $data .= '$' . $this->getMollie()->id;
+        }
+        ZahlungsLog::add($this->PaymentMethod()->moduleID, "[" . microtime(true) . " - " . $_SERVER['PHP_SELF'] . "] " . $msg, $data, $level);
+        return $this;
+    }
+
+    /**
+     * @param false $force
+     * @return Order|\Mollie\Api\Resources\Payment
+     */
+    abstract public function getMollie($force = false);
+
+    /**
      * @return JTLMollie
      */
     public function PaymentMethod()
@@ -224,15 +293,58 @@ abstract class AbstractCheckout
         return $this->paymentMethod;
     }
 
+    abstract public function cancelOrRefund();
+
     /**
-     * @return Bestellung
+     * @param array $paymentOptions
+     * @return Payment|Order
      */
-    public function getBestellung()
+    abstract public function create(array $paymentOptions = []);
+
+    /**
+     * @param null $hash
+     */
+    public function handleNotification($hash = null)
     {
-        if (!$this->oBestellung && $this->getModel()->kBestellung) {
-            $this->oBestellung = new Bestellung($this->getModel()->kBestellung, true);
+        if (!$this->getHash()) {
+            $this->getModel()->cHash = $hash;
         }
-        return $this->oBestellung;
+
+        $this->updateModel()->saveModel();
+        if (!$this->getBestellung()->dBezahltDatum || $this->getBestellung()->dBezahltDatum === '0000-00-00') {
+            if ($incoming = $this->getIncomingPayment()) {
+                $this->PaymentMethod()->addIncomingPayment($this->getBestellung(), $incoming);
+                if ($this->completlyPaid()) {
+
+                    $this->PaymentMethod()->setOrderStatusToPaid($this->getBestellung());
+                    static::makeFetchable($this->getBestellung(), $this->getModel());
+                    $this->PaymentMethod()->deletePaymentHash($this->getHash());
+                    $this->Log(sprintf("Checkout::handleNotification: Bestellung '%s' als bezahlt markiert: %.2f %s", $this->getBestellung()->cBestellNr, (float)$incoming->fBetrag, $incoming->cISO));
+
+                    $oZahlungsart = Shop::DB()->selectSingleRow('tzahlungsart', 'cModulId', $this->PaymentMethod()->moduleID);
+                    if ($oZahlungsart && (int)$oZahlungsart->nMailSenden === 1) {
+                        require_once PFAD_ROOT . 'includes/mailTools.php';
+                        $this->PaymentMethod()->sendConfirmationMail($this->getBestellung());
+                    }
+                } else {
+                    $this->Log(sprintf("Checkout::handleNotification: Bestellung '%s': nicht komplett bezahlt: %.2f %s", $this->getBestellung()->cBestellNr, (float)$incoming->fBetrag, $incoming->cISO), LOGLEVEL_ERROR);
+                }
+            }
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getHash()
+    {
+        if ($this->getModel()->cHash) {
+            return $this->getModel()->cHash;
+        }
+        if (!$this->hash) {
+            $this->hash = $this->PaymentMethod()->generateHash($this->oBestellung);
+        }
+        return $this->hash;
     }
 
     /**
@@ -276,12 +388,6 @@ abstract class AbstractCheckout
     }
 
     /**
-     * @param false $force
-     * @return Order|\Mollie\Api\Resources\Payment
-     */
-    abstract public function getMollie($force = false);
-
-    /**
      * @return stdClass
      */
     abstract public function getIncomingPayment();
@@ -318,21 +424,6 @@ abstract class AbstractCheckout
             }
         }
         return false;
-    }
-
-    /**
-     * @return API
-     */
-    public function API()
-    {
-        if (!$this->api) {
-            if ($this->getModel()->kID) {
-                $this->api = new API($this->getModel()->cMode === 'test');
-            } else {
-                $this->api = new API(API::getMode());
-            }
-        }
-        return $this->api;
     }
 
 }
