@@ -7,9 +7,11 @@ namespace ws_mollie;
 use Exception;
 use Generator;
 use Jtllog;
+use Mollie\Api\Types\OrderStatus;
 use RuntimeException;
 use Shop;
 use ws_mollie\Checkout\AbstractCheckout;
+use ws_mollie\Checkout\OrderCheckout;
 use ws_mollie\Model\Queue as QueueModel;
 use ws_mollie\Traits\Plugin;
 
@@ -68,9 +70,78 @@ class Queue
         throw new RuntimeException("Bestellung oder Zahlungsart konnte nicht geladen werden: {$id}");
     }
 
+    /**
+     * @param $hook
+     * @param QueueModel $todo
+     * @return bool
+     * @throws \Mollie\Api\Exceptions\ApiException
+     * @throws \Mollie\Api\Exceptions\IncompatiblePlatform
+     * @todo TEST / DEBUG !!!
+     */
     protected static function handleHook($hook, QueueModel $todo)
     {
-        //TODO
+        $data = unserialize($todo->cData);
+        if (array_key_exists('kBestellung', $data)) {
+            switch ($hook) {
+                case HOOK_BESTELLUNGEN_XML_BESTELLSTATUS:
+                    if ((int)$data['kBestellung']) {
+                        $checkout = AbstractCheckout::fromBestellung($data['kBestellung']);
+
+                        $result = "";
+                        if ((int)$checkout->getBestellung()->cStatus < BESTELLUNG_STATUS_VERSANDT) {
+                            return $todo->done("Bestellung noch nicht versendet: {$checkout->getBestellung()->cStatus}");
+                        }
+
+                        /** @var $method \JTLMollie */
+                        if ((int)$data['status']
+                            && array_key_exists('status', $data)
+                            && $checkout->PaymentMethod()
+                            && (strpos($checkout->getModel()->kID, 'tr_') === false)
+                            && $checkout->getMollie()) {
+                            /** @var OrderCheckout $checkout */
+                            $checkout->handleNotification();
+                            if ($checkout->getMollie()->status === OrderStatus::STATUS_COMPLETED) {
+                                $result = 'Mollie Status already ' . $checkout->getMollie()->status;
+                            } else if ($checkout->getMollie()->isCreated() || $checkout->getMollie()->isPaid() || $checkout->getMollie()->isAuthorized() || $checkout->getMollie()->isShipping() || $checkout->getMollie()->isPending()) {
+                                try {
+                                    if ($shipments = Shipment::syncBestellung($checkout)) {
+                                        foreach ($shipments as $shipment) {
+                                            if (is_string($shipment)) {
+                                                $checkout->PaymentMethod()->doLog("Shipping-Error: {$shipment}");
+                                                $result .= "Shipping-Error: {$shipment}\n";
+                                            } else {
+                                                $checkout->PaymentMethod()->doLog("Order shipped: \n" . print_r($shipment, 1));
+                                                $result .= "Order shipped: {$shipment->id}\n";
+                                            }
+
+                                        }
+                                    } else {
+                                        $result = 'No Shipments ready!';
+                                    }
+                                } catch (Exception $e) {
+                                    $result = $e->getMessage() . "\n" . $e->getFile() . ":" . $e->getLine() . "\n" . $e->getTraceAsString();
+                                }
+                            } else {
+                                $result = 'Unexpected Mollie Status: ' . $checkout->getMollie()->status;
+                            }
+
+                        } else {
+                            $result = 'Nothing to do.';
+                        }
+                        return $todo->done($result);
+                    }
+                    return $todo->done("kBestellung missing");
+
+                case HOOK_BESTELLUNGEN_XML_BEARBEITESTORNO:
+                    if (self::Plugin()->oPluginEinstellungAssoc_arr['autoRefund'] !== 'on') {
+                        throw new RuntimeException('Auto-Refund disabled');
+                    }
+
+                    $checkout = AbstractCheckout::fromBestellung((int)$data['kBestellung']);
+                    return $todo->done($checkout->cancelOrRefund());
+            }
+        }
+        return false;
     }
 
 }

@@ -17,3 +17,15 @@ ALTER TABLE `xplugin_ws_mollie_payments`
 
 UPDATE `xplugin_ws_mollie_payments`
 SET `bSynced` = true;
+
+CREATE TABLE IF NOT EXISTS `xplugin_ws_mollie_shipments` (
+    `kLieferschien` int(11)     NOT NULL PRIMARY KEY,
+    `kBestellung`   int(11)     NOT NULL,
+    `cOrderId`      VARCHAR(32) NOT NULL,
+    `cShipmentId`   VARCHAR(32) NOT NULL,
+    `cCarrier`      VARCHAR(255)     DEFAULT '',
+    `cCode`         VARCHAR(255)     DEFAULT '',
+    `cUrl`          VARCHAR(512)     DEFAULT '',
+    `dCreated`      DATETIME    NOT NULL,
+    `dModified`     DATETIME    NULL DEFAULT NULL
+);

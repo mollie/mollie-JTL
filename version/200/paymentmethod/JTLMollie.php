@@ -9,6 +9,7 @@ use ws_mollie\Helper;
 require_once __DIR__ . '/../../../vendor/autoload.php';
 require_once __DIR__ . '/../class/Helper.php';
 require_once __DIR__ . '/../../../../../modules/PaymentMethod.class.php';
+require_once __DIR__ . '/../class/Traits/Plugin.php';
 
 class JTLMollie extends PaymentMethod
 {

@@ -15,5 +15,5 @@ class Customer extends AbstractModel
 
     const PRIMARY = 'kKunde';
     const TABLE = 'xplugin_ws_mollie_kunde';
-    
+
 }
