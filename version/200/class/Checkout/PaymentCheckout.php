@@ -13,7 +13,6 @@ use RuntimeException;
 use Session;
 use Shop;
 use ws_mollie\Checkout\Payment\Amount;
-use ws_mollie\Checkout\Payment\Locale;
 
 class PaymentCheckout extends AbstractCheckout
 {
@@ -85,20 +84,27 @@ class PaymentCheckout extends AbstractCheckout
         return $this->payment;
     }
 
+
+    /**
+     * @param array $options
+     * @return $this|PaymentCheckout
+     * @throws ApiException
+     * @throws IncompatiblePlatform
+     */
     public function loadRequest($options = [])
     {
 
-        if ((int)$this->getBestellung()->oKunde->nRegistriert
+        if ($this->getBestellung()->oKunde->nRegistriert
             && ($customer = $this->getCustomer(array_key_exists('mollie_create_customer', $_SESSION['cPost_arr'] ?: []) || $_SESSION['cPost_arr']['mollie_create_customer'] !== 'Y'))
             && isset($customer)) {
             $options['customerId'] = $customer->id;
         }
 
-        $this->setRequestData('amount', new Amount($this->getBestellung()->fGesamtsumme, $this->getBestellung()->Waehrung, true, true))
+        $this->setRequestData('amount', Amount::factory($this->getBestellung()->fGesamtsummeKundenwaehrung, $this->getBestellung()->Waehrung->cISO, true))
             ->setRequestData('description', 'Order ' . $this->getBestellung()->cBestellNr)
             ->setRequestData('redirectUrl', $this->PaymentMethod()->getReturnURL($this->getBestellung()))
             ->setRequestData('webhookUrl', Shop::getURL(true) . '/?mollie=1')
-            ->setRequestData('locale', Locale::getLocale(Session::getInstance()->Language()->getIso(), Session::getInstance()->Customer()->cLand))
+            ->setRequestData('locale', self::getLocale(Session::getInstance()->Language()->getIso(), Session::getInstance()->Customer()->cLand))
             ->setRequestData('metadata', [
                 'kBestellung' => $this->getBestellung()->kBestellung,
                 'kKunde' => $this->getBestellung()->kKunde,

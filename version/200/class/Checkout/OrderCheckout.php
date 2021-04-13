@@ -16,8 +16,6 @@ use Shop;
 use ws_mollie\Checkout\Order\Address;
 use ws_mollie\Checkout\Order\OrderLine;
 use ws_mollie\Checkout\Payment\Amount;
-use ws_mollie\Checkout\Payment\Locale;
-
 
 class OrderCheckout extends AbstractCheckout
 {
@@ -135,6 +133,12 @@ class OrderCheckout extends AbstractCheckout
         return $this;
     }
 
+    /**
+     * @param array $options
+     * @return $this|OrderCheckout
+     * @throws ApiException
+     * @throws \Mollie\Api\Exceptions\IncompatiblePlatform
+     */
     public function loadRequest($options = [])
     {
 
@@ -144,8 +148,8 @@ class OrderCheckout extends AbstractCheckout
             $options['customerId'] = $customer->id;
         }
 
-        $this->setRequestData('locale', Locale::getLocale(Session::getInstance()->Language()->getIso(), Session::getInstance()->Customer()->cLand))
-            ->setRequestData('amount', new Amount($this->getBestellung()->fGesamtsumme, $this->getBestellung()->Waehrung, true, true))
+        $this->setRequestData('locale', self::getLocale(Session::getInstance()->Language()->getIso(), Session::getInstance()->Customer()->cLand))
+            ->setRequestData('amount', Amount::factory($this->getBestellung()->fGesamtsummeKundenwaehrung, $this->getBestellung()->Waehrung->cISO, true))
             ->setRequestData('orderNumber', $this->getBestellung()->cBestellNr)
             ->setRequestData('metadata', [
                 'kBestellung' => $this->getBestellung()->kBestellung,
@@ -161,12 +165,12 @@ class OrderCheckout extends AbstractCheckout
             $this->setRequestData('method', $pm::METHOD);
         }
 
-        $this->setRequestData('billingAddress', new Address($this->getBestellung()->oRechnungsadresse));
+        $this->setRequestData('billingAddress', Address::factory($this->getBestellung()->oRechnungsadresse));
         if ($this->getBestellung()->Lieferadresse !== null) {
             if (!$this->getBestellung()->Lieferadresse->cMail) {
                 $this->getBestellung()->Lieferadresse->cMail = $this->getBestellung()->oRechnungsadresse->cMail;
             }
-            $this->setRequestData('shippingAddress', new Address($this->getBestellung()->Lieferadresse));
+            $this->setRequestData('shippingAddress', Address::factory($this->getBestellung()->Lieferadresse));
         }
 
         if (
@@ -179,14 +183,14 @@ class OrderCheckout extends AbstractCheckout
 
         $lines = [];
         foreach ($this->getBestellung()->Positionen as $oPosition) {
-            $lines[] = new OrderLine($oPosition, $this->getBestellung()->Waehrung);
+            $lines[] = OrderLine::factory($oPosition, $this->getBestellung()->Waehrung);
         }
 
         if ($this->getBestellung()->GuthabenNutzen && $this->getBestellung()->fGuthaben > 0) {
             $lines[] = OrderLine::getCredit($this->getBestellung());
         }
 
-        if ($comp = OrderLine::getRoundingCompensation($lines, $this->RequestData('amount'), $this->getBestellung()->Waehrung)) {
+        if ($comp = OrderLine::getRoundingCompensation($lines, $this->RequestData('amount'), $this->getBestellung()->Waehrung->cISO)) {
             $lines[] = $comp;
         }
         $this->setRequestData('lines', $lines);

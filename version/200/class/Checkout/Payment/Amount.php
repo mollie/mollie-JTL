@@ -4,67 +4,70 @@
 namespace ws_mollie\Checkout\Payment;
 
 
-use JsonSerializable;
+use ResourceValidityException;
 use Shop;
+use ws_mollie\Checkout\AbstractResource;
 
-class Amount implements JsonSerializable
+/**
+ * Class Amount
+ * @package ws_mollie\Checkout\Payment
+ *
+ * @property string $currency ISO 4217
+ * @property string $value
+ */
+class Amount extends AbstractResource
 {
 
-    protected $data = [];
     /**
-     * @var object
+     * @param float $value
+     * @param null|string $currency
+     * @param false $useRounding (is it total SUM => true [5 Rappen Rounding])
+     * @return Amount
      */
-    protected $currency;
-
-    public function __construct($value, $currency = null, $useFactor = true, $useRounding = false)
+    public static function factory($value, $currency = null, $useRounding = false)
     {
-        $this->currency = $currency;
+
         if (!$currency) {
-            $this->waehrung = isset($_SESSION['Waehrung']) ? $_SESSION['Waehrung'] : null;
-        }
-        if (!$currency) {
-            $this->currency = Shop::DB()->select('twaehrung', 'cStandard', 'Y');
+            $currency = static::FallbackCurrency()->cISO;
         }
 
-        if ($useFactor) {
-            $value *= $currency->fFaktor;
-        }
-        if ($useRounding) {
-            $value = $this->optionaleRundung($value);
-        }
-        $this->data['value'] = number_format(round($value,2), 2, '.', '');
+        $resource = new static();
 
-        $this->data['currency'] = $currency->cISO;
+        $resource->currency = $currency;
+        //$resource->value = number_format(round($useRounding ? $resource->round($value * (float)$currency->fFaktor) : $value * (float)$currency->fFaktor, 2), 2, '.', '');
+        $resource->value = number_format(round($useRounding ? $resource->round($value) : $value, 2), 2, '.', '');
+
+        // Validity Check
+        // TODO: Check ISO Code?
+        // TODO: Check Value
+        if (!$resource->currency || !$resource->value) {
+            throw ResourceValidityException::trigger(ResourceValidityException::ERROR_REQUIRED, ['currency', 'value'], $resource);
+        }
+        return $resource;
     }
 
-    public function optionaleRundung($gesamtsumme)
+    /**
+     * @return \stdClass
+     */
+    public static function FallbackCurrency()
     {
+        return isset($_SESSION['Waehrung']) ? $_SESSION['Waehrung'] : Shop::DB()->select('twaehrung', 'cStandard', 'Y');
+    }
+
+    /**
+     * Check if 5 Rappen rounding is necessary
+     *
+     * @return float
+     */
+    protected function round($value)
+    {
+
         $conf = Shop::getSettings([CONF_KAUFABWICKLUNG]);
         if (isset($conf['kaufabwicklung']['bestellabschluss_runden5']) && (int)$conf['kaufabwicklung']['bestellabschluss_runden5'] === 1) {
-            //$faktor = $this->currency->fFaktor;
-            //$gesamtsumme *= $faktor;
-
-            // simplification. see https://de.wikipedia.org/wiki/Rundung#Rappenrundung
-            $gesamtsumme = round($gesamtsumme * 20) / 20;
-            //$gesamtsumme /= $faktor;
+            $value = round($value * 20) / 20;
         }
-
-        return $gesamtsumme;
+        return $value;
     }
 
-    public function value()
-    {
-        return $this->data['value'];
-    }
-
-    public function currency()
-    {
-        return $this->data['currency'];
-    }
-
-    public function jsonSerialize()
-    {
-        return $this->data;
-    }
 
 }

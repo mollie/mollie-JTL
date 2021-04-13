@@ -5,173 +5,61 @@ namespace ws_mollie\Checkout\Order;
 
 
 use Bestellung;
-use JsonSerializable;
 use Mollie\Api\Types\OrderLineType;
 use RuntimeException;
 use stdClass;
 use WarenkorbPos;
 use WarenkorbPosEigenschaft;
+use ws_mollie\Checkout\AbstractResource;
 use ws_mollie\Checkout\Payment\Amount;
-use ws_mollie\Traits\Jsonable;
 
-class OrderLine implements JsonSerializable
+/**
+ * Class OrderLine
+ * @package ws_mollie\Checkout\Order
+ *
+ * @property string|null $type
+ * @property string|null $category One of: meal, eco, gift
+ * @property string $name
+ * @property int $quantity
+ * @property Amount $unitPrice
+ * @property Amount|null $discountAmount
+ * @property Amount $totalAmount
+ * @property string $vatRate
+ * @property Amount $vatAmount
+ * @property string|null $sku
+ * @property string|null $imageUrl
+ * @property string|null $productUrl
+ * @property array|string|stdClass|null $metadata max. 1 kB
+ *
+ */
+class OrderLine extends AbstractResource
 {
 
-    use Jsonable;
-
-    public $type;
-
-    public $category;
-
-    public $name;
-
-    public $quantity;
-
-    public $unitPrice;
-
-    public $discountAmount;
-
-    public $totalAmount;
-
-    public $vatRate;
-
-    public $vatAmount;
-
-    public $sku;
-
-    public $imageUrl;
-
-    public $productUrl;
-
-    public $metadata;
-
-    /**
-     * OrderLine constructor.
-     * @param stdClass|WarenkorbPos $oPosition
-     * @param stdClass $currency
-     */
-    public function __construct($oPosition = null, $currency = null)
-    {
-        if(!$oPosition || !$currency){
-            return;
-        }
-
-        $this->type = self::getType($oPosition->nPosTyp);
-        $this->name = $oPosition->cName;
-
-        $_vatRate = (float)$oPosition->fMwSt / 100;
-        if ((int)$oPosition->nPosTyp === C_WARENKORBPOS_TYP_KUPON) {
-            $_netto = round($oPosition->fPreis * (1 + $_vatRate), 4);
-            $_vatRate = 0;
-        } else {
-            $_netto = round($oPosition->fPreis, 4);
-        }
-        $_amount = (float)$oPosition->nAnzahl;
-
-        if (fmod($oPosition->nAnzahl, 1) !== 0.0) {
-            $_netto *= $_amount;
-            $_amount = 1;
-            $this->name .= sprintf(" (%.2f %s)", (float)$oPosition->nAnzahl, $oPosition->cEinheit);
-        }
-
-        // TODO vorher 2
-        $unitPriceNetto = round(($currency->fFaktor * $_netto), 4);
-        $unitPrice = round($unitPriceNetto * (1 + $_vatRate), 2);
-        $totalAmount = round($_amount * $unitPrice, 2);
-        $vatAmount = round($totalAmount - ($totalAmount / (1 + $_vatRate)), 2);
-
-        $this->quantity = (int)$_amount;
-        $this->unitPrice = new Amount($unitPrice, $currency, false);
-        $this->totalAmount = new Amount($totalAmount, $currency, false);
-        $this->vatRate = number_format($_vatRate * 100, 2);
-        $this->vatAmount = new Amount($vatAmount, $currency, false);
-
-        $metadata = [];
-
-        if (isset($oPosition->Artikel)) {
-            $this->sku = $oPosition->Artikel->cArtNr;
-            $metadata['kArtikel'] = $oPosition->kArtikel;
-            if ($oPosition->cUnique !== '') {
-                $metadata['cUnique'] = $oPosition->cUnique;
-            }
-        }
-
-        if (isset($oPosition->WarenkorbPosEigenschaftArr) && is_array($oPosition->WarenkorbPosEigenschaftArr) && count($oPosition->WarenkorbPosEigenschaftArr)) {
-            $metadata['properties'] = [];
-            /** @var WarenkorbPosEigenschaft $eigenschaft */
-            foreach ($oPosition->WarenkorbPosEigenschaftArr as $eigenschaft) {
-                $metadata['properties'][] = [
-                    'kEigenschaft' => (int)$eigenschaft->kEigenschaft,
-                    'kEigenschaftWert' => (int)$eigenschaft->kEigenschaftWert,
-                    'name' => $eigenschaft->cEigenschaftName,
-                    'value' => $eigenschaft->cEigenschaftWertName,
-                ];
-                if (strlen(json_encode($metadata)) > 1000) {
-                    array_pop($metadata['properties']);
-                    break;
-                }
-            }
-
-        }
-        $this->metadata = $metadata;
-    }
-
-    /**
-     * @param $nPosTyp
-     * @return string
-     */
-    protected static function getType($nPosTyp)
-    {
-        switch ($nPosTyp) {
-            case C_WARENKORBPOS_TYP_ARTIKEL:
-            case C_WARENKORBPOS_TYP_GRATISGESCHENK:
-                // TODO: digital / Download Artikel?
-                return OrderLineType::TYPE_PHYSICAL;
-
-            case C_WARENKORBPOS_TYP_VERSANDPOS:
-                return OrderLineType::TYPE_SHIPPING_FEE;
-
-            case C_WARENKORBPOS_TYP_VERPACKUNG:
-            case C_WARENKORBPOS_TYP_VERSANDZUSCHLAG:
-            case C_WARENKORBPOS_TYP_ZAHLUNGSART:
-            case C_WARENKORBPOS_TYP_VERSAND_ARTIKELABHAENGIG:
-            case C_WARENKORBPOS_TYP_NACHNAHMEGEBUEHR:
-                return OrderLineType::TYPE_SURCHARGE;
-
-            case C_WARENKORBPOS_TYP_GUTSCHEIN:
-            case C_WARENKORBPOS_TYP_KUPON:
-            case C_WARENKORBPOS_TYP_NEUKUNDENKUPON:
-                return OrderLineType::TYPE_DISCOUNT;
-
-        }
-
-        throw new RuntimeException('Unknown PosTyp.', (int)$nPosTyp);
-    }
 
     /**
      * @param OrderLine[] $orderLines
      * @param Amount $amount
-     * @param stdClass $currency
+     * @param string $currency
      * @return OrderLine|null
      */
     public static function getRoundingCompensation(array $orderLines, Amount $amount, $currency)
     {
         $sum = .0;
         foreach ($orderLines as $line) {
-            $sum += (float)$line->totalAmount->value();
+            $sum += (float)$line->totalAmount->value;
         }
-        if (abs($sum - (float)$amount->value()) > 0) {
-            $diff = (round((float)$amount->value() - $sum, 2));
+        if (abs($sum - (float)$amount->value) > 0) {
+            $diff = (round((float)$amount->value - $sum, 2));
             if ($diff !== 0.0) {
                 $line = new self();
                 $line->type = $diff > 0 ? OrderLineType::TYPE_SURCHARGE : OrderLineType::TYPE_DISCOUNT;
+                // TODO: Translation needed?
                 $line->name = 'Rundungsausgleich';
                 $line->quantity = 1;
-                $line->unitPrice = new Amount($diff, $currency, false, false);
-
-                $line->totalAmount = new Amount($diff, $currency, false, false);
+                $line->unitPrice = Amount::factory($diff, $currency);
+                $line->totalAmount = Amount::factory($diff, $currency);
                 $line->vatRate = "0.00";
-                $line->vatAmount = new Amount(0, $currency, false, false);
+                $line->vatAmount = Amount::factory(0, $currency);
                 return $line;
             }
         }
@@ -188,13 +76,148 @@ class OrderLine implements JsonSerializable
         $line->type = OrderLineType::TYPE_STORE_CREDIT;
         $line->name = 'Guthaben';
         $line->quantity = 1;
-        $line->unitPrice = new Amount($oBestellung->fGuthaben, $oBestellung->Waehrung, true);
+        // TODO: check currency of Guthaben
+        $line->unitPrice = Amount::factory($oBestellung->fGuthaben, $oBestellung->Waehrung->cISO);
         $line->totalAmount = $line->unitPrice;
-
         $line->vatRate = "0.00";
-        $line->vatAmount = new Amount(0, $oBestellung->Waehrung, true);
+        $line->vatAmount = Amount::factory(0, $oBestellung->Waehrung->cISO);
 
         return $line;
+    }
+
+    /**
+     * @param stdClass|WarenkorbPos $oPosition
+     * @param null $currency
+     * @return OrderLine
+     */
+    public static function factory($oPosition, $currency = null)
+    {
+        if (!$oPosition) {
+            throw new RuntimeException('$oPosition invalid:', print_r($oPosition));
+        }
+
+        $resource = new static();
+
+        $resource->fill($oPosition, $currency);
+
+        // Validity Check
+        if (!$resource->name || !$resource->quantity || !$resource->unitPrice || !$resource->totalAmount
+            || !$resource->vatRate || !$resource->vatAmount) {
+            throw \ResourceValidityException::trigger(\ResourceValidityException::ERROR_REQUIRED,
+                ['name', 'quantity', 'unitPrice', 'totalAmount', 'vatRate', 'vatAmount'], $resource);
+        }
+
+        return $resource;
+
+    }
+
+    /**
+     * @param WarenkorbPos|stdClass $oPosition
+     * @param null|stdClass $currency
+     * @return $this
+     * @todo Setting for Fraction handling needed?
+     * @TODO DEBUG/TEST
+     */
+    protected function fill($oPosition, $currency = null)
+    {
+
+        if (!$currency) {
+            $currency = Amount::FallbackCurrency();
+        }
+
+        $isKupon = (int)$oPosition->nPosTyp === (int)C_WARENKORBPOS_TYP_KUPON;
+        $isFrac = fmod($oPosition->nAnzahl, 1) !== 0.0;
+
+        // Kupon? set vatRate to 0 and adjust netto
+        $vatRate = $isKupon ? 0 : (float)$oPosition->fMwSt / 100;
+        $netto = $isKupon ? round($oPosition->fPreis * (1 + $vatRate), 4) : round($oPosition->fPreis, 4);
+
+        // Fraction? transform, as it were 1, and set quantity to 1
+        $netto = round(($isFrac ? $netto * (int)$oPosition->nAnzahl : $netto) * $currency->fFaktor, 4);
+        $this->quantity = $isFrac ? 1 : (int)$oPosition->nAnzahl;
+
+        // Fraction? include quantity and unit in name
+        $this->name = $isFrac ? sprintf("%s (%.2f %s)", $oPosition->cName, (float)$oPosition->nAnzahl, $oPosition->cEinheit) : $oPosition->cName;
+
+        $this->mapType($oPosition->nPosTyp);
+
+        //$unitPriceNetto = round(($currency->fFaktor * $netto), 4);
+
+        $this->unitPrice = Amount::factory(round($netto * (1 + $vatRate), 2), $currency, false);
+        $this->totalAmount = Amount::factory(round($this->quantity * $this->unitPrice->value, 2), $currency, false);
+
+        $this->vatRate = number_format($vatRate * 100, 2);
+        $this->vatAmount = Amount::factory(round($this->totalAmount->value - ($this->totalAmount->value / (1 + $vatRate)), 2), $currency, false);
+
+        $metadata = [];
+
+        // Is Artikel ?
+        if (isset($oPosition->Artikel)) {
+            $this->sku = $oPosition->Artikel->cArtNr;
+            $metadata['kArtikel'] = $oPosition->kArtikel;
+            if ($oPosition->cUnique !== '') {
+                $metadata['cUnique'] = $oPosition->cUnique;
+            }
+        }
+
+        if (isset($oPosition->WarenkorbPosEigenschaftArr) && is_array($oPosition->WarenkorbPosEigenschaftArr) && count($oPosition->WarenkorbPosEigenschaftArr)) {
+            $metadata['properties'] = [];
+            /** @var WarenkorbPosEigenschaft $warenkorbPosEigenschaft */
+            foreach ($oPosition->WarenkorbPosEigenschaftArr as $warenkorbPosEigenschaft) {
+                $metadata['properties'][] = [
+                    'kEigenschaft' => $warenkorbPosEigenschaft->kEigenschaft,
+                    'kEigenschaftWert' => $warenkorbPosEigenschaft->kEigenschaftWert,
+                    'name' => $warenkorbPosEigenschaft->cEigenschaftName,
+                    'value' => $warenkorbPosEigenschaft->cEigenschaftWertName,
+                ];
+                if (strlen(json_encode($metadata)) > 1000) {
+                    array_pop($metadata['properties']);
+                    break;
+                }
+            }
+
+        }
+        $this->metadata = $metadata;
+
+        return $this;
+
+
+    }
+
+    /**
+     * @param $nPosTyp
+     * @return OrderLine
+     */
+    protected function mapType($nPosTyp)
+    {
+        switch ($nPosTyp) {
+            case C_WARENKORBPOS_TYP_ARTIKEL:
+            case C_WARENKORBPOS_TYP_GRATISGESCHENK:
+                // TODO: digital / Download Artikel?
+                $this->type = OrderLineType::TYPE_PHYSICAL;
+                return $this;
+
+            case C_WARENKORBPOS_TYP_VERSANDPOS:
+                $this->type = OrderLineType::TYPE_SHIPPING_FEE;
+                return $this;
+
+            case C_WARENKORBPOS_TYP_VERPACKUNG:
+            case C_WARENKORBPOS_TYP_VERSANDZUSCHLAG:
+            case C_WARENKORBPOS_TYP_ZAHLUNGSART:
+            case C_WARENKORBPOS_TYP_VERSAND_ARTIKELABHAENGIG:
+            case C_WARENKORBPOS_TYP_NACHNAHMEGEBUEHR:
+                $this->type = OrderLineType::TYPE_SURCHARGE;
+                return $this;
+
+            case C_WARENKORBPOS_TYP_GUTSCHEIN:
+            case C_WARENKORBPOS_TYP_KUPON:
+            case C_WARENKORBPOS_TYP_NEUKUNDENKUPON:
+                $this->type = OrderLineType::TYPE_DISCOUNT;
+                return $this;
+
+        }
+
+        throw new RuntimeException('Unknown PosTyp.', (int)$nPosTyp);
     }
 
 }

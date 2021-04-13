@@ -16,8 +16,6 @@ use Session;
 use Shop;
 use stdClass;
 use ws_mollie\API;
-use ws_mollie\Checkout\Payment\Locale;
-use ws_mollie\Helper;
 use ws_mollie\Model\Customer;
 use ws_mollie\Model\Payment;
 use ws_mollie\Traits\Plugin;
@@ -27,10 +25,24 @@ use ZahlungsLog;
 abstract class AbstractCheckout
 {
 
-    use Plugin;
+    use RequestData, Plugin;
 
-    use RequestData;
-
+    protected static $localeLangs = [
+        'ger' => ['lang' => 'de', 'country' => ['DE', 'AT', 'CH']],
+        'fre' => ['lang' => 'fr', 'country' => ['BE', 'FR']],
+        'dut' => ['lang' => 'nl', 'country' => ['BE', 'NL']],
+        'spa' => ['lang' => 'es', 'country' => ['ES']],
+        'ita' => ['lang' => 'it', 'country' => ['IT']],
+        'pol' => ['lang' => 'pl', 'country' => ['PL']],
+        'hun' => ['lang' => 'hu', 'country' => ['HU']],
+        'por' => ['lang' => 'pt', 'country' => ['PT']],
+        'nor' => ['lang' => 'nb', 'country' => ['NO']],
+        'swe' => ['lang' => 'sv', 'country' => ['SE']],
+        'fin' => ['lang' => 'fi', 'country' => ['FI']],
+        'dan' => ['lang' => 'da', 'country' => ['DK']],
+        'ice' => ['lang' => 'is', 'country' => ['IS']],
+        'eng' => ['lang' => 'en', 'country' => ['GB', 'US']],
+    ];
     /**
      * @var \Mollie\Api\Resources\Customer|null
      */
@@ -44,7 +56,6 @@ abstract class AbstractCheckout
      * @var API
      */
     private $api;
-
     /**
      * @var JTLMollie
      */
@@ -53,7 +64,6 @@ abstract class AbstractCheckout
      * @var Bestellung
      */
     private $oBestellung;
-
     /**
      * @var Payment
      */
@@ -168,7 +178,7 @@ abstract class AbstractCheckout
                 $customer = [
                     'name' => trim($oKunde->cVorname . ' ' . $oKunde->cNachname),
                     'email' => $oKunde->cMail,
-                    'locale' => Locale::getLocale(Session::getInstance()->Language()->getIso(), $oKunde->cLand),
+                    'locale' => self::getLocale(Session::getInstance()->Language()->getIso(), $oKunde->cLand),
                     'metadata' => (object)[
                         'kKunde' => $oKunde->kKunde,
                         'kKundengruppe' => $oKunde->kKundengruppe,
@@ -291,6 +301,25 @@ abstract class AbstractCheckout
         }
         /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this->paymentMethod;
+    }
+
+    public static function getLocale($cISOSprache = null, $country = null)
+    {
+
+        if ($cISOSprache === null) {
+            $cISOSprache = gibStandardsprache()->cISO;
+        }
+        if (array_key_exists($cISOSprache, self::$localeLangs)) {
+            $locale = self::$localeLangs[$cISOSprache]['lang'];
+            if ($country && is_array(self::$localeLangs[$cISOSprache]['country']) && in_array($country, self::$localeLangs[$cISOSprache]['country'], true)) {
+                $locale .= '_' . strtoupper($country);
+            } else {
+                $locale .= '_' . self::$localeLangs[$cISOSprache]['country'][0];
+            }
+            return $locale;
+        }
+
+        return self::Plugin()->oPluginEinstellungAssoc_arr['fallbackLocale'];
     }
 
     abstract public function cancelOrRefund();

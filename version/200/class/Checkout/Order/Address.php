@@ -2,53 +2,43 @@
 
 namespace ws_mollie\Checkout\Order;
 
+use ResourceValidityException;
 use Shop;
 
+/**
+ * Class Address
+ * @package ws_mollie\Checkout\Order
+ *
+ * @property string|null $organizationName
+ * @property string|null $title
+ * @property string $givenName
+ * @property string $familyName
+ * @property string $email
+ * @property string|null $phone (E.164 Format);
+ */
 class Address extends \ws_mollie\Checkout\Payment\Address
 {
 
-    /**
-     * @var string|null
-     */
-    public $organizationName;
-
-    /**
-     * @var string|null
-     */
-    public $title;
-
-    /**
-     * @var string
-     */
-    public $givenName;
-
-    /**
-     * @var string
-     */
-    public $familyName;
-
-    /**
-     * @var string
-     */
-    public $email;
-
-    /**
-     * @var string|null
-     */
-    public $phone;
-
-    public function __construct($adresse)
+    public static function factory($address)
     {
-        parent::__construct($adresse);
+        $resource = parent::factory($address);
 
-        $this->title = trim(($adresse->cAnrede === 'm' ? Shop::Lang()->get('mr') : Shop::Lang()->get('mrs')) . ' ' . $adresse->cTitel) ?: null;
-        $this->givenName = $adresse->cVorname;
-        $this->familyName = $adresse->cNachname;
-        $this->email = $adresse->cMail ?: null;
+        $resource->title = trim(($address->cAnrede === 'm' ? Shop::Lang()->get('mr') : Shop::Lang()->get('mrs')) . ' ' . $address->cTitel) ?: null;
+        $resource->givenName = $address->cVorname;
+        $resource->familyName = $address->cNachname;
+        $resource->email = $address->cMail ?: null;
 
-        if ($organizationName = trim($adresse->cFirma)) {
-            $this->organizationName = $organizationName;
+        if ($organizationName = trim($address->cFirma)) {
+            $resource->organizationName = $organizationName;
         }
+
+        // Validity-Check
+        // TODO: Phone, with E.164 check
+        // TODO: Is Email-Format Check needed?
+        if (!$resource->givenName || !$resource->familyName || !$resource->email) {
+            throw ResourceValidityException::trigger(ResourceValidityException::ERROR_REQUIRED, ['givenName', 'familyName', 'email'], $resource);
+        }
+        return $resource;
     }
 
 }

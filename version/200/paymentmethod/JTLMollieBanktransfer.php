@@ -1,4 +1,7 @@
 <?php
+
+use ws_mollie\Checkout\AbstractCheckout;
+
 require_once __DIR__ . '/../../../vendor/autoload.php';
 require_once __DIR__ . '/JTLMollie.php';
 
@@ -13,7 +16,7 @@ class JTLMollieBanktransfer extends JTLMollie
         $paymentOptions = [];
         if ($apiType === 'payment') {
             $paymentOptions['billingEmail'] = $order->oRechnungsadresse->cMail;
-            $paymentOptions['locale'] = \ws_mollie\Checkout\Payment\Locale::getLocale(Session::getInstance()->Language()->getIso(), $order->oRechnungsadresse->cLand);
+            $paymentOptions['locale'] = AbstractCheckout::getLocale(Session::getInstance()->Language()->getIso(), $order->oRechnungsadresse->cLand);
         }
 
         $dueDays = $this->getExpiryDays();

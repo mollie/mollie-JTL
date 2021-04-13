@@ -4,64 +4,51 @@
 namespace ws_mollie\Checkout\Payment;
 
 
-use JsonSerializable;
-use Lieferadresse;
-use Rechnungsadresse;
-use stdClass;
-use ws_mollie\Traits\Jsonable;
+use ResourceValidityException;
+use ws_mollie\Checkout\AbstractResource;
 
-class Address implements JsonSerializable
+/**
+ * Class Address
+ * @package ws_mollie\Checkout\Payment
+ * @property string $streetAndNumber
+ * @property string $city
+ * @property string $country (ISO 3166-1 alpha-2)
+ * @property null|string $streetAdditional
+ * @property null|string $postalCode
+ * @property null|string $region
+ */
+class Address extends AbstractResource
 {
 
-    use Jsonable;
-
     /**
-     * @var string
+     * @param $address
+     * @return static
      */
-    public $streetAndNumber;
-
-    /**
-     * @var string|null
-     */
-    public $streetAdditional;
-
-    /**
-     * @var string
-     */
-    public $postalCode;
-
-    /**
-     * @var string
-     */
-    public $city;
-
-    /**
-     * @var string|null
-     */
-    public $region;
-
-    /**
-     * @var string
-     */
-    public $country;
-
-    /**
-     * @param stdClass|Lieferadresse|Rechnungsadresse $adresse
-     */
-    public function __construct($adresse)
+    public static function factory($address)
     {
 
-        $this->streetAndNumber = $adresse->cStrasse . ' ' . $adresse->cHausnummer;
-        $this->postalCode = $adresse->cPLZ;
-        $this->city = $adresse->cOrt;
-        $this->country = $adresse->cLand;
+        $resource = new static();
+        $resource->streetAndNumber = $address->cStrasse . ' ' . $address->cHausnummer;
+        $resource->postalCode = $address->cPLZ;
+        $resource->city = $address->cOrt;
+        $resource->country = $address->cLand;
 
         if (
-            isset($adresse->cAdressZusatz)
-            && trim($adresse->cAdressZusatz) !== ''
+            isset($address->cAdressZusatz)
+            && trim($address->cAdressZusatz) !== ''
         ) {
-            $this->streetAdditional = trim($adresse->cAdressZusatz);
+            $resource->streetAdditional = trim($address->cAdressZusatz);
         }
 
+        // Validity-Check
+        // TODO: Check for valid Country Code?
+        // TODO: Check PostalCode requirement Country?
+        if (!$resource->streetAndNumber || !$resource->city || !$resource->country) {
+            throw ResourceValidityException::trigger(ResourceValidityException::ERROR_REQUIRED, ['streetAndNumber', 'city', 'country'], $resource);
+        }
+
+        return $resource;
     }
+
+
 }

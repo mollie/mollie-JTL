@@ -32,9 +32,10 @@ class API
      * API constructor.
      * @param bool $test
      */
-    public function __construct($test)
+    public function __construct($test = null)
     {
-        $this->test = (bool)$test;
+
+        $this->test = $test === null ? self::getMode() : $test;
     }
 
     /**

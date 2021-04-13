@@ -2,6 +2,7 @@
 
 use Mollie\Api\MollieApiClient;
 use Mollie\Api\Resources\Method;
+use ws_mollie\Checkout\AbstractCheckout;
 use ws_mollie\Helper;
 use ws_mollie\Mollie;
 
@@ -23,8 +24,9 @@ try {
     $za = filter_input(INPUT_GET, 'za', FILTER_VALIDATE_BOOLEAN);
     $active = filter_input(INPUT_GET, 'active', FILTER_VALIDATE_BOOLEAN);
     $amount = filter_input(INPUT_GET, 'amount', FILTER_VALIDATE_FLOAT) ?: null;
-    $locale = filter_input(INPUT_GET, 'locale', FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/^[a-zA-Z]{2}_[a-zA-Z]{2}$/']]) ?: \ws_mollie\Checkout\Payment\Locale::getLocale();
+    $locale = filter_input(INPUT_GET, 'locale', FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/^[a-zA-Z]{2}_[a-zA-Z]{2}$/']]) ?: AbstractCheckout::getLocale();
     $currency = filter_input(INPUT_GET, 'currency', FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/^[a-zA-Z]{3}$/']]) ?: 'EUR';
+
 
     if ($za) {
         Shop::Smarty()->assign('defaultTabbertab', Helper::getAdminmenu("Zahlungsarten"));

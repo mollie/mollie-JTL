@@ -1,6 +1,7 @@
 <?php
 
 use ws_mollie\API;
+use ws_mollie\Checkout\AbstractCheckout;
 use ws_mollie\Checkout\Payment\Address;
 
 require_once __DIR__ . '/JTLMollie.php';
@@ -9,7 +10,6 @@ class JTLMollieCreditCard extends JTLMollie
 {
     const METHOD = \Mollie\Api\Types\PaymentMethod::CREDITCARD;
 
-    const CACHE_PREFIX = 'creditcard';
     const CACHE_TOKEN = 'creditcard:token';
     const CACHE_TOKEN_TIMESTAMP = 'creditcard:token:timestamp';
 
@@ -47,7 +47,7 @@ class JTLMollieCreditCard extends JTLMollie
 
         try {
             $trustBadge = (bool)self::Plugin()->oPluginEinstellungAssoc_arr[$this->moduleID . '_trustBadge'];
-            $locale = \ws_mollie\Checkout\Payment\Locale::getLocale(Session::getInstance()->Language()->getIso(), Session::getInstance()->Customer() ? Session::getInstance()->Customer()->cLand : null);
+            $locale = AbstractCheckout::getLocale(Session::getInstance()->Language()->getIso(), Session::getInstance()->Customer() ? Session::getInstance()->Customer()->cLand : null);
             $mode = API::getMode();
             $errorMessage = json_encode(self::Plugin()->oPluginSprachvariableAssoc_arr['mcErrorMessage']);
         } catch (Exception $e) {
@@ -125,10 +125,10 @@ class JTLMollieCreditCard extends JTLMollie
                 if (!$order->Lieferadresse->cMail) {
                     $order->Lieferadresse->cMail = $order->oRechnungsadresse->cMail;
                 }
-                $paymentOptions['shippingAddress'] = new Address($order->Lieferadresse);
+                $paymentOptions['shippingAddress'] = Address::factory($order->Lieferadresse);
             }
 
-            $paymentOptions['billingAddress'] = new Address($order->oRechnungsadresse);
+            $paymentOptions['billingAddress'] = Address::factory($order->oRechnungsadresse);
         }
         if ((int)$this->getCache(self::CACHE_TOKEN_TIMESTAMP) > time() && ($token = trim($this->getCache(self::CACHE_TOKEN)))) {
             $paymentOptions['cardToken'] = $token;

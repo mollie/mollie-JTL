@@ -50,6 +50,13 @@ trait RequestData
      * @param array $options
      * @return $this
      */
-    abstract public function loadRequest($options = []);
+    public function loadRequest($options = []){
+        return $this;
+    }
+
+    public function jsonSerialize()
+    {
+        return $this->requestData;
+    }
 
 }

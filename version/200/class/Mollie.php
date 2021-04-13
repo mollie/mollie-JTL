@@ -24,8 +24,9 @@ use Shop;
 use Shopsetting;
 use stdClass;
 use Versand;
-use ws_mollie\Checkout\Payment\Locale;
+use ws_mollie\Checkout\AbstractCheckout;
 use ws_mollie\Model\Payment;
+use ws_mollie\Traits\Locale;
 
 /**
  * Class Mollie
@@ -396,7 +397,7 @@ abstract class Mollie
         $shopSprachen = Shop::DB()->executeQuery("SELECT * FROM tsprache", 2);
         foreach ($shopSprachen as $sS) {
             foreach ($laender as $land) {
-                $result[] = Locale::getLocale($sS->cISO, $land);
+                $result[] = AbstractCheckout::getLocale($sS->cISO, $land);
             }
         }
         return array_unique($result);

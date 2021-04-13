@@ -2,6 +2,7 @@
 
 use Mollie\Api\Exceptions\ApiException;
 use ws_mollie\API;
+use ws_mollie\Checkout\AbstractCheckout;
 use ws_mollie\Checkout\OrderCheckout;
 use ws_mollie\Checkout\PaymentCheckout;
 use ws_mollie\Helper;
@@ -34,12 +35,12 @@ class JTLMollie extends PaymentMethod
     public function __construct($moduleID, $nAgainCheckout = 0)
     {
         parent::__construct($moduleID, $nAgainCheckout);
-        $this->cModulId = "kPlugin_" . self::Plugin()->kPlugin . "_mollie{$moduleID}";
+        $this->cModulId = "kPlugin_" . self::Plugin()->kPlugin . "_mollie" . $moduleID;
     }
 
     /**
      * @param Bestellung $order
-     * @return PaymentMethod|void
+     * @return PaymentMethod
      */
     public function setOrderStatusToPaid($order)
     {
@@ -47,7 +48,7 @@ class JTLMollie extends PaymentMethod
         if ((int)$order->cStatus >= BESTELLUNG_STATUS_BEZAHLT) {
             return $this;
         }
-        parent::setOrderStatusToPaid($order);
+        return parent::setOrderStatusToPaid($order);
     }
 
     /**
@@ -165,7 +166,7 @@ class JTLMollie extends PaymentMethod
         }
         if ($selectable) {
             try {
-                $locale = \ws_mollie\Checkout\Payment\Locale::getLocale(Session::getInstance()->Language()->getIso(), Session::getInstance()->Customer()->cLand);
+                $locale = AbstractCheckout::getLocale(Session::getInstance()->Language()->getIso(), Session::getInstance()->Customer()->cLand);
                 $amount = Session::getInstance()->Basket()->gibGesamtsummeWaren(true) * Session::getInstance()->Currency()->fFaktor;
                 if ($amount <= 0) {
                     $amount = 0.01;
@@ -247,7 +248,7 @@ class JTLMollie extends PaymentMethod
      */
     public function getExpiryDays()
     {
-        return (int)min(abs((int)Helper::oPlugin()->oPluginEinstellungAssoc_arr[$this->cModulId . '_dueDays']), static::MAX_EXPIRY_DAYS);
+        return (int)min(abs((int)Helper::oPlugin()->oPluginEinstellungAssoc_arr[$this->cModulId . '_dueDays']), static::MAX_EXPIRY_DAYS) ?: static::MAX_EXPIRY_DAYS;
     }
 
     /**

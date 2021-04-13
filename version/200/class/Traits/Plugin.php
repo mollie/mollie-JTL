@@ -3,7 +3,6 @@
 
 namespace ws_mollie\Traits;
 
-
 use RuntimeException;
 
 trait Plugin
