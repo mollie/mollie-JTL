@@ -111,6 +111,15 @@ class Shipment extends AbstractResource
 
             $oKunde = $checkout->getBestellung()->oKunde ?: new Kunde($checkout->getBestellung()->kKunde);
 
+            $shippingActive = Helper::getSetting('shippingActive');
+            if ($shippingActive === 'N') {
+                throw new RuntimeException('Shipping deaktiviert');
+            }
+
+            if (($shippingActive === 'K') && ((int)$checkout->getBestellung()->cStatus !== BESTELLUNG_STATUS_VERSANDT) && !$oKunde->nRegistriert) {
+                throw new RuntimeException('Shipping für Gast-Bestellungen und Teilversand deaktiviert');
+            }
+
             /** @var Lieferschein $oLieferschein */
             foreach ($checkout->getBestellung()->oLieferschein_arr as $oLieferschein) {
 
@@ -168,7 +177,7 @@ class Shipment extends AbstractResource
         }
 
         $api = $this->getCheckout()->API()->Client();
-        $this->shipment = $api->shipments->createForId($this->checkout->getModel()->kID, $this->loadRequest()->getRequestData());
+        $this->shipment = $api->shipments->createForId($this->checkout->getModel()->kID, $this->loadRequest()->jsonSerialize());
 
         return $this->updateModel()->saveModel();
 
@@ -221,9 +230,9 @@ class Shipment extends AbstractResource
             $this->getModel()->cShipmentId = $this->getShipment()->id;
             $this->getModel()->cUrl = $this->getShipment()->getTrackingUrl() ?: '';
         }
-        if ($this->getRequestData() && $tracking = $this->RequestData('tracking')) {
-            $this->getModel()->cCarrier = $this->RequestData('tracking')['carrier'] ?: '';
-            $this->getModel()->cCode = $this->RequestData('tracking')['code'] ?: '';
+        if (isset($this->tracking)) {
+            $this->getModel()->cCarrier = $this->tracking['carrier'] ?: '';
+            $this->getModel()->cCode = $this->tracking['code'] ?: '';
         }
         return $this;
     }

@@ -231,7 +231,7 @@ Pay now: {$oPluginMail->PayURL}
                     <SelectboxOptions>
                         <Option sort="1" value="Y">Ja</Option>
                         <Option sort="2" value="K"><![CDATA[Nur Kunden & Komplettversand]]></Option>
-                        <Option sort="3" value="N">Nein</Option>
+                        <Option sort="3" value="N">Nein, ich mache alles manuell.</Option>
                     </SelectboxOptions>
                 </Setting>
                 <Setting type="selectbox" initialValue="N" sort="40" conf="Y">

@@ -120,6 +120,8 @@ class Queue
                                     } else {
                                         $result = 'No Shipments ready!';
                                     }
+                                }catch (RuntimeException $e){
+                                    $result = $e->getMessage();
                                 } catch (Exception $e) {
                                     $result = $e->getMessage() . "\n" . $e->getFile() . ":" . $e->getLine() . "\n" . $e->getTraceAsString();
                                 }
