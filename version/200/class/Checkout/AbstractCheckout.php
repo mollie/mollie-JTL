@@ -404,7 +404,7 @@ abstract class AbstractCheckout
         return self::Plugin()->oPluginEinstellungAssoc_arr['fallbackLocale'];
     }
 
-    abstract public function cancelOrRefund();
+    abstract public function cancelOrRefund($force = false);
 
     /**
      * @param array $paymentOptions

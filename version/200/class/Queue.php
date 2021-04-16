@@ -54,6 +54,7 @@ class Queue
      */
     private static function getOpen($limit)
     {
+        /** @noinspection SqlResolve */
         $open = Shop::DB()->executeQueryPrepared(sprintf("SELECT * FROM %s WHERE dDone IS NULL ORDER BY dCreated DESC LIMIT 0, :LIMIT;", QueueModel::TABLE), [
             ':LIMIT' => $limit
         ], 2);
@@ -120,7 +121,7 @@ class Queue
                                     } else {
                                         $result = 'No Shipments ready!';
                                     }
-                                }catch (RuntimeException $e){
+                                } catch (RuntimeException $e) {
                                     $result = $e->getMessage();
                                 } catch (Exception $e) {
                                     $result = $e->getMessage() . "\n" . $e->getFile() . ":" . $e->getLine() . "\n" . $e->getTraceAsString();

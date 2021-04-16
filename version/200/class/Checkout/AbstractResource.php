@@ -13,4 +13,6 @@ abstract class AbstractResource implements JsonSerializable
     use Plugin;
     use RequestData;
 
+
+
 }

@@ -53,12 +53,12 @@ class OrderCheckout extends AbstractCheckout
      * @return string
      * @throws ApiException
      */
-    public function cancelOrRefund()
+    public function cancelOrRefund($force = false)
     {
         if (!$this->getMollie()) {
             throw new RuntimeException('Mollie-Order konnte nicht geladen werden: ' . $this->getModel()->kID);
         }
-        if ((int)$this->getBestellung()->cStatus === BESTELLUNG_STATUS_STORNO) {
+        if ($force || (int)$this->getBestellung()->cStatus === BESTELLUNG_STATUS_STORNO) {
             if ($this->getMollie()->isCancelable) {
                 $res = $this->getMollie()->cancel();
                 $result = 'Order cancelled, Status: ' . $res->status;

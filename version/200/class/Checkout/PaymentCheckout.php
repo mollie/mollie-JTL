@@ -42,9 +42,12 @@ class PaymentCheckout extends AbstractCheckout
      * @throws ApiException
      * @throws IncompatiblePlatform
      */
-    public function cancelOrRefund()
+    public function cancelOrRefund($force = false)
     {
-        if ((int)$this->getBestellung()->cStatus === BESTELLUNG_STATUS_STORNO) {
+        if (!$this->getMollie()) {
+            throw new RuntimeException('Mollie-Order konnte nicht geladen werden: ' . $this->getModel()->kID);
+        }
+        if ($force || (int)$this->getBestellung()->cStatus === BESTELLUNG_STATUS_STORNO) {
             if ($this->getMollie()->isCancelable) {
                 $res = $this->API()->Client()->payments->cancel($this->getMollie()->id);
                 $result = 'Payment cancelled, Status: ' . $res->status;
