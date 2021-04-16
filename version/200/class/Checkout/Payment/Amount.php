@@ -3,10 +3,9 @@
 
 namespace ws_mollie\Checkout\Payment;
 
-
-use ResourceValidityException;
 use Shop;
 use ws_mollie\Checkout\AbstractResource;
+use ws_mollie\Checkout\Exception\ResourceValidityException;
 
 /**
  * Class Amount

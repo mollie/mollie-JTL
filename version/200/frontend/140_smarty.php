@@ -9,13 +9,6 @@ try {
 
     ApplePay::execute(isset($args_arr) ? $args_arr : []);
 
-// TODO ERROR MESSAGE
-//    if (array_key_exists('mollieStatus', $_REQUEST)) {
-//        $status = $_REQUEST['mollieStatus'];
-//        $text = Helper::oPlugin()->oPluginSprachvariableAssoc_arr['error_' . $status];
-//        pq('#fieldset-payment')->prepend('<div class="alert alert-danger">' . $text . '</div>');
-//    }
-
 // TODO STYLES
 //    switch (Helper::getSetting('load_styles')) {
 //        case 'Y':

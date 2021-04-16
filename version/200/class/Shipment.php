@@ -15,23 +15,20 @@ use Mollie\Api\Types\OrderStatus;
 use RuntimeException;
 use Shop;
 use Versand;
+use ws_mollie\Checkout\AbstractResource;
 use ws_mollie\Checkout\OrderCheckout;
-use ws_mollie\Traits\Plugin;
-use ws_mollie\Traits\RequestData;
 use ws_mollie\Model\Shipment as ShipmentModel;
 
 /**
  * Class Shipment
  * @package ws_mollie
  *
- * @todo TEST / DEBUG !!!
+ * @property array|null $lines
+ * @property string|null $tracking
+ *
  */
-class Shipment
+class Shipment extends AbstractResource
 {
-
-    use Plugin;
-
-    use RequestData;
 
     /**
      * @var int|null
@@ -57,6 +54,11 @@ class Shipment
     protected $model;
 
     /**
+     * @var bool
+     */
+    protected $isGuest = false;
+
+    /**
      * Shipment constructor.
      * @param $kLieferschein
      * @param OrderCheckout|null $checkout
@@ -75,9 +77,35 @@ class Shipment
         if (!count($this->getLieferschein()->oVersand_arr)) {
             throw new RuntimeException('Kein Versand gefunden!');
         }
+
+        if (!$this->getCheckout()->getBestellung()->oKunde->nRegistriert) {
+            $this->isGuest = true;
+        }
     }
 
-    public static function syncBestellung(OrderCheckout $checkout){
+    public function getLieferschein()
+    {
+        if (!$this->oLieferschein && $this->kLieferschein) {
+            $this->oLieferschein = new Lieferschein($this->kLieferschein);
+        }
+        return $this->oLieferschein;
+    }
+
+    /**
+     * @return OrderCheckout
+     * @throws Exception
+     */
+    public function getCheckout()
+    {
+        if (!$this->checkout) {
+            //TODO evtl. load by lieferschien
+            throw new Exception('Should not happen, but it did!');
+        }
+        return $this->checkout;
+    }
+
+    public static function syncBestellung(OrderCheckout $checkout)
+    {
         $shipments = [];
         if ($checkout->getBestellung()->kBestellung) {
 
@@ -122,12 +150,28 @@ class Shipment
         return $shipments;
     }
 
-    public function getLieferschein()
+    /**
+     * @return mixed
+     * @throws ApiException
+     * @throws IncompatiblePlatform
+     * @throws Exception
+     */
+    public function send()
     {
-        if (!$this->oLieferschein && $this->kLieferschein) {
-            $this->oLieferschein = new Lieferschein($this->kLieferschein);
+
+        if ($this->getShipment()) {
+            throw new RuntimeException('Lieferschien bereits an Mollie übertragen: ' . $this->getShipment()->id);
         }
-        return $this->oLieferschein;
+
+        if ($this->getCheckout()->getMollie(true)->status === OrderStatus::STATUS_COMPLETED) {
+            throw new RuntimeException('Bestellung bei Mollie bereits abgeschlossen!');
+        }
+
+        $api = $this->getCheckout()->API()->Client();
+        $this->shipment = $api->shipments->createForId($this->checkout->getModel()->kID, $this->loadRequest()->getRequestData());
+
+        return $this->updateModel()->saveModel();
+
     }
 
     /**
@@ -145,7 +189,6 @@ class Shipment
         return $this->shipment;
     }
 
-
     /**
      * @return ShipmentModel
      * @throws Exception
@@ -153,10 +196,10 @@ class Shipment
     public function getModel()
     {
         if (!$this->model && $this->kLieferschein) {
-            $this->model = ShipmentModel::fromID($this->kLieferschein,'kLieferschein');
+            $this->model = ShipmentModel::fromID($this->kLieferschein, 'kLieferschein');
 
             if (!$this->model->dCreated) {
-                $this->getModel()->dCreated = date('Y-m-d H:i:s');
+                $this->model->dCreated = date('Y-m-d H:i:s');
             }
             $this->updateModel();
         }
@@ -186,19 +229,6 @@ class Shipment
     }
 
     /**
-     * @return OrderCheckout
-     * @throws Exception
-     */
-    public function getCheckout()
-    {
-        if (!$this->checkout) {
-            //TODO evtl. load by lieferschien
-            throw new Exception('Should not happen, but it did!');
-        }
-        return $this->checkout;
-    }
-
-    /**
      * @param array $options
      * @return $this
      * @throws Exception
@@ -215,41 +245,16 @@ class Shipment
             if ($oVersand->getLogistikVarUrl()) {
                 $tracking['url'] = $oVersand->getLogistikURL();
             }
-            $this->setRequestData('tracking', $tracking);
+            $this->tracking = $tracking;
         }
 
         // TODO: Wenn alle Lieferschiene in der WAWI erstellt wurden, aber nicht im Shop, kommt status 4.
-        if ((int)$this->getCheckout()->getBestellung()->cStatus === BESTELLUNG_STATUS_VERSANDT) {
-            $this->setRequestData('lines', []);
+        if ($this->isGuest || (int)$this->getCheckout()->getBestellung()->cStatus === BESTELLUNG_STATUS_VERSANDT) {
+            $this->lines = [];
         } else {
-            $this->setRequestData('lines', $this->getOrderLines());
+            $this->lines = $this->getOrderLines();
         }
         return $this;
-    }
-
-    /**
-     * @return mixed
-     * @throws ApiException
-     * @throws IncompatiblePlatform
-     * @throws Exception
-     */
-    public function send()
-    {
-
-        if ($this->getShipment()) {
-            throw new RuntimeException('Lieferschien bereits an Mollie übertragen: ' . $this->getShipment()->id);
-        }
-
-        if ($this->getCheckout()->getMollie(true)->status === OrderStatus::STATUS_COMPLETED) {
-            throw new RuntimeException('Bestellung bei Mollie bereits abgeschlossen!');
-        }
-
-        $api = $this->getCheckout()->API()->Client();
-
-        $this->shipment = $api->shipments->createForId($this->checkout->getModel()->kID, $this->loadRequest()->getRequestData());
-
-        return $this->updateModel()->saveModel();
-
     }
 
     /**
@@ -288,11 +293,8 @@ class Shipment
                     $shippedOrderLines[] = $orderLine->id;
                     break;
                 }
-
             }
         }
-
-
         return $lines;
     }
 

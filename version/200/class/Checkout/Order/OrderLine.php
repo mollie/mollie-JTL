@@ -11,6 +11,7 @@ use stdClass;
 use WarenkorbPos;
 use WarenkorbPosEigenschaft;
 use ws_mollie\Checkout\AbstractResource;
+use ws_mollie\Checkout\Exception\ResourceValidityException;
 use ws_mollie\Checkout\Payment\Amount;
 
 /**
@@ -103,7 +104,7 @@ class OrderLine extends AbstractResource
         // Validity Check
         if (!$resource->name || !$resource->quantity || !$resource->unitPrice || !$resource->totalAmount
             || !$resource->vatRate || !$resource->vatAmount) {
-            throw \ResourceValidityException::trigger(\ResourceValidityException::ERROR_REQUIRED,
+            throw ResourceValidityException::trigger(ResourceValidityException::ERROR_REQUIRED,
                 ['name', 'quantity', 'unitPrice', 'totalAmount', 'vatRate', 'vatAmount'], $resource);
         }
 
@@ -116,7 +117,6 @@ class OrderLine extends AbstractResource
      * @param null|stdClass $currency
      * @return $this
      * @todo Setting for Fraction handling needed?
-     * @TODO DEBUG/TEST
      */
     protected function fill($oPosition, $currency = null)
     {
@@ -133,7 +133,7 @@ class OrderLine extends AbstractResource
         $netto = $isKupon ? round($oPosition->fPreis * (1 + $vatRate), 4) : round($oPosition->fPreis, 4);
 
         // Fraction? transform, as it were 1, and set quantity to 1
-        $netto = round(($isFrac ? $netto * (int)$oPosition->nAnzahl : $netto) * $currency->fFaktor, 4);
+        $netto = round(($isFrac ? $netto * (float)$oPosition->nAnzahl : $netto) * $currency->fFaktor, 4);
         $this->quantity = $isFrac ? 1 : (int)$oPosition->nAnzahl;
 
         // Fraction? include quantity and unit in name
@@ -143,11 +143,11 @@ class OrderLine extends AbstractResource
 
         //$unitPriceNetto = round(($currency->fFaktor * $netto), 4);
 
-        $this->unitPrice = Amount::factory(round($netto * (1 + $vatRate), 2), $currency, false);
-        $this->totalAmount = Amount::factory(round($this->quantity * $this->unitPrice->value, 2), $currency, false);
+        $this->unitPrice = Amount::factory(round($netto * (1 + $vatRate), 2), $currency->cISO, false);
+        $this->totalAmount = Amount::factory(round($this->quantity * $this->unitPrice->value, 2), $currency->cISO, false);
 
         $this->vatRate = number_format($vatRate * 100, 2);
-        $this->vatAmount = Amount::factory(round($this->totalAmount->value - ($this->totalAmount->value / (1 + $vatRate)), 2), $currency, false);
+        $this->vatAmount = Amount::factory(round($this->totalAmount->value - ($this->totalAmount->value / (1 + $vatRate)), 2), $currency->cISO, false);
 
         $metadata = [];
 

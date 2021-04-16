@@ -100,8 +100,9 @@ class JTLMollie extends PaymentMethod
                 header('Location: ' . $url);
             }
         } catch (Exception $e) {
-            $this->Log('mollie::preparePaymentProcess: ' . $e->getMessage() . ' - ' . print_r(['cBestellNr' => $order->cBestellNr], 1), LOGLEVEL_ERROR);
-            Shop::Smarty()->assign('oMollieException', $e);
+            $this->Log('mollie::preparePaymentProcess: ' . $e->getMessage() . ' - ' . print_r(['cBestellNr' => $order->cBestellNr], 1), '#' . $order->kBestellung, LOGLEVEL_ERROR);
+            Shop::Smarty()->assign('oMollieException', $e)
+                ->assign('tryAgain', Shop::getURL() . '/bestellab_again.php?kBestellung=' . $order->kBestellung);
         }
     }
 
@@ -167,7 +168,12 @@ class JTLMollie extends PaymentMethod
         if ($selectable) {
             try {
                 $locale = AbstractCheckout::getLocale(Session::getInstance()->Language()->getIso(), Session::getInstance()->Customer()->cLand);
-                $amount = Session::getInstance()->Basket()->gibGesamtsummeWaren(true) * Session::getInstance()->Currency()->fFaktor;
+                $amount = Session::getInstance()->Basket()->gibGesamtsummeWarenExt([
+                        C_WARENKORBPOS_TYP_ARTIKEL,
+                        C_WARENKORBPOS_TYP_KUPON,
+                        C_WARENKORBPOS_TYP_GUTSCHEIN,
+                        C_WARENKORBPOS_TYP_NEUKUNDENKUPON,
+                    ], true) * Session::getInstance()->Currency()->fFaktor;
                 if ($amount <= 0) {
                     $amount = 0.01;
                 }
@@ -251,32 +257,4 @@ class JTLMollie extends PaymentMethod
         return (int)min(abs((int)Helper::oPlugin()->oPluginEinstellungAssoc_arr[$this->cModulId . '_dueDays']), static::MAX_EXPIRY_DAYS) ?: static::MAX_EXPIRY_DAYS;
     }
 
-    /**
-     * @param $cISOSprache
-     * @param $method
-     * @deprecated
-     * @noinspection PhpDeprecationInspection
-     * @noinspection PhpDeprecationInspection
-     */
-    protected function updatePaymentMethod($cISOSprache, $method)
-    {
-        if (Helper::getSetting('paymentmethod_sync') === 'N') {
-            return;
-        }
-        $size = Helper::getSetting('paymentmethod_sync');
-        if ((!isset($this->cBild) || $this->cBild === '') && isset($method->image->$size)) {
-            Shop::DB()->executeQueryPrepared("UPDATE tzahlungsart SET cBild = :cBild WHERE cModulId = :cModulId", [':cBild' => $method->image->$size, ':cModulId' => $this->cModulId], 3);
-        }
-        if ($za = Shop::DB()->executeQueryPrepared('SELECT kZahlungsart FROM tzahlungsart WHERE cModulID = :cModulID', [':cModulID' => $this->moduleID], 1)) {
-            Shop::DB()->executeQueryPrepared("INSERT INTO tzahlungsartsprache (kZahlungsart, cISOSprache, cName, cGebuehrname, cHinweisText) VALUES (:kZahlungsart, :cISOSprache, :cName, :cGebuehrname, :cHinweisText) ON DUPLICATE KEY UPDATE cName = IF(cName = '',:cName1,cName), cHinweisTextShop = IF(cHinweisTextShop = '' || cHinweisTextShop IS NULL,:cHinweisTextShop,cHinweisTextShop);", [
-                ':kZahlungsart' => (int)$za->kZahlungsart,
-                ':cISOSprache' => $cISOSprache,
-                ':cName' => utf8_decode($method->description),
-                ':cGebuehrname' => '',
-                ':cHinweisText' => '',
-                ':cHinweisTextShop' => utf8_decode($method->description),
-                'cName1' => $method->description,
-            ], 3);
-        }
-    }
 }

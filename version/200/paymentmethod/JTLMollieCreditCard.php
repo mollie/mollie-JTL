@@ -16,6 +16,11 @@ class JTLMollieCreditCard extends JTLMollie
     public function handleNotification($order, $hash, $args)
     {
         parent::handleNotification($order, $hash, $args);
+    }
+
+    public function preparePaymentProcess($order)
+    {
+        parent::preparePaymentProcess($order);
         $this->clearToken();
     }
 
@@ -46,7 +51,7 @@ class JTLMollieCreditCard extends JTLMollie
         }
 
         try {
-            $trustBadge = (bool)self::Plugin()->oPluginEinstellungAssoc_arr[$this->moduleID . '_trustBadge'];
+            $trustBadge = (bool)self::Plugin()->oPluginEinstellungAssoc_arr[$this->moduleID . '_loadTrust'];
             $locale = AbstractCheckout::getLocale(Session::getInstance()->Language()->getIso(), Session::getInstance()->Customer() ? Session::getInstance()->Customer()->cLand : null);
             $mode = API::getMode();
             $errorMessage = json_encode(self::Plugin()->oPluginSprachvariableAssoc_arr['mcErrorMessage']);
@@ -65,7 +70,7 @@ class JTLMollieCreditCard extends JTLMollie
         }
 
         Shop::Smarty()->assign('profileId', $profileId)
-            ->assign('trustBadge', $trustBadge ?: false)
+            ->assign('trustBadge', $trustBadge ? self::Plugin()->cFrontendPfadURLSSL . 'img/trust_' . $_SESSION['cISOSprache'] . '.png' : false)
             ->assign('components', $components)
             ->assign('locale', $locale ?: 'de_DE')
             ->assign('token', $token ?: false)

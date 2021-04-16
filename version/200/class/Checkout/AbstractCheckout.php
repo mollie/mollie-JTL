@@ -101,16 +101,16 @@ abstract class AbstractCheckout
     }
 
     /**
-     * @param $id
+     * @param $kBestellung
      * @return OrderCheckout|PaymentCheckout
-     * @throws RuntimeException
+     * * @throws RuntimeException
      */
-    public static function fromID($id)
+    public static function fromBestellung($kBestellung)
     {
-        if ($model = Payment::fromID($id)) {
-            return static::fromModel($model);
+        if ($model = Payment::fromID($kBestellung, 'kBestellung')) {
+            return self::fromModel($model);
         }
-        throw new RuntimeException(sprintf('Error loading Order: %s', $id));
+        throw new RuntimeException(sprintf('Error loading Order for Bestellung: %s', $kBestellung));
     }
 
     /**
@@ -139,26 +139,179 @@ abstract class AbstractCheckout
         return $self;
     }
 
-    /**
-     * @param $kBestellung
-     * @return OrderCheckout|PaymentCheckout
-     * * @throws RuntimeException
-     */
-    public static function fromBestellung($kBestellung)
-    {
-        if ($model = Payment::fromID($kBestellung, 'kBestellung')) {
-            return self::fromModel($model);
-        }
-        throw new RuntimeException(sprintf('Error loading Order for Bestellung: %s', $kBestellung));
-    }
-
     public static function sendReminders()
     {
-        // TODO
+        $reminder = (int)self::Plugin()->oPluginEinstellungAssoc_arr['reminder'];
+
+        if (!$reminder) {
+            Shop::DB()->executeQueryPrepared('UPDATE xplugin_ws_mollie_payments SET dReminder = :dReminder WHERE dReminder IS NULL', [
+                ':dReminder' => date('Y-m-d H:i:s')
+            ], 3);
+            return;
+        }
+
+        $remindables = Shop::DB()->executeQueryPrepared("SELECT kId FROM xplugin_ws_mollie_payments WHERE dReminder IS NULL AND dCreatedAt < NOW() - INTERVAL :d HOUR AND cStatus IN ('created','open', 'expired', 'failed', 'canceled')", [
+            ':d' => $reminder
+        ], 2);
+        foreach ($remindables as $remindable) {
+            try {
+                self::sendReminder($remindable->kId);
+            } catch (Exception $e) {
+                Jtllog::writeLog("AbstractCheckout::sendReminders: " . $e->getMessage());
+            }
+        }
+    }
+
+    public static function sendReminder($kID)
+    {
+
+        $checkout = self::fromID($kID);
+        $return = true;
+        try {
+            $repayURL = Shop::getURL() . '/?m_pay=' . md5($checkout->getModel()->kID . '-' . $checkout->getBestellung()->kBestellung);
+
+            $data = new stdClass();
+            $data->tkunde = new \Kunde($checkout->getBestellung()->oKunde->kKunde);
+            if ($data->tkunde->kKunde) {
+
+                $data->Bestellung = $checkout->getBestellung();
+                $data->PayURL = $repayURL;
+                $data->Amount = gibPreisStringLocalized($checkout->getModel()->fAmount, $checkout->getBestellung()->Waehrung); //Preise::getLocalizedPriceString($order->getAmount(), Currency::fromISO($order->getCurrency()), false);
+
+                require_once PFAD_ROOT . PFAD_INCLUDES . 'mailTools.php';
+
+                $mail = new stdClass();
+                $mail->toEmail = $data->tkunde->cMail;
+                $mail->toName = trim((isset($data->tKunde->cVorname)
+                        ? $data->tKunde->cVorname
+                        : '') . ' ' . (
+                    isset($data->tKunde->cNachname)
+                        ? $data->tKunde->cNachname
+                        : ''
+                    )) ?: $mail->toEmail;
+                $data->mail = $mail;
+                if (!($sentMail = sendeMail('kPlugin_' . self::Plugin()->kPlugin . '_zahlungserinnerung', $data))) {
+                    $checkout->Log(sprintf("Zahlungserinnerung konnte nicht versand werden: %s\n%s", isset($sentMail->cFehler) ?: print_r($sentMail, 1), print_r($data, 1)), LOGLEVEL_ERROR);
+                    $return = false;
+                } else {
+                    $checkout->Log(sprintf("Zahlungserinnerung für %s verschickt.", $checkout->getBestellung()->cBestellNr));
+                }
+            } else {
+                $checkout->Log("Kunde '{$checkout->getBestellung()->oKunde->kKunde}' nicht gefunden.", LOGLEVEL_ERROR);
+            }
+        } catch (Exception $e) {
+            $checkout->Log(sprintf("AbstractCheckout::sendReminder: Zahlungserinnerung für %s fehlgeschlagen: %s", $checkout->getBestellung()->cBestellNr, $e->getMessage()));
+            $return = false;
+        }
+        $checkout->getModel()->dReminder = date('Y-m-d H:i:s');
+        $checkout->getModel()->save();
+        return $return;
+    }
+
+    /**
+     * @param $id
+     * @return OrderCheckout|PaymentCheckout
+     * @throws RuntimeException
+     */
+    public static function fromID($id)
+    {
+        if ($model = Payment::fromID($id)) {
+            return static::fromModel($model);
+        }
+        throw new RuntimeException(sprintf('Error loading Order: %s', $id));
+    }
+
+    /**
+     * @return Payment
+     */
+    public function getModel()
+    {
+        if (!$this->model) {
+            $this->model = Payment::fromID($this->oBestellung->kBestellung, 'kBestellung');
+        }
+        return $this->model;
+    }
+
+    /**
+     * @param $model
+     * @return $this
+     */
+    protected function setModel($model)
+    {
+        if (!$this->model) {
+            $this->model = $model;
+        } else {
+            throw new RuntimeException('Model already set.');
+        }
+        return $this;
+    }
+
+    /**
+     * @return Bestellung
+     */
+    public function getBestellung()
+    {
+        if (!$this->oBestellung && $this->getModel()->kBestellung) {
+            $this->oBestellung = new Bestellung($this->getModel()->kBestellung, true);
+        }
+        return $this->oBestellung;
+    }
+
+    public function Log($msg, $level = LOGLEVEL_NOTICE)
+    {
+        $data = '';
+        if ($this->getBestellung()) {
+            $data .= '#' . $this->getBestellung()->kBestellung;
+        }
+        if ($this->getMollie()) {
+            $data .= '$' . $this->getMollie()->id;
+        }
+        ZahlungsLog::add($this->PaymentMethod()->moduleID, "[" . microtime(true) . " - " . $_SERVER['PHP_SELF'] . "] " . $msg, $data, $level);
+        return $this;
+    }
+
+    /**
+     * @param false $force
+     * @return Order|\Mollie\Api\Resources\Payment|null
+     */
+    abstract public function getMollie($force = false);
+
+    /**
+     * @return JTLMollie
+     */
+    public function PaymentMethod()
+    {
+        if (!$this->paymentMethod) {
+            if ($this->getBestellung()->Zahlungsart && strpos($this->getBestellung()->Zahlungsart->cModulId, "kPlugin_{$this::Plugin()->kPlugin}_") !== false) {
+                $this->paymentMethod = PaymentMethod::create($this->getBestellung()->Zahlungsart->cModulId);
+            } else {
+                $this->paymentMethod = PaymentMethod::create("kPlugin_{$this::Plugin()->kPlugin}_mollie");
+            }
+        }
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
+        return $this->paymentMethod;
+    }
+
+    /**
+     * @return string
+     */
+    public function LogData()
+    {
+
+        $data = '';
+        if ($this->getBestellung()->kBestellung) {
+            $data .= '#' . $this->getBestellung()->kBestellung;
+        }
+        if ($this->getMollie()) {
+            $data .= '$' . $this->getMollie()->id;
+        }
+
+        return $data;
     }
 
     /**
      * @return \Mollie\Api\Resources\Customer|null
+     * @todo: Kunde wieder löschbar machen ?!
      */
     public function getCustomer($createOrUpdate = false)
     {
@@ -218,42 +371,6 @@ abstract class AbstractCheckout
     }
 
     /**
-     * @return Bestellung
-     */
-    public function getBestellung()
-    {
-        if (!$this->oBestellung && $this->getModel()->kBestellung) {
-            $this->oBestellung = new Bestellung($this->getModel()->kBestellung, true);
-        }
-        return $this->oBestellung;
-    }
-
-    /**
-     * @return Payment
-     */
-    public function getModel()
-    {
-        if (!$this->model) {
-            $this->model = Payment::fromID($this->oBestellung->kBestellung, 'kBestellung');
-        }
-        return $this->model;
-    }
-
-    /**
-     * @param $model
-     * @return $this
-     */
-    protected function setModel($model)
-    {
-        if (!$this->model) {
-            $this->model = $model;
-        } else {
-            throw new RuntimeException('Model already set.');
-        }
-        return $this;
-    }
-
-    /**
      * @return API
      */
     public function API()
@@ -266,41 +383,6 @@ abstract class AbstractCheckout
             }
         }
         return $this->api;
-    }
-
-    public function Log($msg, $level = LOGLEVEL_NOTICE)
-    {
-        $data = '';
-        if ($this->getBestellung()) {
-            $data .= '#' . $this->getBestellung()->kBestellung;
-        }
-        if ($this->getMollie()) {
-            $data .= '$' . $this->getMollie()->id;
-        }
-        ZahlungsLog::add($this->PaymentMethod()->moduleID, "[" . microtime(true) . " - " . $_SERVER['PHP_SELF'] . "] " . $msg, $data, $level);
-        return $this;
-    }
-
-    /**
-     * @param false $force
-     * @return Order|\Mollie\Api\Resources\Payment
-     */
-    abstract public function getMollie($force = false);
-
-    /**
-     * @return JTLMollie
-     */
-    public function PaymentMethod()
-    {
-        if (!$this->paymentMethod) {
-            if ($this->getBestellung()->Zahlungsart && strpos($this->getBestellung()->Zahlungsart->cModulId, "kPlugin_{$this::Plugin()->kPlugin}_") !== false) {
-                $this->paymentMethod = PaymentMethod::create($this->getBestellung()->Zahlungsart->cModulId);
-            } else {
-                $this->paymentMethod = PaymentMethod::create("kPlugin_{$this::Plugin()->kPlugin}_mollie");
-            }
-        }
-        /** @noinspection PhpIncompatibleReturnTypeInspection */
-        return $this->paymentMethod;
     }
 
     public static function getLocale($cISOSprache = null, $country = null)
@@ -343,19 +425,18 @@ abstract class AbstractCheckout
         if (!$this->getBestellung()->dBezahltDatum || $this->getBestellung()->dBezahltDatum === '0000-00-00') {
             if ($incoming = $this->getIncomingPayment()) {
                 $this->PaymentMethod()->addIncomingPayment($this->getBestellung(), $incoming);
-                if ($this->completlyPaid()) {
 
-                    $this->PaymentMethod()->setOrderStatusToPaid($this->getBestellung());
-                    static::makeFetchable($this->getBestellung(), $this->getModel());
-                    $this->PaymentMethod()->deletePaymentHash($this->getHash());
-                    $this->Log(sprintf("Checkout::handleNotification: Bestellung '%s' als bezahlt markiert: %.2f %s", $this->getBestellung()->cBestellNr, (float)$incoming->fBetrag, $incoming->cISO));
+                $this->PaymentMethod()->setOrderStatusToPaid($this->getBestellung());
+                static::makeFetchable($this->getBestellung(), $this->getModel());
+                $this->PaymentMethod()->deletePaymentHash($this->getHash());
+                $this->Log(sprintf("Checkout::handleNotification: Bestellung '%s' als bezahlt markiert: %.2f %s", $this->getBestellung()->cBestellNr, (float)$incoming->fBetrag, $incoming->cISO));
 
-                    $oZahlungsart = Shop::DB()->selectSingleRow('tzahlungsart', 'cModulId', $this->PaymentMethod()->moduleID);
-                    if ($oZahlungsart && (int)$oZahlungsart->nMailSenden === 1) {
-                        require_once PFAD_ROOT . 'includes/mailTools.php';
-                        $this->PaymentMethod()->sendConfirmationMail($this->getBestellung());
-                    }
-                } else {
+                $oZahlungsart = Shop::DB()->selectSingleRow('tzahlungsart', 'cModulId', $this->PaymentMethod()->moduleID);
+                if ($oZahlungsart && (int)$oZahlungsart->nMailSenden === 1) {
+                    require_once PFAD_ROOT . 'includes/mailTools.php';
+                    $this->PaymentMethod()->sendConfirmationMail($this->getBestellung());
+                }
+                if (!$this->completlyPaid()) {
                     $this->Log(sprintf("Checkout::handleNotification: Bestellung '%s': nicht komplett bezahlt: %.2f %s", $this->getBestellung()->cBestellNr, (float)$incoming->fBetrag, $incoming->cISO), LOGLEVEL_ERROR);
                 }
             }
@@ -422,21 +503,6 @@ abstract class AbstractCheckout
     abstract public function getIncomingPayment();
 
     /**
-     * @return bool
-     */
-    public function completlyPaid()
-    {
-
-        if ($row = Shop::DB()->executeQueryPrepared("SELECT SUM(fBetrag) as fBetragSumme FROM tzahlungseingang WHERE kBestellung = :kBestellung", [
-            ':kBestellung' => $this->getBestellung()->kBestellung
-        ], 1)) {
-            return $row->fBetragSumme >= ($this->getBestellung()->fGesamtsumme * (float)$this->getBestellung()->fWaehrungsFaktor);
-        }
-        return false;
-
-    }
-
-    /**
      * @param Bestellung $oBestellung
      * @param Payment $model
      * @return bool
@@ -453,6 +519,21 @@ abstract class AbstractCheckout
             }
         }
         return false;
+    }
+
+    /**
+     * @return bool
+     */
+    public function completlyPaid()
+    {
+
+        if ($row = Shop::DB()->executeQueryPrepared("SELECT SUM(fBetrag) as fBetragSumme FROM tzahlungseingang WHERE kBestellung = :kBestellung", [
+            ':kBestellung' => $this->getBestellung()->kBestellung
+        ], 1)) {
+            return $row->fBetragSumme >= round($this->getBestellung()->fGesamtsumme * (float)$this->getBestellung()->fWaehrungsFaktor, 2);
+        }
+        return false;
+
     }
 
 }

@@ -92,19 +92,20 @@ class Queue extends AbstractHook
                 }
 
                 if (strpos($raw->cOrderId, 'tr_') === 0) {
-                    $checkout = PaymentCheckout::fromID($raw->cOrderId);
+                    $checkout = PaymentCheckout::fromID($raw->kID);
                 } else {
-                    $checkout = OrderCheckout::fromID($raw->cOrderId);
+                    $checkout = OrderCheckout::fromID($raw->kID);
                 }
                 $checkout->getMollie(true);
                 $checkout->updateModel()->saveModel();
 
-                if ($checkout->getBestellung()->dBezahltDatum !== null || in_array($checkout->getModel()->cStatus, ['completed', 'paid', 'authorized', 'pending'])) {
+                if (($checkout->getBestellung()->dBezahltDatum !== null && $checkout->getBestellung()->dBezahltDatum !== '0000-00-00')
+                    || in_array($checkout->getModel()->cStatus, ['completed', 'paid', 'authorized', 'pending'])) {
                     throw new RuntimeException(self::Plugin()->oPluginSprachvariableAssoc_arr['errAlreadyPaid']);
                 }
 
                 $options = [];
-                if (self::Plugin()->oPluginEinstellungAssoc_arr['resetMethod'] !== 'on') {
+                if (self::Plugin()->oPluginEinstellungAssoc_arr['resetMethod'] !== 'Y') {
                     $options['method'] = $checkout->getModel()->cMethod;
                 }
 

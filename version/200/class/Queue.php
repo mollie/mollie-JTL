@@ -7,6 +7,9 @@ namespace ws_mollie;
 use Exception;
 use Generator;
 use Jtllog;
+use JTLMollie;
+use Mollie\Api\Exceptions\ApiException;
+use Mollie\Api\Exceptions\IncompatiblePlatform;
 use Mollie\Api\Types\OrderStatus;
 use RuntimeException;
 use Shop;
@@ -74,9 +77,8 @@ class Queue
      * @param $hook
      * @param QueueModel $todo
      * @return bool
-     * @throws \Mollie\Api\Exceptions\ApiException
-     * @throws \Mollie\Api\Exceptions\IncompatiblePlatform
-     * @todo TEST / DEBUG !!!
+     * @throws ApiException
+     * @throws IncompatiblePlatform
      */
     protected static function handleHook($hook, QueueModel $todo)
     {
@@ -92,7 +94,7 @@ class Queue
                             return $todo->done("Bestellung noch nicht versendet: {$checkout->getBestellung()->cStatus}");
                         }
 
-                        /** @var $method \JTLMollie */
+                        /** @var $method JTLMollie */
                         if ((int)$data['status']
                             && array_key_exists('status', $data)
                             && $checkout->PaymentMethod()
@@ -107,13 +109,13 @@ class Queue
                                     if ($shipments = Shipment::syncBestellung($checkout)) {
                                         foreach ($shipments as $shipment) {
                                             if (is_string($shipment)) {
-                                                $checkout->PaymentMethod()->doLog("Shipping-Error: {$shipment}");
-                                                $result .= "Shipping-Error: {$shipment}\n";
-                                            } else {
-                                                $checkout->PaymentMethod()->doLog("Order shipped: \n" . print_r($shipment, 1));
-                                                $result .= "Order shipped: {$shipment->id}\n";
-                                            }
+                                                $checkout->PaymentMethod()->Log("Shipping-Error: {$shipment}", $checkout->LogData());
+                                                $result .= "Shipping-Error: {$shipment};\n";
 
+                                            } else {
+                                                $checkout->PaymentMethod()->Log("Order shipped: \n" . print_r($shipment, 1));
+                                                $result .= "Order shipped: {$shipment->id};\n";
+                                            }
                                         }
                                     } else {
                                         $result = 'No Shipments ready!';
@@ -122,18 +124,19 @@ class Queue
                                     $result = $e->getMessage() . "\n" . $e->getFile() . ":" . $e->getLine() . "\n" . $e->getTraceAsString();
                                 }
                             } else {
-                                $result = 'Unexpected Mollie Status: ' . $checkout->getMollie()->status;
+                                $result = sprintf('Unerwarteter Mollie Status "%s" für %s', $checkout->getMollie()->status, $checkout->getBestellung()->cBestellNr);
                             }
-
                         } else {
                             $result = 'Nothing to do.';
                         }
-                        return $todo->done($result);
+                    } else {
+                        $result = "kBestellung missing";
                     }
-                    return $todo->done("kBestellung missing");
+                    $checkout->PaymentMethod()->Log("Queue::handleHook: " . $result, $checkout->LogData());
+                    return $todo->done($result);
 
                 case HOOK_BESTELLUNGEN_XML_BEARBEITESTORNO:
-                    if (self::Plugin()->oPluginEinstellungAssoc_arr['autoRefund'] !== 'on') {
+                    if (self::Plugin()->oPluginEinstellungAssoc_arr['autoRefund'] !== 'Y') {
                         throw new RuntimeException('Auto-Refund disabled');
                     }
 

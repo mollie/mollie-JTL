@@ -12,15 +12,30 @@ use Mollie\Api\Types\PaymentStatus;
 use RuntimeException;
 use Session;
 use Shop;
+use ws_mollie\Checkout\Payment\Address;
 use ws_mollie\Checkout\Payment\Amount;
 
+/**
+ * Class PaymentCheckout
+ * @package ws_mollie\Checkout
+ *
+ * @property string $locale
+ * @property Amount $amount
+ * @property string $description
+ * @property array|null $metadata
+ * @property string $redirectUrl
+ * @property string $webhookUrl
+ * @property string|null $method
+ * @property Address $billingAddress
+ * @property string|null $expiresAt
+ */
 class PaymentCheckout extends AbstractCheckout
 {
 
     /**
-     * @var Payment
+     * @var Payment|null
      */
-    protected $payment;
+    protected $_payment;
 
     /**
      * @return string
@@ -32,37 +47,66 @@ class PaymentCheckout extends AbstractCheckout
         if ((int)$this->getBestellung()->cStatus === BESTELLUNG_STATUS_STORNO) {
             if ($this->getMollie()->isCancelable) {
                 $res = $this->API()->Client()->payments->cancel($this->getMollie()->id);
-                return 'Payment cancelled, Status: ' . $res->status;
+                $result = 'Payment cancelled, Status: ' . $res->status;
+            } else {
+                $res = $this->API()->Client()->payments->refund($this->getMollie(), ['amount' => $this->getMollie()->amount]);
+                $result = "Payment Refund initiiert, Status: " . $res->status;
             }
-            $res = $this->API()->Client()->payments->refund($this->getMollie(), ['amount' => $this->getMollie()->amount]);
-            return "Payment Refund initiiert, Status: " . $res->status;
+            $this->PaymentMethod()->Log("PaymentCheckout::cancelOrRefund: " . $result, $this->LogData());
+            return $result;
         }
         throw new RuntimeException('Bestellung ist derzeit nicht storniert, Status: ' . $this->getBestellung()->cStatus);
     }
 
+    /**
+     * @param false $force
+     * @return \Mollie\Api\Resources\Order|Payment
+     */
     public function getMollie($force = false)
     {
-        if ($force || (!$this->payment && $this->getModel()->kID)) {
+        if ($force || (!$this->getPayment() && $this->getModel()->kID)) {
             try {
-                $this->payment = $this->API()->Client()->payments->get($this->getModel()->kID, ['embed' => 'refunds']);
+                $this->setPayment($this->API()->Client()->payments->get($this->getModel()->kID, ['embed' => 'refunds']));
             } catch (Exception $e) {
                 throw new RuntimeException('Mollie-Payment konnte nicht geladen werden: ' . $e->getMessage());
             }
         }
-        return $this->payment;
+        return $this->getPayment();
     }
 
+    /**
+     * @return Payment|null
+     */
+    public function getPayment()
+    {
+        return $this->_payment;
+    }
+
+    /**
+     * @param $payment
+     * @return $this
+     */
+    public function setPayment($payment)
+    {
+        $this->_payment = $payment;
+        return $this;
+    }
+
+    /**
+     * @param array $paymentOptions
+     * @return \Mollie\Api\Resources\Order|Payment|\ws_mollie\Model\Payment
+     */
     public function create(array $paymentOptions = [])
     {
         if ($this->getModel()->kID) {
             try {
-                $this->payment = $this->API()->Client()->payments->get($this->getModel()->kID);
-                if ($this->payment->status === PaymentStatus::STATUS_PAID) {
+                $this->setPayment($this->API()->Client()->payments->get($this->getModel()->kID));
+                if ($this->getPayment()->status === PaymentStatus::STATUS_PAID) {
                     throw new RuntimeException(self::Plugin()->oPluginSprachvariableAssoc_arr['errAlreadyPaid']);
                 }
-                if ($this->payment->status === PaymentStatus::STATUS_OPEN) {
+                if ($this->getPayment()->status === PaymentStatus::STATUS_OPEN) {
                     $this->updateModel()->saveModel();
-                    return $this->payment;
+                    return $this->getPayment();
                 }
             } catch (RuntimeException $e) {
                 //$this->Log(sprintf("PaymentCheckout::create: Letzte Transaktion '%s' konnte nicht geladen werden: %s", $this->getModel()->kID, $e->getMessage()), LOGLEVEL_ERROR);
@@ -73,66 +117,74 @@ class PaymentCheckout extends AbstractCheckout
         }
 
         try {
-            $req = $this->loadRequest($paymentOptions)->getRequestData();
-            $this->payment = $this->API()->Client()->payments->create($req);
-            $this->Log(sprintf("Payment für '%s' wurde erfolgreich angelegt: %s", $this->getBestellung()->cBestellNr, $this->payment->id));
+            $req = $this->loadRequest($paymentOptions)->jsonSerialize();
+            $this->setPayment($this->API()->Client()->payments->create($req));
+            $this->Log(sprintf("Payment für '%s' wurde erfolgreich angelegt: %s", $this->getBestellung()->cBestellNr, $this->getPayment()->id));
             $this->updateModel()->saveModel();
+            return $this->getPayment();
         } catch (Exception $e) {
             $this->Log(sprintf("PaymentCheckout::create: Neue Transaktion für '%s' konnte nicht erstellt werden: %s.", $this->getBestellung()->cBestellNr, $e->getMessage()), LOGLEVEL_ERROR);
             throw new RuntimeException(sprintf('Mollie-Payment \'%s\' konnte nicht geladen werden: %s', $this->getBestellung()->cBestellNr, $e->getMessage()));
         }
-        return $this->payment;
     }
 
 
     /**
      * @param array $options
      * @return $this|PaymentCheckout
-     * @throws ApiException
-     * @throws IncompatiblePlatform
      */
     public function loadRequest($options = [])
     {
 
         if ($this->getBestellung()->oKunde->nRegistriert
-            && ($customer = $this->getCustomer(array_key_exists('mollie_create_customer', $_SESSION['cPost_arr'] ?: []) || $_SESSION['cPost_arr']['mollie_create_customer'] !== 'Y'))
+            && ($customer = $this->getCustomer(
+                array_key_exists('mollie_create_customer', $_SESSION['cPost_arr'] ?: []) && $_SESSION['cPost_arr']['mollie_create_customer'] === 'Y')
+            )
             && isset($customer)) {
             $options['customerId'] = $customer->id;
         }
 
-        $this->setRequestData('amount', Amount::factory($this->getBestellung()->fGesamtsummeKundenwaehrung, $this->getBestellung()->Waehrung->cISO, true))
-            ->setRequestData('description', 'Order ' . $this->getBestellung()->cBestellNr)
-            ->setRequestData('redirectUrl', $this->PaymentMethod()->getReturnURL($this->getBestellung()))
-            ->setRequestData('webhookUrl', Shop::getURL(true) . '/?mollie=1')
-            ->setRequestData('locale', self::getLocale(Session::getInstance()->Language()->getIso(), Session::getInstance()->Customer()->cLand))
-            ->setRequestData('metadata', [
-                'kBestellung' => $this->getBestellung()->kBestellung,
-                'kKunde' => $this->getBestellung()->kKunde,
-                'kKundengruppe' => Session::getInstance()->CustomerGroup()->kKundengruppe,
-                'cHash' => $this->getHash(),
-            ]);
+        $this->amount = Amount::factory($this->getBestellung()->fGesamtsummeKundenwaehrung, $this->getBestellung()->Waehrung->cISO, true);
+        $this->description = 'Order ' . $this->getBestellung()->cBestellNr;
+        $this->redirectUrl = $this->PaymentMethod()->getReturnURL($this->getBestellung());
+        $this->webhookUrl = Shop::getURL(true) . '/?mollie=1';
+        $this->locale = self::getLocale(Session::getInstance()->Language()->getIso(), Session::getInstance()->Customer()->cLand);
+        $this->metadata = [
+            'kBestellung' => $this->getBestellung()->kBestellung,
+            'kKunde' => $this->getBestellung()->kKunde,
+            'kKundengruppe' => Session::getInstance()->CustomerGroup()->kKundengruppe,
+            'cHash' => $this->getHash(),
+        ];
         $pm = $this->PaymentMethod();
-        if ($pm::METHOD !== '' && (self::Plugin()->oPluginEinstellungAssoc_arr['resetMethod'] !== 'Y' || !$this->getMollie())) {
-            $this->setRequestData('method', $pm::METHOD);
+        $isPayAgain = strpos($_SERVER['PHP_SELF'], 'bestellab_again') !== false;
+        if ($pm::METHOD !== '' && (self::Plugin()->oPluginEinstellungAssoc_arr['resetMethod'] !== 'Y' || !$isPayAgain)) {
+            $this->method = $pm::METHOD;
         }
         foreach ($options as $key => $value) {
-            $this->setRequestData($key, $value);
+            $this->$key = $value;
         }
 
         return $this;
     }
 
+    /**
+     * @return object|null
+     */
     public function getIncomingPayment()
     {
         if (!$this->getMollie()) {
             return null;
         }
+
         if (in_array($this->getMollie()->status, [PaymentStatus::STATUS_AUTHORIZED, PaymentStatus::STATUS_PAID], true)) {
             $data = [];
             $data['fBetrag'] = (float)$this->getMollie()->amount->value;
             $data['cISO'] = $this->getMollie()->amount->currency;
             $data['cZahler'] = $this->getMollie()->details->paypalPayerId ?: $this->getMollie()->customerId;
             $data['cHinweis'] = $this->getMollie()->details->paypalReference ?: $this->getMollie()->id;
+            if (isset($this->getMollie()->details, $this->getMollie()->details->paypalFee)) {
+                $data['fZahlungsgebuehr'] = $this->getMollie()->details->paypalFee->value;
+            }
             return (object)$data;
         }
         return null;

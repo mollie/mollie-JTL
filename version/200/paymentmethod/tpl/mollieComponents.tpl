@@ -1,6 +1,31 @@
 <h3>{$mollieLang.cctitle}</h3>
+
 <div class="form-horizontal">
+
     <div id="mollieError"></div>
+
+    {if $token !== false}
+
+    <div class="row clear-mollie-components" style="margin: 25px">
+        <div class="col order-1 col-md-6 col-12">
+            <b>{$mollieLang.clearDescr}</b>
+        </div>
+        <div class="col order-2 col-md-4 col-12">
+            <button class="btn btn-block btn-primary" type="submit" name="clear" value="1"
+                    id="clearMollieComponents">{$mollieLang.clearButton}</button>
+        </div>
+    </div>
+
+    {if $trustBadge}
+        <div class="text-center">
+            <img src="{$trustBadge}" style="height: 90px; max-width: 100%" alt="PCI-DSS SAQ-A compliant"
+                 title="PCI-DSS SAQ-A compliant"/>
+        </div>
+    {/if}
+
+    {else}
+
+
     <div class="form-group">
         <label for="inputEmail3" class="col-sm-2 control-label">{$mollieLang.lbl_cardHolder}</label>
         <div class="col-sm-10">
@@ -40,8 +65,8 @@
                 <p>{$mollieLang.cvchint_2}</p>
             </div>
         </div>
-
     </div>
+
     {if $trustBadge}
         <div class="text-center">
             <img src="{$trustBadge}" style="height: 90px; max-width: 100%" alt="PCI-DSS SAQ-A compliant"
@@ -55,7 +80,11 @@
     {/if}
 </div>
 
-<input type="hidden" name="cardToken" id="cardToken"/>
+{/if}
+
+<input type="hidden" name="cardToken" id="cardToken" value="{if $token}{$token}{/if}"/>
+
+<script src="https://js.mollie.com/v1/mollie.js"></script>
 
 <script>
     // <!--
@@ -63,25 +92,9 @@
     const cardToken = document.getElementById('cardToken');
     const form = document.getElementById("form_payment_extra");
 
-    skipLink.addEventListener('click', function (e) {
-        cardToken.setAttribute('name', 'skip');
-        cardToken.setAttribute('value', "1");
-        e.preventDefault();
-        form.submit();
-        return false;
-    });
-    // -->
-</script>
-
-<script src="https://js.mollie.com/v1/mollie.js"></script>
-<script>
-    // <!--
-
-    const form = document.getElementById("form_payment_extra");
-    const cardToken = document.getElementById('cardToken');
     const errorMessage = {if isset($errorMessage)}{$errorMessage}{else}null{/if};
     const mollie = Mollie('{$profileId}', {
-        locale: '{$locale}'{if $testmode}, testMode: true{/if}
+        locale: '{$locale}'{if $testMode}, testMode: true{/if}
     });
 
     const cardHolder = mollie.createComponent('cardHolder');
@@ -96,6 +109,13 @@
     const verificationCode = mollie.createComponent('verificationCode');
     verificationCode.mount('#verification-code');
 
+    skipLink.addEventListener('click', function (e) {
+        cardToken.setAttribute('name', 'skip');
+        cardToken.setAttribute('value', "1");
+        e.preventDefault();
+        form.submit();
+        return false;
+    });
 
     form.addEventListener('submit', function (e) {
 

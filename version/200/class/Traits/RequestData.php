@@ -12,37 +12,27 @@ trait RequestData
      */
     protected $requestData;
 
-    /**
-     * @param $key string
-     * @return mixed|null
-     */
-    public function RequestData($key)
-    {
-        if (!$this->getRequestData()) {
-            $this->loadRequest();
-        }
-        return $this->requestData[$key] ?: null;
-    }
-
-    /**
-     * @return array|null
-     */
-    public function getRequestData()
+    public function jsonSerialize()
     {
         return $this->requestData;
     }
 
-    /**
-     * @param $key
-     * @param $value
-     * @return $this
-     */
-    public function setRequestData($key, $value)
+    public function __get($name)
+    {
+        if (!$this->requestData) {
+            $this->loadRequest();
+        }
+        return is_string($this->requestData[$name]) ? utf8_decode($this->requestData[$name]) : $this->requestData[$name];
+    }
+
+    public function __set($name, $value)
     {
         if (!$this->requestData) {
             $this->requestData = [];
         }
-        $this->requestData[$key] = $value;
+
+        $this->requestData[$name] = is_string($value) ? utf8_encode($value) : $value;
+
         return $this;
     }
 
@@ -50,13 +40,20 @@ trait RequestData
      * @param array $options
      * @return $this
      */
-    public function loadRequest($options = []){
+    public function loadRequest($options = [])
+    {
         return $this;
     }
 
-    public function jsonSerialize()
+
+    public function __serialize()
     {
-        return $this->requestData;
+        return $this->requestData ?: [];
+    }
+
+    public function __isset($name)
+    {
+        return $this->requestData[$name] !== null;
     }
 
 }

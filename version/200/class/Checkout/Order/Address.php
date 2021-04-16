@@ -2,7 +2,7 @@
 
 namespace ws_mollie\Checkout\Order;
 
-use ResourceValidityException;
+use ws_mollie\Checkout\Exception\ResourceValidityException;
 use Shop;
 
 /**

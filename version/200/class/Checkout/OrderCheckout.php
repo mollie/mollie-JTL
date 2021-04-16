@@ -17,6 +17,24 @@ use ws_mollie\Checkout\Order\Address;
 use ws_mollie\Checkout\Order\OrderLine;
 use ws_mollie\Checkout\Payment\Amount;
 
+/**
+ * Class OrderCheckout
+ * @package ws_mollie\Checkout
+ *
+ * @property string $locale
+ * @property Amount $amount
+ * @property string $orderNumber
+ * @property array|null $metadata
+ * @property string $redirectUrl
+ * @property string $webhookUrl
+ * @property string|null $method
+ * @property Address $billingAddress
+ * @property Address|null $shippingAddress
+ * @property string|null $consumerDateOfBirth
+ * @property OrderLine[] $lines
+ * @property string|null $expiresAt
+ * @property array|null $payment
+ */
 class OrderCheckout extends AbstractCheckout
 {
 
@@ -26,9 +44,9 @@ class OrderCheckout extends AbstractCheckout
     protected $order;
 
     /**
-     * @var Payment
+     * @var Payment|null
      */
-    protected $payment;
+    protected $_payment;
 
     /**
      * @return string
@@ -42,10 +60,13 @@ class OrderCheckout extends AbstractCheckout
         if ((int)$this->getBestellung()->cStatus === BESTELLUNG_STATUS_STORNO) {
             if ($this->getMollie()->isCancelable) {
                 $res = $this->getMollie()->cancel();
-                return 'Order cancelled, Status: ' . $res->status;
+                $result = 'Order cancelled, Status: ' . $res->status;
+            } else {
+                $res = $this->getMollie()->refundAll();
+                $result = "Order Refund initiiert, Status: " . $res->status;
             }
-            $res = $this->getMollie()->refundAll();
-            return "Order Refund initiiert, Status: " . $res->status;
+            $this->PaymentMethod()->Log("OrderCheckout::cancelOrRefund: " . $result, $this->LogData());
+            return $result;
         }
         throw new RuntimeException('Bestellung ist derzeit nicht storniert, Status: ' . $this->getBestellung()->cStatus);
     }
@@ -62,6 +83,10 @@ class OrderCheckout extends AbstractCheckout
         return $this->order;
     }
 
+    /**
+     * @param array $paymentOptions
+     * @return Order|Payment
+     */
     public function create(array $paymentOptions = [])
     {
         if ($this->getModel()->kID) {
@@ -76,19 +101,18 @@ class OrderCheckout extends AbstractCheckout
                         /** @var Payment $payment */
                         foreach ($this->order->payments() as $payment) {
                             if ($payment->status === PaymentStatus::STATUS_OPEN) {
-                                $this->payment = $payment;
+                                $this->setPayment($payment);
                                 break;
                             }
                         }
                     }
-                    if (!$this->payment) {
-                        $this->payment = $this->API()->Client()->orderPayments->createForId($this->getModel()->kID, $paymentOptions);
+                    if (!$this->getPayment()) {
+                        $this->setPayment($this->API()->Client()->orderPayments->createForId($this->getModel()->kID, $paymentOptions));
                     }
                     $this->updateModel()->saveModel();
                     return $this->getMollie(true);
                 }
             } catch (RuntimeException $e) {
-                //$this->Log(sprintf("OrderCheckout::create: Letzte Order '%s' konnte nicht geladen werden: %s", $this->getModel()->kID, $e->getMessage()), LOGLEVEL_ERROR);
                 throw $e;
             } catch (Exception $e) {
                 $this->Log(sprintf("OrderCheckout::create: Letzte Order '%s' konnte nicht geladen werden: %s, versuche neue zu erstellen.", $this->getModel()->kID, $e->getMessage()), LOGLEVEL_ERROR);
@@ -96,81 +120,102 @@ class OrderCheckout extends AbstractCheckout
         }
 
         try {
-            $req = $this->loadRequest($paymentOptions)->getRequestData();
+            $req = $this->loadRequest()->jsonSerialize();
             $this->order = $this->API()->Client()->orders->create($req);
             $this->Log(sprintf("Order für '%s' wurde erfolgreich angelegt: %s", $this->getBestellung()->cBestellNr, $this->order->id));
             $this->updateModel()->saveModel();
+            return $this->order;
         } catch (Exception $e) {
             $this->Log(sprintf("OrderCheckout::create: Neue Order '%s' konnte nicht erstellt werden: %s.", $this->getBestellung()->cBestellNr, $e->getMessage()), LOGLEVEL_ERROR);
             throw new RuntimeException(sprintf("Order für '%s' konnte nicht angelegt werden: %s", $this->getBestellung()->cBestellNr, $e->getMessage()));
         }
-        return $this->order;
     }
 
+    /**
+     * @return Payment|null
+     */
+    public function getPayment()
+    {
+        return $this->_payment;
+    }
+
+    /**
+     * @param $payment
+     * @return $this
+     */
+    public function setPayment($payment)
+    {
+        $this->_payment = $payment;
+        return $this;
+    }
+
+    /**
+     * @return $this|OrderCheckout
+     */
     public function updateModel()
     {
         parent::updateModel();
 
-        if (!$this->payment && $this->getMollie() && $this->getMollie()->payments()) {
+        if (!$this->getPayment() && $this->getMollie() && $this->getMollie()->payments()) {
             /** @var Payment $payment */
             foreach ($this->getMollie()->payments() as $payment) {
                 if (in_array($payment->status, [PaymentStatus::STATUS_OPEN, PaymentStatus::STATUS_PENDING, PaymentStatus::STATUS_AUTHORIZED, PaymentStatus::STATUS_PAID], true)) {
-                    $this->payment = $payment;
+                    $this->setPayment($payment);
                     break;
                 }
             }
         }
-        if ($this->payment) {
-            $this->getModel()->cTransactionId = $this->payment->id;
-
+        if ($this->getPayment()) {
+            $this->getModel()->cTransactionId = $this->getPayment()->id;
         }
         if ($this->getMollie()) {
             $this->getModel()->cCheckoutURL = $this->getMollie()->getCheckoutUrl();
             $this->getModel()->cWebhookURL = $this->getMollie()->webhookUrl;
             $this->getModel()->cRedirectURL = $this->getMollie()->redirectUrl;
         }
-
         return $this;
     }
 
     /**
      * @param array $options
      * @return $this|OrderCheckout
-     * @throws ApiException
-     * @throws \Mollie\Api\Exceptions\IncompatiblePlatform
      */
     public function loadRequest($options = [])
     {
 
-        if ((int)$this->getBestellung()->oKunde->nRegistriert
-            && ($customer = $this->getCustomer(array_key_exists('mollie_create_customer', $_SESSION['cPost_arr'] ?: []) || $_SESSION['cPost_arr']['mollie_create_customer'] !== 'Y'))
+        if ($this->getBestellung()->oKunde->nRegistriert
+            && ($customer = $this->getCustomer(
+                array_key_exists('mollie_create_customer', $_SESSION['cPost_arr'] ?: []) && $_SESSION['cPost_arr']['mollie_create_customer'] === 'Y')
+            )
             && isset($customer)) {
             $options['customerId'] = $customer->id;
         }
 
-        $this->setRequestData('locale', self::getLocale(Session::getInstance()->Language()->getIso(), Session::getInstance()->Customer()->cLand))
-            ->setRequestData('amount', Amount::factory($this->getBestellung()->fGesamtsummeKundenwaehrung, $this->getBestellung()->Waehrung->cISO, true))
-            ->setRequestData('orderNumber', $this->getBestellung()->cBestellNr)
-            ->setRequestData('metadata', [
-                'kBestellung' => $this->getBestellung()->kBestellung,
-                'kKunde' => $this->getBestellung()->kKunde,
-                'kKundengruppe' => Session::getInstance()->CustomerGroup()->kKundengruppe,
-                'cHash' => $this->getHash(),
-            ])
-            ->setRequestData('redirectUrl', $this->PaymentMethod()->getReturnURL($this->getBestellung()))
-            ->setRequestData('webhookUrl', Shop::getURL(true) . '/?mollie=1');
+        $this->locale = self::getLocale(Session::getInstance()->Language()->getIso(), Session::getInstance()->Customer()->cLand);
+        $this->amount = Amount::factory($this->getBestellung()->fGesamtsummeKundenwaehrung, $this->getBestellung()->Waehrung->cISO, true);
+        $this->orderNumber = $this->getBestellung()->cBestellNr;
+        $this->metadata = [
+            'kBestellung' => $this->getBestellung()->kBestellung,
+            'kKunde' => $this->getBestellung()->kKunde,
+            'kKundengruppe' => Session::getInstance()->CustomerGroup()->kKundengruppe,
+            'cHash' => $this->getHash(),
+        ];
+
+        $this->redirectUrl = $this->PaymentMethod()->getReturnURL($this->getBestellung());
+        $this->webhookUrl = Shop::getURL(true) . '/?mollie=1';
 
         $pm = $this->PaymentMethod();
-        if ($pm::METHOD !== '' && (self::Plugin()->oPluginEinstellungAssoc_arr['resetMethod'] !== 'on' || !$this->getMollie())) {
-            $this->setRequestData('method', $pm::METHOD);
+        $isPayAgain = strpos($_SERVER['PHP_SELF'], 'bestellab_again') !== false;
+        if ($pm::METHOD !== '' && (self::Plugin()->oPluginEinstellungAssoc_arr['resetMethod'] !== 'Y' || !$isPayAgain)) {
+            $this->method = $pm::METHOD;
         }
 
-        $this->setRequestData('billingAddress', Address::factory($this->getBestellung()->oRechnungsadresse));
+        $this->billingAddress = Address::factory($this->getBestellung()->oRechnungsadresse);
         if ($this->getBestellung()->Lieferadresse !== null) {
             if (!$this->getBestellung()->Lieferadresse->cMail) {
                 $this->getBestellung()->Lieferadresse->cMail = $this->getBestellung()->oRechnungsadresse->cMail;
             }
-            $this->setRequestData('shippingAddress', Address::factory($this->getBestellung()->Lieferadresse));
+            $this->shippingAddress = Address::factory($this->getBestellung()->Lieferadresse);
         }
 
         if (
@@ -178,7 +223,7 @@ class OrderCheckout extends AbstractCheckout
             && Session::getInstance()->Customer()->dGeburtstag !== '0000-00-00'
             && preg_match('/^\d{4}-\d{2}-\d{2}$/', trim(Session::getInstance()->Customer()->dGeburtstag))
         ) {
-            $this->setRequestData('consumerDateOfBirth', trim(Session::getInstance()->Customer()->dGeburtstag));
+            $this->consumerDateOfBirth = trim(Session::getInstance()->Customer()->dGeburtstag);
         }
 
         $lines = [];
@@ -190,21 +235,24 @@ class OrderCheckout extends AbstractCheckout
             $lines[] = OrderLine::getCredit($this->getBestellung());
         }
 
-        if ($comp = OrderLine::getRoundingCompensation($lines, $this->RequestData('amount'), $this->getBestellung()->Waehrung->cISO)) {
+        if ($comp = OrderLine::getRoundingCompensation($lines, $this->amount, $this->getBestellung()->Waehrung->cISO)) {
             $lines[] = $comp;
         }
-        $this->setRequestData('lines', $lines);
+        $this->lines = $lines;
 
         if ($dueDays = $this->PaymentMethod()->getExpiryDays()) {
-            $max = $this->RequestData('method') && strpos($this->RequestData('method'), 'klarna') !== false ? 28 : 100;
-            $this->setRequestData('expiresAt', date('Y-m-d', strtotime(sprintf("+%d DAYS", min($dueDays, $max)))));
+            $max = $this->method && strpos($this->method, 'klarna') !== false ? 28 : 100;
+            $this->expiresAt = date('Y-m-d', strtotime(sprintf("+%d DAYS", min($dueDays, $max))));
         }
 
-        $this->setRequestData('payment', $options);
+        $this->payment = $options;
 
         return $this;
     }
 
+    /**
+     * @return object|null
+     */
     public function getIncomingPayment()
     {
         if (!$this->getMollie()) {
@@ -214,13 +262,17 @@ class OrderCheckout extends AbstractCheckout
         foreach ($this->getMollie()->payments() as $payment) {
             if (in_array($payment->status,
                 [PaymentStatus::STATUS_AUTHORIZED, PaymentStatus::STATUS_PAID], true)) {
-                $this->payment = $payment;
-                return (object)[
+                $this->setPayment($payment);
+                $data = (object)[
                     'fBetrag' => (float)$payment->amount->value,
                     'cISO' => $payment->amount->currency,
                     'cZahler' => $payment->details->paypalPayerId ?: $payment->customerId,
                     'cHinweis' => $payment->details->paypalReference ?: $payment->id,
                 ];
+                if (isset($payment->details, $payment->details->paypalFee)) {
+                    $data->fZahlungsgebuehr = $payment->details->paypalFee->value;
+                }
+                return $data;
             }
         }
         return null;

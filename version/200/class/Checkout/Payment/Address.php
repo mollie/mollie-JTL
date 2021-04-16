@@ -4,7 +4,7 @@
 namespace ws_mollie\Checkout\Payment;
 
 
-use ResourceValidityException;
+use ws_mollie\Checkout\Exception\ResourceValidityException;
 use ws_mollie\Checkout\AbstractResource;
 
 /**

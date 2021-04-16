@@ -1,7 +1,9 @@
 <?php
 
+namespace ws_mollie\Checkout\Exception;
 
 use Mollie\Api\Resources\BaseResource;
+use RuntimeException;
 
 class ResourceValidityException extends RuntimeException
 {

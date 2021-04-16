@@ -51,6 +51,74 @@
             <CreateDate>2021-04-09</CreateDate>
             <SQL>200.sql</SQL>
         </Version>
+
+        <Emailtemplate>
+            <Template>
+                <Name>Zahlungs-Erinnerungsemail</Name>
+                <Description><![CDATA[Wird versendet, falls eine Zahlung fehlschlägt oder abgebrochen wurde.]]></Description>
+                <Type>text/html</Type>
+                <ModulId>zahlungserinnerung</ModulId>
+                <Active>Y</Active>
+                <AKZ>0</AKZ>
+                <AGB>0</AGB>
+                <WRB>0</WRB>
+                <TemplateLanguage iso="GER">
+                    <Subject>Zahlungserinnerung</Subject>
+                    <ContentHtml><![CDATA[{includeMailTemplate template=header type=html}
+Guten Tag {$Kunde->cVorname} {$Kunde->cNachname},
+<br>
+vielen Dank für Ihre Bestellung bei {$Einstellungen.global.global_shopname}.<br>
+<br>
+<p>Leider konnten wir für die Bestellung <b>{$oPluginMail->Bestellung->cBestellNr}</b> bisher keinen Zahlungseingang feststellen.</p>
+<p>Sollte es bei der Zahlung zu Problemen gekommen sein, können Sie diese über den folgenden Link einfach erneut versuchen.</p>
+<p>Zu zahlender Betrag: {$oPluginMail->Amount}</p>
+<p>Jetzt bezahlen: <a href="{$oPluginMail->PayURL}">{$oPluginMail->PayURL}</a></p>
+{includeMailTemplate template=footer type=html}]]></ContentHtml>
+                    <ContentText><![CDATA[{includeMailTemplate template=header type=text}
+
+Guten Tag {$Kunde->cVorname} {$Kunde->cNachname},
+
+vielen Dank für Ihre Bestellung bei {$Einstellungen.global.global_shopname}.
+
+Leider konnten wir für die Bestellung {$oPluginMail->Bestellung->cBestellNr} bisher keinen Zahlungseingang feststellen.
+Sollte es bei der Zahlung zu Problemen gekommen sein, können Sie diese über den folgenden Link einfach erneut versuchen.
+
+Zu zahlender Betrag: {$oPluginMail->Amount}
+Jetzt bezahlen: {$oPluginMail->PayURL}
+
+{includeMailTemplate template=footer type=text}]]></ContentText>
+                </TemplateLanguage>
+                <TemplateLanguage iso="ENG">
+                    <Subject>Payment reminder</Subject>
+                    <ContentHtml><![CDATA[{includeMailTemplate template=header type=html}
+Hello {$Kunde->cVorname} {$Kunde->cNachname},
+<br>
+thank you for your order at {$Einstellungen.global.global_shopname}.<br>
+<br>
+<p>Unfortunatly we did not receive a payment confirmation for your order <b>{$oPluginMail->Bestellung->cBestellNr}</b> as yet.</p>
+<p>If you had an error, or any other problem while paying, please try again with the following link.</p>
+<p>Amount due: {$oPluginMail->Amount}</p>
+<p>Pay now: <a href="{$oPluginMail->PayURL}">{$oPluginMail->PayURL}</a></p>
+{includeMailTemplate template=footer type=html}]]></ContentHtml>
+                    <ContentText><![CDATA[{includeMailTemplate template=header type=text}
+
+Hello {$Kunde->cVorname} {$Kunde->cNachname},
+
+thank you for your order at {$Einstellungen.global.global_shopname}.
+
+Unfortunatly we did not receive a payment confirmation for your order {$oPluginMail->Bestellung->cBestellNr} as yet.
+If you had an error, or any other problem while paying, please try again with the following link.
+
+Amount due: {$oPluginMail->Amount}
+Pay now: {$oPluginMail->PayURL}
+
+{includeMailTemplate template=footer type=text}]]></ContentText>
+                </TemplateLanguage>
+            </Template>
+        </Emailtemplate>
+
+
+
         <Hooks>
             <Hook id="75">75_bestellungInDb.php</Hook>
             <Hook id="131">131_globalinclude.php</Hook>
@@ -147,8 +215,25 @@
                         <Option sort="2" value="N">Nein</Option>
                     </SelectboxOptions>
                 </Setting>
-
-
+                <Setting type="selectbox" initialValue="B" sort="50" conf="Y">
+                    <Name>Teilversand Verhalten</Name>
+                    <Description>Bei Gastbestellungen und Teilversand.</Description>
+                    <ValueName>shippingMode</ValueName>
+                    <SelectboxOptions>
+                        <Option sort="1" value="A">Direkt alles versenden</Option>
+                        <Option sort="2" value="B">Erst bei komplett Versand versenden</Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="selectbox" initialValue="Y" sort="51" conf="Y">
+                    <Name>Versand bei Mollie</Name>
+                    <Description>Soll Versandinformation für OrderAPI Methoden an Mollie gesendet werden?.</Description>
+                    <ValueName>shippingActive</ValueName>
+                    <SelectboxOptions>
+                        <Option sort="1" value="Y">Ja</Option>
+                        <Option sort="2" value="K"><![CDATA[Nur Kunden & Komplettversand]]></Option>
+                        <Option sort="3" value="N">Nein</Option>
+                    </SelectboxOptions>
+                </Setting>
                 <Setting type="selectbox" initialValue="N" sort="40" conf="Y">
                     <Name>Bestellungen automatisch stornieren</Name>
                     <Description>Wenn diese Einstellung aktiviert ist, werden komplett Stornierte Bestellungen auch bei
@@ -170,6 +255,8 @@
                         <Option sort="2" value="N">Nicht automatisch weiterleiten</Option>
                     </SelectboxOptions>
                 </Setting>
+
+
                 <Setting type="selectbox" initialValue="de_DE" sort="60" conf="Y">
                     <Name>Fallback-Locale</Name>
                     <Description>Fallback, falls Locale nicht erkannt oder nicht vorhanden.</Description>
@@ -196,31 +283,6 @@
                         <Option sort="19" value="pl_PL">pl_PL</Option>
                         <Option sort="20" value="lv_LV">lv_LV</Option>
                         <Option sort="21" value="lt_LT">lt_LT</Option>
-                    </SelectboxOptions>
-                </Setting>
-
-
-                <!--Setting type="selectbox" initialValue="Y" sort="19" conf="Y">
-                    <Name>Trust-Grafik bei mollie Components anzeigen:</Name>
-                    <Description>Bindet eine Trust-Grafik unterhalb des Kreditkartenformulars ein.</Description>
-                    <ValueName>loadTrust</ValueName>
-                    <SelectboxOptions>
-                        <Option value="N" sort="1"><![CDATA[Nein]]></Option>
-                        <Option value="Y" sort="2"><![CDATA[Ja]]></Option>
-                    </SelectboxOptions>
-                </Setting-->
-
-                <Setting type="selectbox" initialValue="S" sort="20" conf="Y">
-                    <Name>Zahlungsart Daten synchronisieren</Name>
-                    <Description>Lädt Name / Bild für die jeweilige Sprache automatisch von mollie, und speichert diese
-                        in der Datenbank
-                    </Description>
-                    <ValueName>paymentmethod_sync</ValueName>
-                    <SelectboxOptions>
-                        <Option value="N" sort="1"><![CDATA[Nein]]></Option>
-                        <Option value="size1x" sort="2"><![CDATA[Ja, Bildgröße 1x]]></Option>
-                        <Option value="size2x" sort="3"><![CDATA[Ja, Bildgröße 2x]]></Option>
-                        <Option value="svg" sort="4"><![CDATA[Ja, Bild SVG]]></Option>
                     </SelectboxOptions>
                 </Setting>
                 <Setting type="selectbox" initialValue="N" sort="30" conf="Y">
@@ -269,17 +331,6 @@
                     </Description>
                     <ValueName>expiryDays</ValueName>
                 </Setting>
-                <!--Setting type="selectbox" initialValue="Y" sort="120" conf="Y">
-                    <Name>mollie Components überspringbar:</Name>
-                    <Description>Wenn diese Einstellung aktiv ist, erscheint beim Zahlungszusatzschritt (Kreditkarte)
-                        ein Link, um diesen Schritt zu überspringen.
-                    </Description>
-                    <ValueName>skipComponents</ValueName>
-                    <SelectboxOptions>
-                        <Option value="Y" sort="1"><![CDATA[Ja]]></Option>
-                        <Option value="N" sort="2"><![CDATA[Nein]]></Option>
-                    </SelectboxOptions>
-                </Setting-->
             </Settingslink>
         </Adminmenu>
         <Locales>

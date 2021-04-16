@@ -36,7 +36,7 @@
                     <a href="plugin.php?kPlugin={$oPlugin->kPlugin}&action=order&id={$payment->kID}">{$payment->kID}</a>
                 </td>
                 <td class="text-center" data-order="{$payment->cStatus}">
-                    {if $payment->cStatus == 'created'}
+                    {if $payment->cStatus == 'created' || $payment->cStatus == 'open'}
                         <span class="label label-info">erstellt</span>
                     {elseif $payment->cStatus == 'pending'}
                         <span class="label label-warning">austehend</span>

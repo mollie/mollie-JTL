@@ -2,14 +2,21 @@
     <div class="alert alert-danger">
         {$oMollieException->getMessage()}
     </div>
+    <div class="row">
+        <div class="col-md-4 col-lg-3 col-xl-2">
+            <a href="{$tryAgain}" class="btn btn-primary btn-lg block">
+                {lang key='payNow' section='global'}
+            </a>
+        </div>
+    </div>
 {/if}
 
 {if isset($redirect) && $redirect != ''}
     <div class="row">
         <div class="col-md-4 col-lg-3 col-xl-2">
-            <button type="link" href="{$redirect}" class="btn btn-primary btn-lg block">
+            <a href="{$redirect}" class="btn btn-primary btn-lg block">
                 {lang key='payNow' section='global'}
-            </button>
+            </a>
         </div>
     </div>
     {if $checkoutMode == 'D'}
