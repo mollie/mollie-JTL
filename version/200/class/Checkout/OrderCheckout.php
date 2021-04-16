@@ -16,6 +16,7 @@ use Shop;
 use ws_mollie\Checkout\Order\Address;
 use ws_mollie\Checkout\Order\OrderLine;
 use ws_mollie\Checkout\Payment\Amount;
+use ws_mollie\Helper;
 
 /**
  * Class OrderCheckout
@@ -134,8 +135,20 @@ class OrderCheckout extends AbstractCheckout
     /**
      * @return Payment|null
      */
-    public function getPayment()
+    public function getPayment($search = false)
     {
+        if (!$this->_payment && $search) {
+            foreach ($this->getMollie()->payments() as $payment) {
+                if (in_array($payment->status, [
+                    PaymentStatus::STATUS_AUTHORIZED,
+                    PaymentStatus::STATUS_PAID,
+                    PaymentStatus::STATUS_PENDING,
+                ], true)) {
+                    $this->_payment = $payment;
+                    break;
+                }
+            }
+        }
         return $this->_payment;
     }
 
@@ -258,6 +271,17 @@ class OrderCheckout extends AbstractCheckout
         if (!$this->getMollie()) {
             return null;
         }
+
+        if (Helper::getSetting('wawiPaymentID') === 'ord') {
+            $cHinweis = $this->getMollie()->id;
+        } else {
+            if (Helper::getSetting('wawiPaymentID') === 'tr') {
+                $cHinweis = $this->getPayment(true)->id;
+            } else {
+                $cHinweis = sprintf("%s / %s", $this->getMollie()->id, $this->getPayment(true)->id);
+            }
+        }
+
         /** @var Payment $payment */
         foreach ($this->getMollie()->payments() as $payment) {
             if (in_array($payment->status,
@@ -267,7 +291,7 @@ class OrderCheckout extends AbstractCheckout
                     'fBetrag' => (float)$payment->amount->value,
                     'cISO' => $payment->amount->currency,
                     'cZahler' => $payment->details->paypalPayerId ?: $payment->customerId,
-                    'cHinweis' => $payment->details->paypalReference ?: $payment->id,
+                    'cHinweis' => $payment->details->paypalReference ?: $cHinweis,
                 ];
                 if (isset($payment->details, $payment->details->paypalFee)) {
                     $data->fZahlungsgebuehr = $payment->details->paypalFee->value;
