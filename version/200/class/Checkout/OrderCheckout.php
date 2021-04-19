@@ -49,6 +49,58 @@ class OrderCheckout extends AbstractCheckout
      */
     protected $_payment;
 
+
+    public function getShipments(){
+
+    }
+
+    /**
+     * @param OrderCheckout $checkout
+     * @return string
+     * @throws ApiException
+     * @throws \Mollie\Api\Exceptions\IncompatiblePlatform
+     */
+    public static function capture(OrderCheckout $checkout)
+    {
+        if ($checkout->getMollie()->status !== OrderStatus::STATUS_AUTHORIZED && $checkout->getMollie()->status !== OrderStatus::STATUS_SHIPPING) {
+            throw new RuntimeException('Nur autorisierte Zahlungen können erfasst werden!');
+        }
+        $shipment = $checkout->API()->Client()->shipments->createFor($checkout->getMollie(), ['lines' => []]);
+        $checkout->Log(sprintf('Bestellung wurde manuell erfasst/versandt: %s', $shipment->id));
+        return $shipment->id;
+    }
+
+    /**
+     * @param false $force
+     * @return Order|null
+     */
+    public function getMollie($force = false)
+    {
+        if ($force || (!$this->order && $this->getModel()->kID)) {
+            try {
+                $this->order = $this->API()->Client()->orders->get($this->getModel()->kID, ['embed' => 'payments,shipments,refunds']);
+            } catch (Exception $e) {
+                throw new RuntimeException(sprintf('Mollie-Order \'%s\' konnte nicht geladen werden: %s', $this->getModel()->kID, $e->getMessage()));
+            }
+        }
+        return $this->order;
+    }
+
+    /**
+     * @param OrderCheckout $checkout
+     * @return Order
+     * @throws ApiException
+     */
+    public static function cancel($checkout)
+    {
+        if (!$checkout->getMollie()->isCancelable) {
+            throw new RuntimeException('Bestellung kann nicht abgebrochen werden.');
+        }
+        $order = $checkout->getMollie()->cancel();
+        $checkout->Log('Bestellung wurde manuell abgebrochen.');
+        return $order;
+    }
+
     /**
      * @return string
      * @throws ApiException
@@ -70,18 +122,6 @@ class OrderCheckout extends AbstractCheckout
             return $result;
         }
         throw new RuntimeException('Bestellung ist derzeit nicht storniert, Status: ' . $this->getBestellung()->cStatus);
-    }
-
-    public function getMollie($force = false)
-    {
-        if ($force || (!$this->order && $this->getModel()->kID)) {
-            try {
-                $this->order = $this->API()->Client()->orders->get($this->getModel()->kID, ['embed' => 'payments,shipments,refunds']);
-            } catch (Exception $e) {
-                throw new RuntimeException(sprintf('Mollie-Order \'%s\' konnte nicht geladen werden: %s', $this->getModel()->kID, $e->getMessage()));
-            }
-        }
-        return $this->order;
     }
 
     /**

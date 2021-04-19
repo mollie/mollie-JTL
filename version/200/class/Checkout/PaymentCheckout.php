@@ -63,7 +63,7 @@ class PaymentCheckout extends AbstractCheckout
 
     /**
      * @param false $force
-     * @return \Mollie\Api\Resources\Order|Payment
+     * @return Payment|null
      */
     public function getMollie($force = false)
     {
@@ -191,5 +191,19 @@ class PaymentCheckout extends AbstractCheckout
             return (object)$data;
         }
         return null;
+    }
+
+    /**
+     * @param PaymentCheckout $checkout
+     * @return Payment
+     */
+    public static function cancel($checkout)
+    {
+        if(!$checkout->getMollie()->isCancelable){
+            throw new RuntimeException('Zahlung kann nicht abgebrochen werden.');
+        }
+        $payment = $checkout->API()->Client()->payments->cancel($checkout->getMollie()->id);
+        $checkout->Log('Zahlung wurde manuell abgebrochen.');
+        return $payment;
     }
 }

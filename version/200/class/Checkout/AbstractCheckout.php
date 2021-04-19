@@ -8,14 +8,18 @@ use Bestellung;
 use Exception;
 use Jtllog;
 use JTLMollie;
+use Kunde;
 use Mollie\Api\Exceptions\ApiException;
 use Mollie\Api\Resources\Order;
+use Mollie\Api\Types\OrderStatus;
+use Mollie\Api\Types\PaymentStatus;
 use PaymentMethod;
 use RuntimeException;
 use Session;
 use Shop;
 use stdClass;
 use ws_mollie\API;
+use ws_mollie\Helper;
 use ws_mollie\Model\Customer;
 use ws_mollie\Model\Payment;
 use ws_mollie\Traits\Plugin;
@@ -118,13 +122,13 @@ abstract class AbstractCheckout
      * @return OrderCheckout|PaymentCheckout
      * @throws RuntimeException
      */
-    public static function fromModel($model)
+    public static function fromModel($model, $bFill = true)
     {
         if (!$model) {
             throw new RuntimeException(sprintf('Error loading Order for Model: %s', print_r($model, 1)));
         }
 
-        $oBestellung = new Bestellung($model->kBestellung, true);
+        $oBestellung = new Bestellung($model->kBestellung, $bFill);
         if (!$oBestellung->kBestellung) {
             throw new RuntimeException(sprintf('Error loading Bestellung: %s', $model->kBestellung));
         }
@@ -150,7 +154,9 @@ abstract class AbstractCheckout
             return;
         }
 
-        $remindables = Shop::DB()->executeQueryPrepared("SELECT kId FROM xplugin_ws_mollie_payments WHERE dReminder IS NULL AND dCreatedAt < NOW() - INTERVAL :d HOUR AND cStatus IN ('created','open', 'expired', 'failed', 'canceled')", [
+        $sql = "SELECT p.kId FROM xplugin_ws_mollie_payments p JOIN tbestellung b ON b.kBestellung = p.kBestellung WHERE p.dReminder IS NULL OR p.dReminder = '0000-00-00 00:00:00' AND p.dCreatedAt < NOW() - INTERVAL :d HOUR AND p.cStatus IN ('created','open', 'expired', 'failed', 'canceled') AND NOT b.cStatus = '-1'";
+
+        $remindables = Shop::DB()->executeQueryPrepared($sql, [
             ':d' => $reminder
         ], 2);
         foreach ($remindables as $remindable) {
@@ -171,7 +177,7 @@ abstract class AbstractCheckout
             $repayURL = Shop::getURL() . '/?m_pay=' . md5($checkout->getModel()->kID . '-' . $checkout->getBestellung()->kBestellung);
 
             $data = new stdClass();
-            $data->tkunde = new \Kunde($checkout->getBestellung()->oKunde->kKunde);
+            $data->tkunde = new Kunde($checkout->getBestellung()->oKunde->kKunde);
             if ($data->tkunde->kKunde) {
 
                 $data->Bestellung = $checkout->getBestellung();
@@ -293,6 +299,87 @@ abstract class AbstractCheckout
     }
 
     /**
+     * @param AbstractCheckout $checkout
+     * @return \Mollie\Api\Resources\BaseResource|\Mollie\Api\Resources\Refund
+     * @throws ApiException
+     */
+    public static function refund(AbstractCheckout $checkout)
+    {
+        if ($checkout->getMollie()->resource === 'order') {
+            /** @var Order $order */
+            $order = $checkout->getMollie();
+            if (in_array($order->status, [OrderStatus::STATUS_CANCELED, OrderStatus::STATUS_EXPIRED, OrderStatus::STATUS_CREATED], true)) {
+                throw new RuntimeException('Bestellung kann derzeit nicht zurückerstattet werden.');
+            }
+            $refund = $order->refundAll();
+            $checkout->Log(sprintf('Bestellung wurde manuell zurückerstattet: %s', $refund->id));
+            return $refund;
+        }
+        if ($checkout->getMollie()->resource === 'payment') {
+            /** @var \Mollie\Api\Resources\Payment $payment */
+            $payment = $checkout->getMollie();
+            if (in_array($payment->status, [PaymentStatus::STATUS_CANCELED, PaymentStatus::STATUS_EXPIRED, PaymentStatus::STATUS_OPEN], true)) {
+                throw new RuntimeException('Zahlung kann derzeit nicht zurückerstattet werden.');
+            }
+            $refund = $checkout->API()->Client()->payments->refund($checkout->getMollie(), ['amount' => $checkout->getMollie()->amount]);
+            $checkout->Log(sprintf('Zahlung wurde manuell zurückerstattet: %s', $refund->id));
+            return $refund;
+        }
+        throw new RuntimeException(sprintf('Unbekannte Resource: %s', $checkout->getMollie()->resource));
+    }
+
+    /**
+     * @return API
+     */
+    public function API()
+    {
+        if (!$this->api) {
+            if ($this->getModel()->kID) {
+                $this->api = new API($this->getModel()->cMode === 'test');
+            } else {
+                $this->api = new API(API::getMode());
+            }
+        }
+        return $this->api;
+    }
+
+    /**
+     * @param $checkout
+     * @return Order|\Mollie\Api\Resources\Payment
+     * @throws ApiException
+     */
+    public static function cancel($checkout)
+    {
+        if ($checkout instanceof OrderCheckout) {
+            return OrderCheckout::cancel($checkout);
+        }
+        if ($checkout instanceof PaymentCheckout) {
+            return PaymentCheckout::cancel($checkout);
+        }
+        throw new RuntimeException('AbstractCheckout::cancel: Invalid Checkout!');
+    }
+
+    /**
+     * @return array|bool|int|object|null
+     */
+    public function getLogs()
+    {
+        return Shop::DB()->executeQueryPrepared("SELECT * FROM tzahlungslog WHERE cLogData LIKE :kBestellung OR cLogData LIKE :cBestellNr OR cLogData LIKE :MollieID ORDER BY dDatum DESC, cLog DESC", [
+            ':kBestellung' => '%#' . ($this->getBestellung()->kBestellung ?: '##') . '%',
+            ':cBestellNr' => '%§' . ($this->getBestellung()->cBestellNr ?: '§§') . '%',
+            ':MollieID' => '%$' . ($this->getMollie()->id ?: '$$') . '%',
+        ], 2);
+    }
+
+    /**
+     * @return bool
+     */
+    public function remindable()
+    {
+        return (int)$this->getBestellung()->cStatus !== BESTELLUNG_STATUS_STORNO && !in_array($this->getModel()->cStatus, [PaymentStatus::STATUS_PAID, PaymentStatus::STATUS_AUTHORIZED, PaymentStatus::STATUS_PENDING, OrderStatus::STATUS_COMPLETED, OrderStatus::STATUS_SHIPPING], true);
+    }
+
+    /**
      * @return string
      */
     public function LogData()
@@ -368,21 +455,6 @@ abstract class AbstractCheckout
             }
         }
         return $this->customer;
-    }
-
-    /**
-     * @return API
-     */
-    public function API()
-    {
-        if (!$this->api) {
-            if ($this->getModel()->kID) {
-                $this->api = new API($this->getModel()->cMode === 'test');
-            } else {
-                $this->api = new API(API::getMode());
-            }
-        }
-        return $this->api;
     }
 
     public static function getLocale($cISOSprache = null, $country = null)
@@ -493,7 +565,8 @@ abstract class AbstractCheckout
         $this->getModel()->kBestellung = $this->getBestellung()->kBestellung;
         $this->getModel()->cOrderNumber = $this->getBestellung()->cBestellNr;
         $this->getModel()->cHash = $this->getHash();
-        $this->getModel()->bSynced = $this->getModel()->bSynced !== null ? $this->getModel()->bSynced : false;
+
+        $this->getModel()->bSynced = $this->getModel()->bSynced !== null ? $this->getModel()->bSynced : Helper::getSetting('onlyPaid') !== 'Y';
         return $this;
     }
 
@@ -509,14 +582,15 @@ abstract class AbstractCheckout
      */
     public static function makeFetchable(Bestellung $oBestellung, Payment $model)
     {
+        // TODO: force ?
         if ($oBestellung->cAbgeholt === 'Y' && !$model->bSynced) {
-            Shop::DB()->update('tbestellung', 'kBestellung', (int)$oBestellung->kBestellung, (object)['cAbgeholt' => 'N']);
-            $model->bSynced = true;
-            try {
-                return $model->save();
-            } catch (Exception $e) {
-                Jtllog::writeLog(sprintf("Fehler beim speichern des Models: %s / Bestellung: %s", $model->kID, $oBestellung->cBestellNr));
-            }
+            Shop::DB()->update('tbestellung', 'kBestellung', $oBestellung->kBestellung, (object)['cAbgeholt' => 'N']);
+        }
+        $model->bSynced = true;
+        try {
+            return $model->save();
+        } catch (Exception $e) {
+            Jtllog::writeLog(sprintf("Fehler beim speichern des Models: %s / Bestellung: %s", $model->kID, $oBestellung->cBestellNr));
         }
         return false;
     }
@@ -534,6 +608,14 @@ abstract class AbstractCheckout
         }
         return false;
 
+    }
+
+    /**
+     * @return string
+     */
+    public function getRepayURL()
+    {
+        return Shop::getURL(true) . '/?m_pay=' . md5($this->getModel()->kID . '-' . $this->getBestellung()->kBestellung);
     }
 
 }

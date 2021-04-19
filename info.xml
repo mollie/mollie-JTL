@@ -55,7 +55,8 @@
         <Emailtemplate>
             <Template>
                 <Name>Zahlungs-Erinnerungsemail</Name>
-                <Description><![CDATA[Wird versendet, falls eine Zahlung fehlschlägt oder abgebrochen wurde.]]></Description>
+                <Description>
+                    <![CDATA[Wird versendet, falls eine Zahlung fehlschlägt oder abgebrochen wurde.]]></Description>
                 <Type>text/html</Type>
                 <ModulId>zahlungserinnerung</ModulId>
                 <Active>Y</Active>
@@ -116,7 +117,6 @@ Pay now: {$oPluginMail->PayURL}
                 </TemplateLanguage>
             </Template>
         </Emailtemplate>
-
 
 
         <Hooks>
@@ -322,14 +322,6 @@ Pay now: {$oPluginMail->PayURL}
                     <Name>Workflow-Secret:</Name>
                     <Description>Schlüssel, um die WAWI Workflow-Requests zu authentifizieren.</Description>
                     <ValueName>workflowSecret</ValueName>
-                </Setting>
-                <Setting type="text" initialValue="100" sort="110" conf="Y">
-                    <Name>Max. Gültigenkeit in Tagen:</Name>
-                    <Description>Bestellungen bei mollie, die innerhalb dieser Zeit nicht zu einem &#34;bezahlt&#34;
-                        Status führen, werden als ungültig erklärt. Die Klarna Zahlungsarten haben immer max. 28
-                        Tage.
-                    </Description>
-                    <ValueName>expiryDays</ValueName>
                 </Setting>
             </Settingslink>
         </Adminmenu>

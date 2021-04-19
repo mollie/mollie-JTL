@@ -11,22 +11,10 @@
 
 namespace ws_mollie;
 
-use Bestellung;
 use Exception;
 use JTLMollie;
-use Lieferschein;
-use Lieferscheinpos;
-use Mollie\Api\Resources\Order;
-use Mollie\Api\Types\OrderStatus;
-use Mollie\Api\Types\PaymentMethod;
-use Mollie\Api\Types\PaymentStatus;
 use Shop;
-use Shopsetting;
-use stdClass;
-use Versand;
 use ws_mollie\Checkout\AbstractCheckout;
-use ws_mollie\Model\Payment;
-use ws_mollie\Traits\Locale;
 
 /**
  * Class Mollie
@@ -35,165 +23,15 @@ use ws_mollie\Traits\Locale;
  */
 abstract class Mollie
 {
-    protected static $_jtlmollie;
-
-    /**
-     * @param $kBestellung
-     * @param bool $redirect
-     * @return bool|string
-     */
-    public static function getOrderCompletedRedirect($kBestellung, $redirect = true)
-    {
-        $mode = Shopsetting::getInstance()->getValue(CONF_KAUFABWICKLUNG, 'bestellabschluss_abschlussseite');
-
-        $bestellid = Shop::DB()->select("tbestellid ", 'kBestellung', (int)$kBestellung);
-        $url = Shop::getURL() . '/bestellabschluss.php?i=' . $bestellid->cId;
-
-
-        if ($mode === 'S' || !$bestellid) { // Statusseite
-            $bestellstatus = Shop::DB()->select('tbestellstatus', 'kBestellung', (int)$kBestellung);
-            $url = Shop::getURL() . '/status.php?uid=' . $bestellstatus->cUID;
-        }
-
-        if ($redirect) {
-            if (!headers_sent()) {
-                header('Location: ' . $url);
-            }
-            echo "<a href='{$url}'>redirect ...</a>";
-            exit();
-        }
-        return $url;
-    }
-
-    /**
-     * @param Order $order
-     * @param $kBestellung
-     * @param bool $newStatus
-     * @return array
-     * @throws Exception
-     */
-    public static function getShipmentOptions(Order $order, $kBestellung, $newStatus = false)
-    {
-        if (!$order || !$kBestellung) {
-            throw new Exception('Mollie::getShipmentOptions: order and kBestellung are required!');
-        }
-
-        $oBestellung = new Bestellung($kBestellung, true);
-        if ($newStatus === false) {
-            $newStatus = (int)$oBestellung->cStatus;
-        }
-        $options = [];
-
-        // Tracking Data
-        if (isset($oBestellung->oLieferschein_arr)) {
-            $nLS = count($oBestellung->oLieferschein_arr) - 1;
-            if (isset($oBestellung->oLieferschein_arr[$nLS], $oBestellung->oLieferschein_arr[$nLS]->oVersand_arr) && $nLS >= 0) {
-                $nV = count($oBestellung->oLieferschein_arr[$nLS]->oVersand_arr) - 1;
-                if ($nV >= 0 && isset($oBestellung->oLieferschein_arr[$nLS]->oVersand_arr[$nV])) {
-                    /** @var Versand $oVersand */
-                    $oVersand = $oBestellung->oLieferschein_arr[$nLS]->oVersand_arr[$nV];
-                    $tracking = new stdClass();
-                    $tracking->carrier = utf8_encode(trim($oVersand->getLogistik()));
-                    $tracking->url = utf8_encode(trim($oVersand->getLogistikURL()));
-                    $tracking->code = utf8_encode(trim($oVersand->getIdentCode()));
-                    if ($tracking->code && $tracking->carrier) {
-                        $options['tracking'] = $tracking;
-                    }
-                }
-            }
-        }
-
-        $logData = '#' . $oBestellung->kBestellung . '§' . $oBestellung->cBestellNr . '$' . $order->id;
-
-        switch ($newStatus) {
-            case BESTELLUNG_STATUS_VERSANDT:
-                Mollie::JTLMollie()->doLog('181_sync: Bestellung versandt', $logData, LOGLEVEL_DEBUG);
-                $options['lines'] = [];
-                break;
-            case BESTELLUNG_STATUS_TEILVERSANDT:
-                $lines = [];
-                foreach ($order->lines as $i => $line) {
-                    if ($line->totalAmount->value > 0.0)
-                        if (($quantity = Mollie::getBestellPosSent($line->sku, $oBestellung)) !== false && ($quantity - $line->quantityShipped) > 0) {
-                            $x = min($quantity - $line->quantityShipped, $line->shippableQuantity);
-                            if ($x > 0) {
-                                $lines[] = (object)[
-                                    'id' => $line->id,
-                                    'quantity' => $x,
-                                    'amount' => (object)[
-                                        'currency' => $line->totalAmount->currency,
-                                        'value' => number_format($x * $line->unitPrice->value, 2),
-                                    ],
-                                ];
-                            }
-                        }
-                }
-                Mollie::JTLMollie()->doLog('181_sync: Bestellung teilversandt', $logData, LOGLEVEL_DEBUG);
-                if (count($lines)) {
-                    $options['lines'] = $lines;
-                }
-                break;
-            case BESTELLUNG_STATUS_STORNO:
-                Mollie::JTLMollie()->doLog('181_sync: Bestellung storniert', $logData, LOGLEVEL_DEBUG);
-                $options = null;
-                break;
-            case BESTELLUNG_STATUS_BEZAHLT:
-            case BESTELLUNG_STATUS_IN_BEARBEITUNG:
-            case BESTELLUNG_STATUS_OFFEN:
-                // NOTHING TO DO!
-                break;
-            default:
-                Mollie::JTLMollie()->doLog('181_sync: Bestellungstatus unbekannt: ' . $newStatus . '/' . $oBestellung->cStatus, $logData, LOGLEVEL_DEBUG);
-        }
-
-        return $options;
-    }
 
     /**
      * @return JTLMollie
      * @throws Exception
+     * @deprecated
      */
     public static function JTLMollie()
     {
-        if (self::$_jtlmollie === null) {
-            $pza = Shop::DB()->select('tpluginzahlungsartklasse', 'cClassName', 'JTLMollie');
-            if (!$pza) {
-                throw new Exception("Mollie Zahlungsart nicht in DB gefunden!");
-            }
-            require_once __DIR__ . '/../paymentmethod/JTLMollie.php';
-            self::$_jtlmollie = new JTLMollie($pza->cModulId);
-        }
-        return self::$_jtlmollie;
-    }
-
-    /**
-     * Returns amount of sent items for SKU
-     * @param $sku
-     * @param Bestellung $oBestellung
-     * @return float|int
-     * @throws Exception
-     */
-    public static function getBestellPosSent($sku, Bestellung $oBestellung)
-    {
-        if ($sku === null) {
-            return 1;
-        }
-        foreach ($oBestellung->Positionen as $oPosition) {
-            if ($oPosition->cArtNr === $sku) {
-                $sent = 0;
-                /** @var Lieferschein $oLieferschein */
-                foreach ($oBestellung->oLieferschein_arr as $oLieferschein) {
-                    /** @var Lieferscheinpos $oLieferscheinPos */
-                    foreach ($oLieferschein->oLieferscheinPos_arr as $oLieferscheinPos) {
-                        if ((int)$oLieferscheinPos->getBestellPos() === (int)$oPosition->kBestellpos) {
-                            $sent += $oLieferscheinPos->getAnzahl();
-                        }
-                    }
-                }
-                return $sent;
-            }
-        }
-        return false;
+        throw new Exception("Deprecated");
     }
 
     /**
@@ -218,148 +56,6 @@ abstract class Mollie
                 }
             }
         }
-    }
-
-    /**
-     * @param Order $order
-     * @param null $kBestellung
-     * @return bool
-     * @throws Exception
-     */
-    public static function handleOrder(Order $order, $kBestellung)
-    {
-        $logData = '$' . $order->id . '#' . $kBestellung . "§" . $order->orderNumber;
-
-        $oBestellung = new Bestellung($kBestellung);
-        if ($oBestellung->kBestellung) {
-
-            Shop::DB()->executeQueryPrepared("INSERT INTO tbestellattribut (kBestellung, cName, cValue) VALUES (:kBestellung, 'mollie_oid', :mollieId1) ON DUPLICATE KEY UPDATE cValue = :mollieId2;", [
-                ':kBestellung' => $kBestellung,
-                ':mollieId1' => $order->id,
-                ':mollieId2' => $order->id,
-            ], 3);
-
-            Shop::DB()->executeQueryPrepared("INSERT INTO tbestellattribut (kBestellung, cName, cValue) VALUES (:kBestellung, 'mollie_cBestellNr', :orderId1) ON DUPLICATE KEY UPDATE cValue = :orderId2;", [
-                ':kBestellung' => $kBestellung,
-                ':orderId1' => $oBestellung->cBestellNr,
-                ':orderId2' => $oBestellung->cBestellNr,
-            ], 3);
-
-            if (isset($order->metadata->originalOrderNumber)) {
-                Shop::DB()->executeQueryPrepared("INSERT INTO tbestellattribut (kBestellung, cName, cValue) VALUES (:kBestellung, 'mollie_cFakeBestellNr', :orderId1) ON DUPLICATE KEY UPDATE cValue = :orderId2;", [
-                    ':kBestellung' => $kBestellung,
-                    ':orderId1' => $order->metadata->originalOrderNumber,
-                    ':orderId2' => $order->metadata->originalOrderNumber,
-                ], 3);
-            }
-
-            $mPayment = null;
-            if ($payments = $order->payments()) {
-                /** @var \Mollie\Api\Resources\Payment $payment */
-                foreach ($payments as $payment) {
-                    if (in_array($payment->status, [PaymentStatus::STATUS_AUTHORIZED, PaymentStatus::STATUS_PAID], true)) {
-                        $mPayment = $payment;
-                    }
-                }
-            }
-            if ($mPayment) {
-                Shop::DB()->executeQueryPrepared("INSERT INTO tbestellattribut (kBestellung, cName, cValue) VALUES (:kBestellung, 'mollie_tid', :mollieId1) ON DUPLICATE KEY UPDATE cValue = :mollieId2;", [
-                    ':kBestellung' => $kBestellung,
-                    ':mollieId1' => $mPayment->id,
-                    ':mollieId2' => $mPayment->id,
-                ], 3);
-            } else {
-                self::JTLMollie()->doLog('Mollie::handleOrder: kein Payment gefunden', $logData);
-                return false;
-            }
-
-            try {
-                // Try to change the orderNumber
-                if ($order->orderNumber !== $oBestellung->cBestellNr) {
-                    JTLMollie::API()->performHttpCall("PATCH", sprintf('orders/%s', $order->id), json_encode(['orderNumber' => $oBestellung->cBestellNr]));
-                }
-            } catch (Exception $e) {
-                self::JTLMollie()->doLog('Mollie::handleOrder: ' . $e->getMessage(), $logData);
-            }
-
-            $_payment = self::getLastPayment($order);
-
-            if ($_payment && $_payment->description !== $oBestellung->cBestellNr) {
-                JTLMollie::API()->performHttpCall('PATCH', sprintf('payments/%s', $_payment->id), json_encode(['description' => $oBestellung->cBestellNr]));
-            }
-
-
-            $order->orderNumber = $oBestellung->cBestellNr;
-            Payment::updateFromPayment($order, $kBestellung);
-
-            $oIncomingPayment = Shop::DB()->executeQueryPrepared("SELECT * FROM tzahlungseingang WHERE kBestellung = :kBestellung", [':kBestellung' => $oBestellung->kBestellung], 1);
-            if (!$oIncomingPayment) {
-                $oIncomingPayment = new stdClass();
-            }
-
-            // 2. Check PaymentStatus
-            switch ($order->status) {
-                case OrderStatus::STATUS_PAID:
-                case OrderStatus::STATUS_COMPLETED:
-                case OrderStatus::STATUS_AUTHORIZED:
-
-                    $cHinweis = $order->id;
-                    if ($mPayment) {
-                        $cHinweis .= ' / ' . $mPayment->id;
-                    }
-                    if (Helper::getSetting('wawiPaymentID') === 'ord') {
-                        $cHinweis = $order->id;
-                    } elseif ($mPayment && Helper::getSetting('wawiPaymentID') === 'tr') {
-                        $cHinweis = $mPayment->id;
-                    }
-
-                    if ($mPayment->method === PaymentMethod::PAYPAL && isset($mPayment->details, $mPayment->details->paypalReference)) {
-                        $cHinweis = $mPayment->details->paypalReference;
-                        $oIncomingPayment->cZahler = isset($payment->details->paypalPayerId) ? $payment->details->paypalPayerId : '';
-                    }
-
-                    $oIncomingPayment->fBetrag = $order->amount->value;
-                    $oIncomingPayment->cISO = $order->amount->currency;
-                    $oIncomingPayment->cHinweis = $cHinweis;
-                    Mollie::JTLMollie()->addIncomingPayment($oBestellung, $oIncomingPayment);
-                    Mollie::JTLMollie()->setOrderStatusToPaid($oBestellung);
-                    Mollie::JTLMollie()->doLog('Mollie::handleOrder/PaymentStatus: ' . $order->status . ' => Zahlungseingang (' . $order->amount->value . ')', $logData, LOGLEVEL_DEBUG);
-                    break;
-                case OrderStatus::STATUS_SHIPPING:
-                case OrderStatus::STATUS_PENDING:
-                    Mollie::JTLMollie()->setOrderStatusToPaid($oBestellung);
-                    Mollie::JTLMollie()->doLog('Mollie::handleOrder/PaymentStatus: ' . $order->status . ' => Bestellung bezahlt, KEIN Zahlungseingang', $logData, LOGLEVEL_NOTICE);
-                    break;
-                case OrderStatus::STATUS_CANCELED:
-                case OrderStatus::STATUS_EXPIRED:
-                    Mollie::JTLMollie()->doLog('Mollie::handleOrder/PaymentStatus: ' . $order->status, $logData, LOGLEVEL_ERROR);
-                    break;
-            }
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * @param Order $order
-     * @return \Mollie\Api\Resources\Payment|null
-     */
-    public static function getLastPayment(Order $order)
-    {
-        $payment = null;
-        if ($order->payments()) {
-            /** @var \Mollie\Api\Resources\Payment $p */
-            foreach ($order->payments() as $p) {
-                if (!$payment) {
-                    $payment = $p;
-                    continue;
-                }
-                if (strtotime($p->createdAt) > strtotime($payment->createdAt)) {
-                    $payment = $p;
-                }
-            }
-        }
-        return $payment;
     }
 
     public static function getLocales()

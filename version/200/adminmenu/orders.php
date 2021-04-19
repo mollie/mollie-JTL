@@ -1,7 +1,8 @@
 <?php
 
-use Mollie\Api\Types\OrderStatus;
 use Mollie\Api\Types\PaymentStatus;
+use ws_mollie\Checkout\AbstractCheckout;
+use ws_mollie\Checkout\OrderCheckout;
 use ws_mollie\Helper;
 use ws_mollie\Model\Payment;
 use ws_mollie\Mollie;
@@ -18,6 +19,34 @@ try {
     if (array_key_exists('action', $_REQUEST)) {
         switch ($_REQUEST['action']) {
 
+            case 'reminder':
+
+                if (array_key_exists('kBestellung', $_REQUEST) && ($checkout = AbstractCheckout::fromBestellung((int)$_REQUEST['kBestellung']))) {
+                    if (AbstractCheckout::sendReminder($checkout->getModel()->kID)) {
+                        Helper::addAlert('Zahlungserinnerung wurde verschickt.', 'success', 'orders');
+                    } else {
+                        Helper::addAlert('Es ist ein Fehler aufgetreten, prüfe den Log.', 'danger', 'orders');
+                    }
+                } else {
+                    Helper::addAlert('Bestellung konnte nicht geladen werden.', 'danger', 'orders');
+                }
+
+
+                break;
+
+            case "fetchable":
+
+                if (array_key_exists('kBestellung', $_REQUEST) && ($checkout = AbstractCheckout::fromBestellung((int)$_REQUEST['kBestellung']))) {
+                    if (AbstractCheckout::makeFetchable($checkout->getBestellung(), $checkout->getModel())) {
+                        Helper::addAlert('Bestellung kann jetzt von der WAWI abgeholt werden.', 'success', 'orders');
+                    } else {
+                        Helper::addAlert('Es ist ein Fehler aufgetreten, prüfe den Log.', 'danger', 'orders');
+                    }
+                } else {
+                    Helper::addAlert('Bestellung konnte nicht geladen werden.', 'danger', 'orders');
+                }
+
+                break;
 
             case 'export':
 
@@ -33,8 +62,6 @@ try {
                         ':To' => $to->format('Y-m-d'),
                     ], 2);
 
-
-                    $api = JTLMollie::API();
 
                     header('Content-Type: application/csv');
                     header('Content-Disposition: attachment; filename=mollie-' . $from->format('Ymd') . '-' . $to->format('Ymd') . '.csv');
@@ -60,30 +87,30 @@ try {
 
 
                     foreach ($orders as $order) {
-                        $tbestellung = Shop::DB()->executeQueryPrepared('SELECT cBestellNr, cStatus FROM tbestellung WHERE kBestellung = :kBestellung', [':kBestellung' => $order->kBestellung], 1);
+                        $order = new ws_mollie\Model\Payment($order);
+                        $checkout = AbstractCheckout::fromModel($order);
 
                         $tmp = [
                             'kBestellung' => $order->kBestellung,
                             'cOrderId' => $order->kID,
-                            'cStatus' => $order->cStatus,
-                            'cBestellNr' => $tbestellung ? $tbestellung->cBestellNr : $order->cOrderNumber,
-                            'nStatus' => $tbestellung ? $tbestellung->cStatus : 0,
+                            'cStatus' => $checkout->getMollie() ? $checkout->getMollie()->status : $order->cStatus,
+                            'cBestellNr' => $checkout->getBestellung() ? $checkout->getBestellung()->cBestellNr : $order->cOrderNumber,
+                            'nStatus' => $checkout->getBestellung() ? $checkout->getBestellung()->cStatus : 0,
                             'cMode' => $order->cMode,
-                            'cOriginalOrderNumber' => '',
+                            'cOriginalOrderNumber' => $checkout->getMollie() && isset($checkout->getMollie()->metadata->originalOrderNumber) ? $checkout->getMollie()->metadata->originalOrderNumber : '',
                             'cCurrency' => $order->cCurrency,
                             'fAmount' => $order->fAmount,
                             'cMethod' => $order->cMethod,
-                            'cPaymentId' => '',
+                            'cPaymentId' => $order->cTransactionId,
                             'dCreated' => $order->dCreatedAt,
                         ];
 
                         try {
-                            $oOrder = $api->orders->get($order->kID, ['embed' => 'payments']);
-                            $tmp['cStatus'] = $oOrder->status;
-                            $tmp['cOriginalOrderNumber'] = isset($oOrder->metadata->originalOrderNumber) ? $oOrder->metadata->originalOrderNumber : '';
-                            foreach ($oOrder->payments() as $payment) {
-                                if ($payment->status === PaymentStatus::STATUS_PAID) {
-                                    $tmp['cPaymentId'] = $payment->id;
+                            if ($checkout->getMollie() && $checkout->getMollie()->resource === 'order') {
+                                foreach ($checkout->getMollie()->payments() as $payment) {
+                                    if ($payment->status === PaymentStatus::STATUS_PAID) {
+                                        $tmp['cPaymentId'] = $payment->id;
+                                    }
                                 }
                             }
                         } catch (Exception $e) {
@@ -102,128 +129,101 @@ try {
                 break;
 
             case 'refund':
-                if (!array_key_exists('id', $_REQUEST)) {
-                    Helper::addAlert('Keine ID angegeben!', 'danger', 'orders');
-                    break;
+                try {
+                    if (!array_key_exists('id', $_REQUEST)) {
+                        throw new InvalidArgumentException('Keine ID angegeben!', 'danger', 'orders');
+                    }
+                    $checkout = AbstractCheckout::fromID($_REQUEST['id']);
+                    if ($refund = $checkout::refund($checkout)) {
+                        Helper::addAlert(sprintf('Bestellung wurde zurückerstattet (%s).', $refund->id), 'success', 'orders');
+                    }
+                    goto order;
+                } catch (InvalidArgumentException $e) {
+                    Helper::addAlert('Fehler: ' . $e->getMessage(), 'danger', 'orders');
+                } catch (Exception $e) {
+                    Helper::addAlert('Fehler: ' . $e->getMessage(), 'danger', 'orders');
+                    goto order;
                 }
-                $payment = Payment::getPaymentMollie($_REQUEST['id']);
-                if (!$payment) {
-                    Helper::addAlert('Order nicht gefunden!', 'danger', 'orders');
-                    break;
-                }
-
-                $order = JTLMollie::API()->orders->get($_REQUEST['id']);
-                if ($order->status === OrderStatus::STATUS_CANCELED) {
-                    Helper::addAlert('Bestellung bereits storniert', 'danger', 'orders');
-                    break;
-                }
-                $refund = JTLMollie::API()->orderRefunds->createFor($order, ['lines' => []]);
-                Mollie::JTLMollie()->Log("Order refunded: <br/><pre>" . print_r($refund, 1) . "</pre>", '$' . $payment->kID . '#' . $payment->kBestellung . '§' . $payment->cOrderNumber);
-
-                goto order;
+                break;
 
             case 'cancel':
-                if (!array_key_exists('id', $_REQUEST)) {
-                    Helper::addAlert('Keine ID angeben!', 'danger', 'orders');
-                    break;
+                try {
+                    if (!array_key_exists('id', $_REQUEST)) {
+                        throw new InvalidArgumentException('Keine ID angeben!');
+                    }
+                    $checkout = AbstractCheckout::fromID($_REQUEST['id']);
+                    if ($checkout::cancel($checkout)) {
+                        Helper::addAlert('Bestellung wurde abgebrochen.', 'success', 'orders');
+                    }
+                    goto order;
+                } catch (InvalidArgumentException $e) {
+                    Helper::addAlert('Fehler: ' . $e->getMessage(), 'danger', 'orders');
+                } catch (Exception $e) {
+                    Helper::addAlert('Fehler: ' . $e->getMessage(), 'danger', 'orders');
+                    goto order;
                 }
-                $payment = Payment::getPaymentMollie($_REQUEST['id']);
-                if (!$payment) {
-                    Helper::addAlert('Order nicht gefunden!', 'danger', 'orders');
-                    break;
-                }
-                $order = JTLMollie::API()->orders->get($_REQUEST['id']);
-                if ($order->status === OrderStatus::STATUS_CANCELED) {
-                    Helper::addAlert('Bestellung bereits storniert', 'danger', 'orders');
-                    break;
-                }
-                $cancel = JTLMollie::API()->orders->cancel($order->id);
-                Mollie::JTLMollie()->Log("Order canceled: <br/><pre>" . print_r($cancel, 1) . "</pre>", '$' . $payment->kID . '#' . $payment->kBestellung . '§' . $payment->cOrderNumber);
-                goto order;
+                break;
 
             case 'capture':
-                if (!array_key_exists('id', $_REQUEST)) {
-                    Helper::addAlert('Keine ID angeben!', 'danger', 'orders');
-                    break;
+                try {
+                    if (!array_key_exists('id', $_REQUEST)) {
+                        throw new InvalidArgumentException('Keine ID angeben!');
+                    }
+                    $checkout = AbstractCheckout::fromID($_REQUEST['id']);
+                    if ($shipmentId = OrderCheckout::capture($checkout)) {
+                        Helper::addAlert(sprintf('Zahlung erfolgreich erfasst/versandt (%s).', $shipmentId), 'success', 'orders');
+                    }
+                    goto order;
+                } catch (InvalidArgumentException $e) {
+                    Helper::addAlert('Fehler: ' . $e->getMessage(), 'danger', 'orders');
+                } catch (Exception $e) {
+                    Helper::addAlert('Fehler: ' . $e->getMessage(), 'danger', 'orders');
+                    goto order;
                 }
-                $payment = Payment::getPaymentMollie($_REQUEST['id']);
-                if (!$payment) {
-                    Helper::addAlert('Order nicht gefunden!', 'danger', 'orders');
-                    break;
-                }
-                $order = JTLMollie::API()->orders->get($_REQUEST['id']);
-                if ($order->status !== OrderStatus::STATUS_AUTHORIZED && $order->status !== OrderStatus::STATUS_SHIPPING) {
-                    Helper::addAlert('Nur autorisierte Zahlungen können erfasst werden!', 'danger', 'orders');
-                    break;
-                }
-
-                $oBestellung = new Bestellung($payment->kBestellung, true);
-                if (!$oBestellung->kBestellung) {
-                    Helper::addAlert('Bestellung konnte nicht geladen werden!', 'danger', 'orders');
-                    break;
-                }
-
-                $logData = '#' . $payment->kBestellung . '$' . $payment->kID . "§" . $oBestellung->cBestellNr;
-
-                $options = ['lines' => []];
-                if ($oBestellung->cTracking) {
-                    $tracking = new stdClass();
-                    $tracking->carrier = utf8_encode($oBestellung->cVersandartName);
-                    $tracking->url = utf8_encode($oBestellung->cTrackingURL);
-                    $tracking->code = utf8_encode($oBestellung->cTracking);
-                    $options['tracking'] = $tracking;
-                }
-
-                // CAPTURE ALL
-                $shipment = JTLMollie::API()->shipments->createFor($order, $options);
-                Helper::addAlert('Zahlung wurde erfolgreich erfasst!', 'success', 'orders');
-                Mollie::JTLMollie()->Log('Shipment created<br/><pre>' . print_r(['options' => $options, 'shipment' => $shipment], 1) . '</pre>', $logData);
-                goto order;
+                break;
 
             case 'order':
                 order:
-                if (!array_key_exists('id', $_REQUEST)) {
-                    Helper::addAlert('Keine ID angeben!', 'danger', 'orders');
-                    break;
-                }
+                try {
 
-                $checkout = \ws_mollie\Checkout\AbstractCheckout::fromID($_REQUEST['id']);
-                $oBestellung = null;
-                if ($checkout) {
-                    $oBestellung = $checkout->getBestellung();
-                    //\ws_mollie\Model\Payment::updateFromPayment($order, $oBestellung->kBestellung);
-                    if ($oBestellung->kBestellung && $oBestellung->cBestellNr !== $oBestellung->cBestellNr) {
-                        Shop::DB()->executeQueryPrepared("UPDATE xplugin_ws_mollie_payments SET cOrderNumber = :cBestellNr WHERE kID = :kID", [
-                            ':cBestellNr' => $oBestellung->cBestellNr,
-                            ':kID' => $payment->kID,
-                        ], 3);
+                    if (!array_key_exists('id', $_REQUEST)) {
+                        throw new InvalidArgumentException('Keine ID angeben!');
                     }
-                }
-                $logs = Shop::DB()->executeQueryPrepared("SELECT * FROM tzahlungslog WHERE cLogData LIKE :kBestellung OR cLogData LIKE :cBestellNr OR cLogData LIKE :MollieID ORDER BY dDatum DESC, cLog DESC", [
-                    ':kBestellung' => '%#' . ($oBestellung->kBestellung ?: '##') . '%',
-                    ':cBestellNr' => '%§' . ($oBestellung->cBestellNr ?: '§§') . '%',
-                    ':MollieID' => '%$' . ($checkout->getMollie()->id ?: '$$') . '%',
-                ], 2);
 
-                Shop::Smarty()->assign('payment', $checkout->getModel())
-                    ->assign('oBestellung', $oBestellung)
-                    ->assign('order', $checkout->getMollie())
-                    ->assign('logs', $logs);
-                Shop::Smarty()->display($oPlugin->cAdminmenuPfad . '/tpl/order.tpl');
-                return;
+                    $checkout = AbstractCheckout::fromID($_REQUEST['id']);
+
+                    if ($checkout instanceof OrderCheckout) {
+                        Shop::Smarty()->assign('shipments', $checkout->getShipments());
+                    }
+
+                    Shop::Smarty()->assign('payment', $checkout->getModel())
+                        ->assign('oBestellung', $checkout->getBestellung())
+                        ->assign('order', $checkout->getMollie())
+                        ->assign('checkout', $checkout)
+                        ->assign('logs', $checkout->getLogs());
+                    Shop::Smarty()->display($oPlugin->cAdminmenuPfad . '/tpl/order.tpl');
+                    return;
+
+                } catch (InvalidArgumentException $e) {
+                    Helper::addAlert('Fehler: ' . $e->getMessage(), 'danger', 'orders');
+                } catch (Exception $e) {
+                    Helper::addAlert('Fehler: ' . $e->getMessage(), 'danger', 'orders');
+                    return;
+                }
         }
     }
 
-
     Mollie::fixZahlungsarten();
 
-
-    $payments = Shop::DB()->executeQueryPrepared("SELECT * FROM xplugin_ws_mollie_payments WHERE kBestellung IS NOT NULL AND cStatus != 'created' ORDER BY dCreatedAt DESC LIMIT 1000;", [], 2);
+    $checkouts = [];
+    $payments = Shop::DB()->executeQueryPrepared("SELECT * FROM xplugin_ws_mollie_payments WHERE kBestellung IS NOT NULL ORDER BY dCreatedAt DESC LIMIT 1000;", [], 2);
     foreach ($payments as $i => $payment) {
-        $payments[$i]->oBestellung = new Bestellung($payment->kBestellung, false);
+        $payment = new Payment($payment);
+        $checkouts[$payment->kBestellung] = AbstractCheckout::fromModel($payment, false);
     }
 
     Shop::Smarty()->assign('payments', $payments)
+        ->assign('checkouts', $checkouts)
         ->assign('admRoot', str_replace('http:', '', $oPlugin->cAdminmenuPfadURL))
         ->assign('hasAPIKey', trim(Helper::getSetting("api_key")) !== '');
 

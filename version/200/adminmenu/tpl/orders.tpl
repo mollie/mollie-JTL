@@ -6,7 +6,7 @@
              style="max-width: 100%"/>
     </a>
 {else}
-    <table class="datatable" style="width: 100%" data-order='[[ 8, "desc" ]]'>
+    <table class="datatable" style="width: 100%" data-order='[[ 6, "desc" ]]'>
         <thead>
         <tr>
             <td>BestellNr.</td>
@@ -14,77 +14,102 @@
             <td>Mollie Status</td>
             <td>JTL Status</td>
             <td>Betrag</td>
-            <td>Währung</td>
-            <td>Locale</td>
             <td>Methode</td>
             <td>Erstellt</td>
+            <td>&nbsp;</td>
         </tr>
         </thead>
         <tbody>
-        {foreach from=$payments item=payment}
+        {foreach from=$checkouts item=checkout}
             <tr>
-                <td>
-                    <a href="plugin.php?kPlugin={$oPlugin->kPlugin}&action=order&id={$payment->kID}">{$payment->cOrderNumber}</a>
-                    {if $payment->cMode == 'test'}
+                <td data-order="{$checkout->getModel()->cOrderNumber}">
+                    {if $checkout->getModel()->bSynced == false && $checkout->getBestellung()->cAbgeholt === 'Y'}
+                        <abbr title="Noch nicht zur WAWI übertragbar" style="cursor: help">*</abbr>
+                    {/if}
+                    <a href="plugin.php?kPlugin={$oPlugin->kPlugin}&action=order&id={$checkout->getModel()->kID}">{$checkout->getModel()->cOrderNumber}</a>
+                    {if $checkout->getModel()->cMode == 'test'}
                         <span class="label label-danger">TEST</span>
                     {/if}
-                    {if $payment->bLockTimeout}
+                    {if $checkout->getModel()->bLockTimeout}
                         <span class="label label-danger">LOCK TIMEOUT</span>
+                    {/if}
+                    {if $checkout->getModel()->dReminder && $checkout->getModel()->dReminder !== '0000-00-00 00:00:00'}
+                        <span class="fa fa-envelope" title="Zahlungserinnerung zuletzt verschickt: {"d. M Y H:i"|date:{$checkout->getModel()->dReminder|strtotime}}"></span>
                     {/if}
                 </td>
                 <td>
-                    <a href="plugin.php?kPlugin={$oPlugin->kPlugin}&action=order&id={$payment->kID}">{$payment->kID}</a>
+                    <a href="plugin.php?kPlugin={$oPlugin->kPlugin}&action=order&id={$checkout->getModel()->kID}">{$checkout->getModel()->kID}</a>
                 </td>
-                <td class="text-center" data-order="{$payment->cStatus}">
-                    {if $payment->cStatus == 'created' || $payment->cStatus == 'open'}
+                <td class="text-center" data-order="{$checkout->getModel()->cStatus}">
+                    {if $checkout->getModel()->cStatus == 'created' || $checkout->getModel()->cStatus == 'open'}
                         <span class="label label-info">erstellt</span>
-                    {elseif $payment->cStatus == 'pending'}
+                    {elseif $checkout->getModel()->cStatus == 'pending'}
                         <span class="label label-warning">austehend</span>
-                    {elseif $payment->cStatus == 'paid'}
+                    {elseif $checkout->getModel()->cStatus == 'paid'}
                         <span class="label label-success">bezahlt</span>
-                    {elseif $payment->cStatus == 'authorized'}
+                    {elseif $checkout->getModel()->cStatus == 'authorized'}
                         <span class="label label-success">autorisiert</span>
-                    {elseif $payment->cStatus == 'shipping'}
+                    {elseif $checkout->getModel()->cStatus == 'shipping'}
                         <span class="label label-warning">versendet</span>
-                    {elseif $payment->cStatus == 'completed'}
+                    {elseif $checkout->getModel()->cStatus == 'completed'}
                         <span class="label label-success">abgeschlossen</span>
-                    {elseif $payment->cStatus == 'expired'}
+                    {elseif $checkout->getModel()->cStatus == 'expired'}
                         <span class="label label-danger">abgelaufen</span>
-                    {elseif $payment->cStatus == 'canceled'}
-                        <span class="label label-danger">storniert</span>
+                    {elseif $checkout->getModel()->cStatus == 'canceled'}
+                        <span class="label label-danger">abgebrochen</span>
                     {else}
-                        <span class="label label-danger">Unbekannt: {$payment->cStatus}</span>
+                        <span class="label label-danger">Unbekannt: {$checkout->getModel()->cStatus}</span>
                     {/if}
-                    {if $payment->fAmountRefunded && $payment->fAmountRefunded == $payment->fAmount}
+                    {if $checkout->getModel()->fAmountRefunded && $checkout->getModel()->fAmountRefunded == $checkout->getModel()->fAmount}
                         <strong style="color: red">(total refund)</strong>
-                    {elseif $payment->fAmountRefunded && $payment->fAmountRefunded > 0}
+                    {elseif $checkout->getModel()->fAmountRefunded && $checkout->getModel()->fAmountRefunded > 0}
                         <strong style="color: red">(partly refund)</strong>
                     {/if}
 
                 </td>
                 <td>
-                    {if $payment->oBestellung->cStatus|intval == 1}
+                    {if $checkout->getBestellung()->cStatus|intval == 1}
                         <span class="label label-info">OFFEN</span>
-                    {elseif $payment->oBestellung->cStatus|intval == 2}
+                    {elseif $checkout->getBestellung()->cStatus|intval == 2}
                         <span class="label label-info">IN BEARBEITUNG</span>
-                    {elseif $payment->oBestellung->cStatus|intval == 3}
+                    {elseif $checkout->getBestellung()->cStatus|intval == 3}
                         <span class="label label-success">BEZAHLT</span>
-                    {elseif $payment->oBestellung->cStatus|intval == 4}
+                    {elseif $checkout->getBestellung()->cStatus|intval == 4}
                         <span class="label label-success">VERSANDT</span>
-                    {elseif $payment->oBestellung->cStatus|intval == 5}
+                    {elseif $checkout->getBestellung()->cStatus|intval == 5}
                         <span class="label label-warning">TEILVERSANDT</span>
-                    {elseif $payment->oBestellung->cStatus|intval == -1}
+                    {elseif $checkout->getBestellung()->cStatus|intval == -1}
                         <span class="label label-danger">STORNO</span>
                     {else}
                         <span class="label label-danger">n/a</span>
                     {/if}
                 </td>
-                <td class="text-right">{$payment->fAmount|number_format:2:',':''}</td>
-                <td>{$payment->cCurrency}</td>
-                <td>{$payment->cLocale}</td>
-                <td>{$payment->cMethod}</td>
-                <td title="{$payment->dCreatedAt}" class="text-right"
-                    data-order="{$payment->dCreatedAt|strtotime}">{"d. M Y H:i"|date:{$payment->dCreatedAt|strtotime}}</td>
+
+                <td class="text-right"
+                    data-order="{$checkout->getModel()->fAmount}">{$checkout->getModel()->fAmount|number_format:2:',':''} {$checkout->getModel()->cCurrency}</td>
+
+                <td>{$checkout->getModel()->cMethod}</td>
+
+                <td title="{$checkout->getModel()->dCreatedAt}" class="text-right"
+                    data-order="{$checkout->getModel()->dCreatedAt|strtotime}">{"d. M Y H:i"|date:{$checkout->getModel()->dCreatedAt|strtotime}}</td>
+
+                <td>
+                    <form action="?kPlugin={$oPlugin->kPlugin}" method="post">
+                        <input type="hidden" name="kBestellung" value="{$checkout->getModel()->kBestellung}"/>
+                        <div class="btn-group" role="group">
+                            {if $checkout->getModel()->bSynced == false && $checkout->getBestellung()->cAbgeholt === 'Y'}
+                                <button type="submit" name="action" value="fetchable"
+                                        class="btn btn-sm btn-info" title="Für die WAWI abrufbar machen"><span
+                                            class="fa fa-unlock"></span></button>
+                            {/if}
+                            {if $checkout->remindable()}
+                                <button type="submit" name="action" value="reminder"
+                                        class="btn btn-sm btn-info" title="Zahlungserinnerung verschicken"><span
+                                            class="fa fa-envelope"></span></button>
+                            {/if}
+                        </div>
+                    </form>
+                </td>
             </tr>
         {/foreach}
         </tbody>
@@ -123,7 +148,7 @@
         </div>
     </div>
     <script type="application/javascript">
-        $('body').on('click', '#export', function (){
+        $('body').on('click', '#export', function () {
             document.location.href = 'plugin.php?kPlugin={$oPlugin->kPlugin}&action=export&from=' + $('#exportFrom').val() + '&to=' + $('#exportTo').val();
             return false;
         });

@@ -24,7 +24,13 @@
 <table class="table table-condensed" style="width: 100%">
     <tr>
         <th>Mollie ID:</th>
-        <td>{$payment->kID}</td>
+        <td>
+            <a href="https://www.mollie.com/dashboard/{if $payment->kID|strpos:'tr_' === false}orders{else}payments{/if}/{$payment->kID}"
+               target="_blank" rel="noreferrer">
+                {$payment->kID}
+                <span class="fa fa-external-link"></span>
+            </a>
+        </td>
         <th>Mode:</th>
         <td>{$order->mode}</td>
         <th>Status:</th>
@@ -61,13 +67,31 @@
     <tr>
         <th>Kunde:</th>
         <td>
-            {if $order->billingAddress->organizationName}{$order->billingAddress->organizationName}{else}{$order->billingAddress->title} {$order->billingAddress->givenName} {$order->billingAddress->familyName}{/if}
+            {if isset($order->customerId)}
+                <strong>ID:</strong>
+                <a href="https://www.mollie.com/dashboard/customers/{$order->customerId}"
+                   target="_blank">{$order->customerId} <span class="fa fa-external-link"></span></a>
+                <br/>
+            {/if}
+            {if isset($order->billingAddress, $order->billingAddress->organizationName)}
+                {$order->billingAddress->organizationName}
+            {elseif isset($order->billingAddress)}
+                {$order->billingAddress->title} {$order->billingAddress->givenName} {$order->billingAddress->familyName}
+            {/if}
         </td>
-        <th>Zahlungslink:</th>
-        <td colspan="3">
-            <a href="{$payment->cCheckoutURL}" target="_blank">{$payment->cCheckoutURL}</a>
+        <th>Mollie Checkout:</th>
+        <td>
+            {if $order->getCheckoutURL()}
+                <a href="{$order->getCheckoutURL()}"
+                   target="_blank">mollie.com/... <span class="fa fa-external-link"></span></a>
+            {else}
+                n/a
+            {/if}
         </td>
-
+        <th>RePay-URL:</th>
+        <td>
+            <input type="text" readonly value="{$checkout->getRepayURL()}"/>
+        </td>
     </tr>
 </table>
 {if $order->id|strpos:"ord_" !== false && $order->payments()->count > 0}
@@ -118,30 +142,32 @@
     </table>
 {/if}
 
+<div style="float: right">
+    {if ($order->status === 'authorized' || $order->status === 'shipping') && $oBestellung->cStatus|intval >= 3}
+        <a href="plugin.php?kPlugin={$oPlugin->kPlugin}&action=capture&id={$order->id}"
+           onclick="return confirm('Bestellung wird bei Mollie als versandt markiert. Zahlung wirklich erfassen?');"
+           class="btn btn-info"><i
+                    class="fa fa-thumbs-up"></i>
+            Zahlung erfassen<sup>1</sup>
+        </a>
+    {/if}
+    {if !$order->amountRefunded || ($order->amount->value > $order->amountRefunded->value)}
+        <a href="plugin.php?kPlugin={$oPlugin->kPlugin}&action=refund&id={$order->id}"
+           onclick="return confirm('Zahlung wirklich zurck erstatten?');" class="btn btn-warning"><i
+                    class="fa fa-thumbs-down"></i> R&uuml;ckerstatten<sup>2</sup>
+        </a>
+    {/if}
+    {if $order->isCancelable}
+        <a href="plugin.php?kPlugin={$oPlugin->kPlugin}&action=cancel&id={$order->id}"
+           onclick="return confirm('Zahlung wirklich abbrechen?');" class="btn btn-danger"><i
+                    class="fa fa-trash"></i> Abbrechen<sup>3</sup>
+        </a>
+    {/if}
+</div>
+
 {if $order->id|strpos:"ord_" !== false}
     <h4>Positionen:</h4>
-    <div style="float: right">
-        {if ($order->status === 'authorized' || $order->status === 'shipping') && $oBestellung->cStatus|intval >= 3}
-            <a href="plugin.php?kPlugin={$oPlugin->kPlugin}&action=capture&id={$order->id}"
-               onclick="return confirm('Bestellung wird bei Mollie als versandt markiert. Zahlung wirklich erfassen?');"
-               class="btn btn-info"><i
-                        class="fa fa-thumbs-up"></i>
-                Zahlung erfassen<sup>1</sup>
-            </a>
-        {/if}
-        {if !$order->amountRefunded || ($order->amount->value > $order->amountRefunded->value && $order->amountCaptured->value > 0)}
-            <a href="plugin.php?kPlugin={$oPlugin->kPlugin}&action=refund&id={$order->id}"
-               onclick="return confirm('Zahlung wirklich zurck erstatten?');" class="btn btn-warning"><i
-                        class="fa fa-thumbs-down"></i> R&uuml;ckerstatten<sup>2</sup>
-            </a>
-        {/if}
-        {if $order->isCancelable}
-            <a href="plugin.php?kPlugin={$oPlugin->kPlugin}&action=cancel&id={$order->id}"
-               onclick="return confirm('Zahlung wirklich stornieren?');" class="btn btn-danger"><i
-                        class="fa fa-trash"></i> Stornieren<sup>3</sup>
-            </a>
-        {/if}
-    </div>
+
     <table class="table table-condensed table-striped" style="width: 100%">
         <thead>
         <tr>
@@ -183,7 +209,7 @@
                     {elseif $line->status == 'expired'}
                         <span class="label label-danger">abgelaufen</span>
                     {elseif $line->status == 'canceled'}
-                        <span class="label label-danger">storniert</span>
+                        <span class="label label-danger">abgebrochen</span>
                     {else}
                         <span class="label label-danger">Unbekannt: {$line->status}</span>
                     {/if}

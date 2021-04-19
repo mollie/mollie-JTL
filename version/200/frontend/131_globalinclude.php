@@ -16,7 +16,12 @@ try {
 
     ifndef('MOLLIE_QUEUE_MAX', 3);
     Queue::run(MOLLIE_QUEUE_MAX);
-    AbstractCheckout::sendReminders();
+
+    // TODO: Doku!
+    ifndef('MOLLIE_REMINDER_PROP', 10);
+    if (mt_rand(1, MOLLIE_REMINDER_PROP) % MOLLIE_REMINDER_PROP === 0) {
+        AbstractCheckout::sendReminders();
+    }
 
 } catch (Exception $e) {
     Helper::logExc($e);
