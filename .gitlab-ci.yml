@@ -1,0 +1,37 @@
+image: registry.webstollen.com:443/docker/jtl-plugin-ci:latest
+
+stages:
+  - build
+  - finalize
+
+composer:
+  stage: build
+#  only:
+#    - tags
+  cache:
+    key:
+      files:
+        - composer.lock
+    paths:
+      - vendor
+    policy: pull
+  script:
+    - composer install --no-dev -o
+  artifacts:
+    expire_in: 3 days
+    untracked: true
+
+pack:
+  stage: finalize
+#  only:
+#    - tags
+#    - master
+  script:
+    - rm -rf .gitlab-ci.yml .git/
+    - cd ..
+    - compiler $CI_PROJECT_DIR $CI_PROJECT_DIR
+    - zip -r $CI_PROJECT_DIR/$CI_PROJECT_NAME-$CI_COMMIT_REF_NAME.zip $CI_PROJECT_NAME
+  artifacts:
+    expire_in: 30 days
+    paths:
+      - $CI_PROJECT_NAME-$CI_COMMIT_REF_NAME.zip
