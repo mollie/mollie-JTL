@@ -66,13 +66,13 @@ class JTLMollie extends PaymentMethod
         try {
 
             if ($this->duringCheckout) {
-                $this->Log(sprintf("Zahlung vor Bestellabschluss nicht unterstützt (%s)!", $order->cBestellNr), LOGLEVEL_ERROR);
+                $this->Log(sprintf("Zahlung vor Bestellabschluss nicht unterstützt (%s)!", $order->cBestellNr), sprintf("#%s", $order->kBestellung), LOGLEVEL_ERROR);
                 return;
             }
 
             $payable = (float)$order->fGesamtsumme > 0;
             if (!$payable) {
-                $this->Log(sprintf("Bestellung '%s': Gesamtsumme %.2f, keine Zahlung notwendig!", $order->cBestellNr, $order->fGesamtsumme), LOGLEVEL_NOTICE);
+                $this->Log(sprintf("Bestellung '%s': Gesamtsumme %.2f, keine Zahlung notwendig!", $order->cBestellNr, $order->fGesamtsumme), sprintf("#%s", $order->kBestellung));
                 return;
             }
 
