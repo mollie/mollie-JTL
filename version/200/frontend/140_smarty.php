@@ -42,6 +42,10 @@ try {
 		display: block;
 	}
 	
+	{$selector} label span small {
+		line-height: 48px;
+	}
+	
 	{$selector} label img {
 		float: right;
 	}

@@ -9,14 +9,14 @@
     <table class="datatable" style="width: 100%" data-order='[[ 6, "desc" ]]'>
         <thead>
         <tr>
-            <td>BestellNr.</td>
+            <th>BestellNr.</th>
             <th>ID</th>
-            <td>Mollie Status</td>
-            <td>JTL Status</td>
-            <td>Betrag</td>
-            <td>Methode</td>
-            <td>Erstellt</td>
-            <td>&nbsp;</td>
+            <th>Mollie Status</th>
+            <th>JTL Status</th>
+            <th>Betrag</th>
+            <th>Methode</th>
+            <th>Erstellt</th>
+            <th>&nbsp;</th>
         </tr>
         </thead>
         <tbody>
@@ -34,7 +34,8 @@
                         <span class="label label-danger">LOCK TIMEOUT</span>
                     {/if}
                     {if $checkout->getModel()->dReminder && $checkout->getModel()->dReminder !== '0000-00-00 00:00:00'}
-                        <span class="fa fa-envelope" title="Zahlungserinnerung zuletzt verschickt: {"d. M Y H:i"|date:{$checkout->getModel()->dReminder|strtotime}}"></span>
+                        <span class="fa fa-envelope"
+                              title="Zahlungserinnerung zuletzt verschickt: {"d. M Y H:i"|date:{$checkout->getModel()->dReminder|strtotime}}"></span>
                     {/if}
                 </td>
                 <td>
