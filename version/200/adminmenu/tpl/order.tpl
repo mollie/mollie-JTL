@@ -167,7 +167,6 @@
 
 {if $order->id|strpos:"ord_" !== false}
     <h4>Positionen:</h4>
-
     <table class="table table-condensed table-striped" style="width: 100%">
         <thead>
         <tr>
@@ -262,8 +261,49 @@
         <sup>3</sup> = Bestellung wird bei Mollie storniert. WAWI wird <b>nicht</b> informiert.<br/>
     </div>
 {/if}
-<h4>Log</h4>
 
+{if isset($shipments) && $shipments|count}
+    <h4>Shipmets</h4>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Lieferschein Nr.</th>
+            <th>Mollie ID</th>
+            <th>Carrier</th>
+            <th>Code</th>
+        </tr>
+        </thead>
+        <tbody>
+        {foreach from=$shipments item=shipment}
+            <tr>
+                <td>{$shipment->getLieferschein()->getLieferscheinNr()}</td>
+                <td>{$shipment->getShipment()->id}</td>
+                <td>
+                    {if isset($shipment->getShipment()->tracking)}
+                        {$shipment->getShipment()->tracking->carrier}
+                    {else}
+                        -
+                    {/if}</td>
+                <td>
+                    {if isset($shipment->getShipment()->tracking)}
+                        {if isset($shipment->getShipment()->tracking->url)}
+                            <a href="{$shipment->getShipment()->tracking->url}" target="_blank">
+                                {$shipment->getShipment()->tracking->code}
+                            </a>
+                        {else}
+                            {$shipment->getShipment()->tracking->code}
+                        {/if}
+                    {else}
+                        -
+                    {/if}
+                </td>
+            </tr>
+        {/foreach}
+        </tbody>
+    </table>
+{/if}
+
+<h4>Log</h4>
 <table class="table table-condensed" style="width: 100%">
     {foreach from=$logs item=log}
         <tr>

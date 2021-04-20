@@ -17,6 +17,7 @@ use ws_mollie\Checkout\Order\Address;
 use ws_mollie\Checkout\Order\OrderLine;
 use ws_mollie\Checkout\Payment\Amount;
 use ws_mollie\Helper;
+use ws_mollie\Shipment;
 
 /**
  * Class OrderCheckout
@@ -48,11 +49,6 @@ class OrderCheckout extends AbstractCheckout
      * @var Payment|null
      */
     protected $_payment;
-
-
-    public function getShipments(){
-
-    }
 
     /**
      * @param OrderCheckout $checkout
@@ -99,6 +95,22 @@ class OrderCheckout extends AbstractCheckout
         $order = $checkout->getMollie()->cancel();
         $checkout->Log('Bestellung wurde manuell abgebrochen.');
         return $order;
+    }
+
+    /**
+     * @return array
+     */
+    public function getShipments()
+    {
+        $shipments = [];
+        $lieferschien_arr = Shop::DB()->executeQueryPrepared("SELECT kLieferschein FROM tlieferschein WHERE kInetBestellung = :kBestellung", [
+            ':kBestellung' => (int)$this->getBestellung()->kBestellung
+        ], 2);
+
+        foreach ($lieferschien_arr as $lieferschein) {
+            $shipments[] = new Shipment($lieferschein->kLieferschein, $this);
+        }
+        return $shipments;
     }
 
     /**
