@@ -16,7 +16,7 @@
 #    - touch foo.txt
 #    - aws s3 cp foo.txt s3://$S3_BUCKET/foo.txt
 
-image: registry.webstollen.com:443/docker/jtl-plugin-ci:latest
+image: registry.webstollen.com:443/docker/jtl-plugin-ci:master
 
 stages:
   - test
