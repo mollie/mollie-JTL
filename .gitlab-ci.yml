@@ -1,21 +1,3 @@
-# You can override the included template(s) by including variable overrides
-# See https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
-# Note that environment variables can be set in several places
-# See https://docs.gitlab.com/ee/ci/variables/#priority-of-environment-variables
-
-# S3_BUCKET
-#  AWS_ACCESS_KEY_ID	Your Access key ID
-#  AWS_SECRET_ACCESS_KEY	Your Secret access key
-#  AWS_DEFAULT_REGION
-#upload to s3:
-#  image:
-#    name: banst/awscli
-#    entrypoint: [""]
-#  script:
-#    - aws configure set region us-east-1
-#    - touch foo.txt
-#    - aws s3 cp foo.txt s3://$S3_BUCKET/foo.txt
-
 image: registry.webstollen.com:443/docker/jtl-plugin-ci:master
 
 stages:
@@ -32,9 +14,9 @@ include:
 
 composer:
   stage: build
-#  only:
-#    - tags
-#    - master
+  only:
+    - tags
+    - master
   cache:
     key:
       files:
@@ -50,9 +32,9 @@ composer:
 
 pack:
   stage: finalize
-#  only:
-#    - tags
-#    - master
+  only:
+    - tags
+    - master
   script:
     - rm -rf .gitlab-ci.yml .git/
     - cd ..
@@ -65,9 +47,9 @@ pack:
 
 upload:
   stage: publish
+  only:
+    - tags
+    - master
   script:
     - aws configure set region eu-central-1
-    #- echo $CI_PROJECT_NAME-$CI_COMMIT_REF_NAME.zip
-    #- echo $CI_PROJECT_DIR
-    #- echo $CI_PROJECT_NAME
     - aws s3 cp $CI_PROJECT_NAME-$CI_COMMIT_REF_NAME.zip s3://$S3_BUCKET/jtl-plugins/$CI_PROJECT_NAME/$CI_PROJECT_NAME-$CI_COMMIT_REF_NAME.zip
