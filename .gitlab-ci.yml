@@ -1,14 +1,10 @@
-# You can override the included template(s) by including variable overrides
-# See https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
-# Note that environment variables can be set in several places
-# See https://docs.gitlab.com/ee/ci/variables/#priority-of-environment-variables
-
-image: registry.webstollen.com:443/docker/jtl-plugin-ci:latest
+image: registry.webstollen.com:443/docker/jtl-plugin-ci:master
 
 stages:
   - test
   - build
   - finalize
+  - publish
 
 sast:
   stage: test
@@ -18,8 +14,9 @@ include:
 
 composer:
   stage: build
-#  only:
-#    - tags
+  only:
+    - tags
+    - master
   cache:
     key:
       files:
@@ -35,9 +32,9 @@ composer:
 
 pack:
   stage: finalize
-#  only:
-#    - tags
-#    - master
+  only:
+    - tags
+    - master
   script:
     - rm -rf .gitlab-ci.yml .git/
     - cd ..
@@ -48,3 +45,11 @@ pack:
     paths:
       - $CI_PROJECT_NAME-$CI_COMMIT_REF_NAME.zip
 
+upload:
+  stage: publish
+  only:
+    - tags
+    - master
+  script:
+    - aws configure set region eu-central-1
+    - aws s3 cp $CI_PROJECT_NAME-$CI_COMMIT_REF_NAME.zip s3://$S3_BUCKET/jtl-plugins/$CI_PROJECT_NAME/$CI_PROJECT_NAME-$CI_COMMIT_REF_NAME.zip
