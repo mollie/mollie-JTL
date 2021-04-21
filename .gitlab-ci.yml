@@ -3,12 +3,26 @@
 # Note that environment variables can be set in several places
 # See https://docs.gitlab.com/ee/ci/variables/#priority-of-environment-variables
 
+# S3_BUCKET
+#  AWS_ACCESS_KEY_ID	Your Access key ID
+#  AWS_SECRET_ACCESS_KEY	Your Secret access key
+#  AWS_DEFAULT_REGION
+#upload to s3:
+#  image:
+#    name: banst/awscli
+#    entrypoint: [""]
+#  script:
+#    - aws configure set region us-east-1
+#    - touch foo.txt
+#    - aws s3 cp foo.txt s3://$S3_BUCKET/foo.txt
+
 image: registry.webstollen.com:443/docker/jtl-plugin-ci:latest
 
 stages:
   - test
   - build
   - finalize
+  - publish
 
 sast:
   stage: test
@@ -20,6 +34,7 @@ composer:
   stage: build
 #  only:
 #    - tags
+#    - master
   cache:
     key:
       files:
@@ -48,3 +63,10 @@ pack:
     paths:
       - $CI_PROJECT_NAME-$CI_COMMIT_REF_NAME.zip
 
+upload:
+  stage: publish
+  script:
+    - aws configure set region eu-central-1
+    - echo $CI_PROJECT_NAME-$CI_COMMIT_REF_NAME.zip
+    - echo $CI_PROJECT_DIR
+    - echo $CI_PROJECT_NAME
