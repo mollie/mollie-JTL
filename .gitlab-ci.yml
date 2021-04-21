@@ -67,6 +67,7 @@ upload:
   stage: publish
   script:
     - aws configure set region eu-central-1
-    - echo $CI_PROJECT_NAME-$CI_COMMIT_REF_NAME.zip
-    - echo $CI_PROJECT_DIR
-    - echo $CI_PROJECT_NAME
+    #- echo $CI_PROJECT_NAME-$CI_COMMIT_REF_NAME.zip
+    #- echo $CI_PROJECT_DIR
+    #- echo $CI_PROJECT_NAME
+    - aws s3 cp $CI_PROJECT_NAME-$CI_COMMIT_REF_NAME.zip s3://$S3_BUCKET/jtl-plugins/$CI_PROJECT_NAME/$CI_PROJECT_NAME-$CI_COMMIT_REF_NAME.zip
