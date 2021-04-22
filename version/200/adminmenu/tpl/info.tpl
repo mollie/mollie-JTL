@@ -100,10 +100,10 @@
 
         $(function () {
             $(document).on('click', '.nav-tabs .tab a', function () {
-                const target = $(this).attr('href');
-                const res = target.match(/plugin-tab-(\d+)/);
+                var target = $(this).attr('href');
+                var res = target.match(/plugin-tab-(\d+)/);
                 if (res !== null) {
-                    const kAdminMenu = parseInt(res[res.index]);
+                    var kAdminMenu = parseInt(res[res.index]);
                     history.replaceState(null, 'emarketing', 'plugin.php?kPlugin={$oPlugin->kPlugin}&kPluginAdminMenu=' + kAdminMenu);
                 }
             });

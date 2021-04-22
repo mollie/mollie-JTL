@@ -46,19 +46,18 @@ try {
             Shop::Smarty()->assign('update', $latestRelease);
         }
 
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
     }
 
     Shop::Smarty()->display(Helper::oPlugin()->cAdminmenuPfad . '/tpl/info.tpl');
 
     if (file_exists(__DIR__ . '/_addon.php')) {
         try {
-            /** @noinspection PhpIncludeInspection */
             include __DIR__ . '/_addon.php';
         } catch (Exception $e) {
         }
     }
-
+    
 } catch (Exception $e) {
     echo "<div class='alert alert-danger'>Fehler: {$e->getMessage()}</div>";
     Helper::logExc($e);

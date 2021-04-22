@@ -8,7 +8,6 @@ namespace ws_mollie {
     use PclZip;
     use Plugin;
     use Shop;
-    use SmartyException;
     use stdClass;
 
     if (!class_exists('ws_mollie\Helper')) {
@@ -75,7 +74,7 @@ namespace ws_mollie {
 
                 // 0. GET RELEASE INFO
                 $release = self::getLatestRelease(true);
-                $url = $release->short_url !== '' ? $release->short_url : $release->full_url;
+                $url = $release->short_url != '' ? $release->short_url : $release->full_url;
                 $filename = basename($release->full_url);
                 $tmpDir = PFAD_ROOT . PFAD_COMPILEDIR;
                 $pluginsDir = PFAD_ROOT . PFAD_PLUGIN;
@@ -212,7 +211,7 @@ namespace ws_mollie {
              *
              * @param $namespace
              * @return string
-             * @throws SmartyException
+             * @throws \SmartyException
              */
             public static function showAlerts($namespace)
             {
