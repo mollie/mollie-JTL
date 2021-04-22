@@ -204,12 +204,10 @@ try {
                     Shop::Smarty()->display($oPlugin->cAdminmenuPfad . '/tpl/order.tpl');
                     return;
 
-                } catch (InvalidArgumentException $e) {
-                    Helper::addAlert('Fehler: ' . $e->getMessage(), 'danger', 'orders');
                 } catch (Exception $e) {
                     Helper::addAlert('Fehler: ' . $e->getMessage(), 'danger', 'orders');
-                    return;
                 }
+                break;
         }
     }
 
