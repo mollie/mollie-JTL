@@ -50,6 +50,9 @@
       <SQL>200.sql</SQL>
       <CreateDate>2021-04-22</CreateDate>
     </Version>
+    <Version nr="201">
+      <CreateDate>2021-04-22</CreateDate>
+    </Version>
     <Hooks>
       <Hook id="75">75_bestellungInDb.php</Hook>
       <Hook id="131">131_globalinclude.php</Hook>
