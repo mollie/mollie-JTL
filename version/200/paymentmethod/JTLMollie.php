@@ -169,7 +169,7 @@ class JTLMollie extends PaymentMethod
         }
         if ($selectable) {
             try {
-                $locale = AbstractCheckout::getLocale(Session::getInstance()->Language()->getIso(), Session::getInstance()->Customer()->cLand);
+                $locale = AbstractCheckout::getLocale($_SESSION['cISOSprache'], Session::getInstance()->Customer()->cLand);
                 $amount = Session::getInstance()->Basket()->gibGesamtsummeWarenExt([
                         C_WARENKORBPOS_TYP_ARTIKEL,
                         C_WARENKORBPOS_TYP_KUPON,
