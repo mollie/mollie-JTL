@@ -147,14 +147,14 @@ abstract class AbstractCheckout
     {
         $reminder = (int)self::Plugin()->oPluginEinstellungAssoc_arr['reminder'];
 
-        /*if (!$reminder) {
-            Shop::DB()->executeQueryPrepared('UPDATE xplugin_ws_mollie_payments SET dReminder = :dReminder WHERE dReminder IS NULL', [
-                ':dReminder' => date('Y-m-d H:i:s')
-            ], 3);
+        if (!$reminder) {
             return;
-        }*/
+        }
 
-        $sql = "SELECT p.kId FROM xplugin_ws_mollie_payments p JOIN tbestellung b ON b.kBestellung = p.kBestellung WHERE p.dReminder IS NULL OR p.dReminder = '0000-00-00 00:00:00' AND p.dCreatedAt < NOW() - INTERVAL :d HOUR AND p.cStatus IN ('created','open', 'expired', 'failed', 'canceled') AND NOT b.cStatus = '-1'";
+        $sql = "SELECT p.kId FROM xplugin_ws_mollie_payments p JOIN tbestellung b ON b.kBestellung = p.kBestellung "
+            . "WHERE (p.dReminder IS NULL OR p.dReminder = '0000-00-00 00:00:00') "
+            . "AND p.dCreatedAt < NOW() - INTERVAL :d HOUR AND p.dCreatedAt > NOW() - INTERVAL 7 DAY "
+            . "AND p.cStatus IN ('created','open', 'expired', 'failed', 'canceled') AND NOT b.cStatus = '-1'";
 
         $remindables = Shop::DB()->executeQueryPrepared($sql, [
             ':d' => $reminder
@@ -228,77 +228,6 @@ abstract class AbstractCheckout
     }
 
     /**
-     * @return Payment
-     */
-    public function getModel()
-    {
-        if (!$this->model) {
-            $this->model = Payment::fromID($this->oBestellung->kBestellung, 'kBestellung');
-        }
-        return $this->model;
-    }
-
-    /**
-     * @param $model
-     * @return $this
-     */
-    protected function setModel($model)
-    {
-        if (!$this->model) {
-            $this->model = $model;
-        } else {
-            throw new RuntimeException('Model already set.');
-        }
-        return $this;
-    }
-
-    /**
-     * @return Bestellung
-     */
-    public function getBestellung()
-    {
-        if (!$this->oBestellung && $this->getModel()->kBestellung) {
-            $this->oBestellung = new Bestellung($this->getModel()->kBestellung, true);
-        }
-        return $this->oBestellung;
-    }
-
-    public function Log($msg, $level = LOGLEVEL_NOTICE)
-    {
-        $data = '';
-        if ($this->getBestellung()) {
-            $data .= '#' . $this->getBestellung()->kBestellung;
-        }
-        if ($this->getMollie()) {
-            $data .= '$' . $this->getMollie()->id;
-        }
-        ZahlungsLog::add($this->PaymentMethod()->moduleID, "[" . microtime(true) . " - " . $_SERVER['PHP_SELF'] . "] " . $msg, $data, $level);
-        return $this;
-    }
-
-    /**
-     * @param false $force
-     * @return Order|\Mollie\Api\Resources\Payment|null
-     */
-    abstract public function getMollie($force = false);
-
-    /**
-     * @return JTLMollie
-     */
-    public function PaymentMethod()
-    {
-        if (!$this->paymentMethod) {
-            if ($this->getBestellung()->Zahlungsart && strpos($this->getBestellung()->Zahlungsart->cModulId, "kPlugin_{$this::Plugin()->kPlugin}_") !== false) {
-                $this->paymentMethod = PaymentMethod::create($this->getBestellung()->Zahlungsart->cModulId);
-            } else {
-                $this->paymentMethod = PaymentMethod::create("kPlugin_{$this::Plugin()->kPlugin}_mollie");
-            }
-        }
-        /** @noinspection PhpIncompatibleReturnTypeInspection */
-        return $this->paymentMethod;
-    }
-
-    /**
      * @param AbstractCheckout $checkout
      * @return \Mollie\Api\Resources\BaseResource|\Mollie\Api\Resources\Refund
      * @throws ApiException
@@ -326,6 +255,77 @@ abstract class AbstractCheckout
             return $refund;
         }
         throw new RuntimeException(sprintf('Unbekannte Resource: %s', $checkout->getMollie()->resource));
+    }
+
+    /**
+     * @param false $force
+     * @return Order|\Mollie\Api\Resources\Payment|null
+     */
+    abstract public function getMollie($force = false);
+
+    public function Log($msg, $level = LOGLEVEL_NOTICE)
+    {
+        $data = '';
+        if ($this->getBestellung()) {
+            $data .= '#' . $this->getBestellung()->kBestellung;
+        }
+        if ($this->getMollie()) {
+            $data .= '$' . $this->getMollie()->id;
+        }
+        ZahlungsLog::add($this->PaymentMethod()->moduleID, "[" . microtime(true) . " - " . $_SERVER['PHP_SELF'] . "] " . $msg, $data, $level);
+        return $this;
+    }
+
+    /**
+     * @return Bestellung
+     */
+    public function getBestellung()
+    {
+        if (!$this->oBestellung && $this->getModel()->kBestellung) {
+            $this->oBestellung = new Bestellung($this->getModel()->kBestellung, true);
+        }
+        return $this->oBestellung;
+    }
+
+    /**
+     * @return Payment
+     */
+    public function getModel()
+    {
+        if (!$this->model) {
+            $this->model = Payment::fromID($this->oBestellung->kBestellung, 'kBestellung');
+        }
+        return $this->model;
+    }
+
+    /**
+     * @param $model
+     * @return $this
+     */
+    protected function setModel($model)
+    {
+        if (!$this->model) {
+            $this->model = $model;
+        } else {
+            throw new RuntimeException('Model already set.');
+        }
+        return $this;
+    }
+
+    /**
+     * @return JTLMollie
+     */
+    public function PaymentMethod()
+    {
+        if (!$this->paymentMethod) {
+            if ($this->getBestellung()->Zahlungsart && strpos($this->getBestellung()->Zahlungsart->cModulId, "kPlugin_{$this::Plugin()->kPlugin}_") !== false) {
+                $this->paymentMethod = PaymentMethod::create($this->getBestellung()->Zahlungsart->cModulId);
+            } else {
+                $this->paymentMethod = PaymentMethod::create("kPlugin_{$this::Plugin()->kPlugin}_mollie");
+            }
+        }
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
+        return $this->paymentMethod;
     }
 
     /**

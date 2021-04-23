@@ -2,6 +2,7 @@
 
 use ws_mollie\Hook\ApplePay;
 
+require_once __DIR__ . '/../class/Helper.php';
 require_once __DIR__ . '/JTLMollie.php';
 
 class JTLMollieApplePay extends JTLMollie
@@ -10,6 +11,7 @@ class JTLMollieApplePay extends JTLMollie
 
     public function isSelectable()
     {
+        \ws_mollie\Helper::init();
         return ApplePay::isAvailable() && parent::isSelectable();
     }
 }
