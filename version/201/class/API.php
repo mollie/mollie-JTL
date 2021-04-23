@@ -44,7 +44,7 @@ class API
     public static function getMode()
     {
         require_once PFAD_ROOT . PFAD_ADMIN . PFAD_INCLUDES . 'benutzerverwaltung_inc.php';
-        return Shop::isAdmin() && self::Plugin()->oPluginEinstellungAssoc_arr["testAsAdmin"] === 'Y';
+        return self::Plugin()->oPluginEinstellungAssoc_arr["testAsAdmin"] === 'Y' && Shop::isAdmin();
     }
 
     /**

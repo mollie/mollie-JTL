@@ -213,7 +213,7 @@ class JTLMollie extends PaymentMethod
 
         $key = md5(serialize([$locale, $billingCountry, $currency, $amount]));
         if (!array_key_exists($key, $_SESSION['mollie_possibleMethods'])) {
-            $_SESSION['mollie_possibleMethods'][$key] = $api->Client()->methods->allActive([
+            $active = $api->Client()->methods->allActive([
                 'locale' => $locale,
                 'amount' => [
                     'currency' => $currency,
@@ -223,6 +223,9 @@ class JTLMollie extends PaymentMethod
                 'resource' => 'orders',
                 'includeWallets' => 'applepay',
             ]);
+            foreach($active as $a){
+                $_SESSION['mollie_possibleMethods'][$key][] = (object)['id' =>$a->id];
+            }
         }
 
         if ($method !== '') {
