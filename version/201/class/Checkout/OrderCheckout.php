@@ -256,7 +256,7 @@ class OrderCheckout extends AbstractCheckout
             $options['customerId'] = $customer->id;
         }
 
-        $this->locale = self::getLocale(Session::getInstance()->Language()->getIso(), Session::getInstance()->Customer()->cLand);
+        $this->locale = self::getLocale($_SESSION['cISOSprache'], Session::getInstance()->Customer()->cLand);
         $this->amount = Amount::factory($this->getBestellung()->fGesamtsummeKundenwaehrung, $this->getBestellung()->Waehrung->cISO, true);
         $this->orderNumber = $this->getBestellung()->cBestellNr;
         $this->metadata = [

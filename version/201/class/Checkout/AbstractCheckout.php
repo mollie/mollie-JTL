@@ -418,7 +418,7 @@ abstract class AbstractCheckout
                 $customer = [
                     'name' => trim($oKunde->cVorname . ' ' . $oKunde->cNachname),
                     'email' => $oKunde->cMail,
-                    'locale' => self::getLocale(Session::getInstance()->Language()->getIso(), $oKunde->cLand),
+                    'locale' => self::getLocale($_SESSION['cISOSprache'], $oKunde->cLand),
                     'metadata' => (object)[
                         'kKunde' => $oKunde->kKunde,
                         'kKundengruppe' => $oKunde->kKundengruppe,
