@@ -52,7 +52,7 @@ class JTLMollieCreditCard extends JTLMollie
 
         try {
             $trustBadge = (bool)self::Plugin()->oPluginEinstellungAssoc_arr[$this->moduleID . '_loadTrust'];
-            $locale = AbstractCheckout::getLocale(Session::getInstance()->Language()->getIso(), Session::getInstance()->Customer() ? Session::getInstance()->Customer()->cLand : null);
+            $locale = AbstractCheckout::getLocale($_SESSION['cISOSprache'], Session::getInstance()->Customer() ? Session::getInstance()->Customer()->cLand : null);
             $mode = API::getMode();
             $errorMessage = json_encode(self::Plugin()->oPluginSprachvariableAssoc_arr['mcErrorMessage']);
         } catch (Exception $e) {

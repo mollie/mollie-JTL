@@ -151,7 +151,7 @@ class PaymentCheckout extends AbstractCheckout
         $this->description = 'Order ' . $this->getBestellung()->cBestellNr;
         $this->redirectUrl = $this->PaymentMethod()->getReturnURL($this->getBestellung());
         $this->webhookUrl = Shop::getURL(true) . '/?mollie=1';
-        $this->locale = self::getLocale(Session::getInstance()->Language()->getIso(), Session::getInstance()->Customer()->cLand);
+        $this->locale = self::getLocale($_SESSION['cISOSprache'], Session::getInstance()->Customer()->cLand);
         $this->metadata = [
             'kBestellung' => $this->getBestellung()->kBestellung,
             'kKunde' => $this->getBestellung()->kKunde,
