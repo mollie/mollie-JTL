@@ -16,7 +16,7 @@ class JTLMollieBanktransfer extends JTLMollie
         $paymentOptions = [];
         if ($apiType === 'payment') {
             $paymentOptions['billingEmail'] = $order->oRechnungsadresse->cMail;
-            $paymentOptions['locale'] = AbstractCheckout::getLocale(Session::getInstance()->Language()->getIso(), $order->oRechnungsadresse->cLand);
+            $paymentOptions['locale'] = AbstractCheckout::getLocale($_SESSION['cISOSprache'], $order->oRechnungsadresse->cLand);
         }
 
         $dueDays = $this->getExpiryDays();
