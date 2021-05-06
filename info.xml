@@ -1,1105 +1,1141 @@
-<?xml version="1.0" encoding="ISO-8859-1"?><jtlshop3plugin>
-  <Name>Mollie</Name>
-  <Description>Mollie Payment Plugin</Description>
-  <Author>WebStollen GmbH</Author>
-  <URL>https://www.webstollen.de</URL>
-  <XMLVersion>102</XMLVersion>
-  <PluginID>ws_mollie</PluginID>
-  <Shop4Version>406</Shop4Version>
-  <Install>
-    <Version nr="100">
-      <SQL>100.sql</SQL>
-      <CreateDate>2019-02-11</CreateDate>
-    </Version>
-    <Version nr="101">
-      <CreateDate>2019-02-26</CreateDate>
-    </Version>
-    <Version nr="102">
-      <CreateDate>2019-04-23</CreateDate>
-    </Version>
-    <Version nr="103">
-      <CreateDate>2019-05-22</CreateDate>
-    </Version>
-    <Version nr="104">
-      <CreateDate>2019-07-12</CreateDate>
-    </Version>
-    <Version nr="105">
-      <CreateDate>2019-11-26</CreateDate>
-    </Version>
-    <Version nr="106">
-      <CreateDate>2019-12-18</CreateDate>
-    </Version>
-    <Version nr="107">
-      <SQL>107.sql</SQL>
-      <CreateDate>2020-03-02</CreateDate>
-    </Version>
-    <Version nr="108">
-      <CreateDate>2020-04-24</CreateDate>
-    </Version>
-    <Version nr="109">
-      <SQL>109.sql</SQL>
-      <CreateDate>2020-08-17</CreateDate>
-    </Version>
-    <Version nr="110">
-      <CreateDate>2020-11-19</CreateDate>
-    </Version>
-    <Version nr="111">
-      <CreateDate>2021-01-11</CreateDate>
-    </Version>
-    <Version nr="200">
-      <SQL>200.sql</SQL>
-      <CreateDate>2021-04-22</CreateDate>
-    </Version>
-    <Version nr="201">
-      <CreateDate>2021-04-23</CreateDate>
-    </Version>
-    <Version nr="202">
-      <CreateDate>2021-04-23</CreateDate>
-    </Version>
-    <Hooks>
-      <Hook id="75">75_bestellungInDb.php</Hook>
-      <Hook id="131">131_globalinclude.php</Hook>
-      <Hook id="132">132_headPostGet.php</Hook>
-      <Hook id="140">140_smarty.php</Hook>
-      <Hook id="180">180_checkbox.php</Hook>
-      <Hook id="181">181_sync.php</Hook>
-      <Hook id="210">210_storno.php</Hook>
-    </Hooks>
-    <Adminmenu>
-      <Customlink sort="10">
-        <Name>Bestellungen</Name>
-        <Filename>orders.php</Filename>
-      </Customlink>
-      <Customlink sort="20">
-        <Name>Zahlungsarten</Name>
-        <Filename>paymentmethods.php</Filename>
-      </Customlink>
-      <Customlink sort="999">
-        <Name>Info</Name>
-        <Filename>info.php</Filename>
-      </Customlink>
-      <Settingslink sort="998">
-        <Name>Einstellungen</Name>
-        <Setting type="text" initialValue="" sort="10" conf="Y">
-          <Name>Live API Key:</Name>
-          <Description>Füge hier deinen mollie API Key ein</Description>
-          <ValueName>api_key</ValueName>
-        </Setting>
-        <Setting type="text" initialValue="" sort="11" conf="Y">
-          <Name>Test API Key:</Name>
-          <Description>Füge hier deinen mollie API Key ein</Description>
-          <ValueName>test_api_key</ValueName>
-        </Setting>
-        <Setting type="selectbox" initialValue="Y" sort="12" conf="Y">
-          <Name>Test API als Admin</Name>
-          <Description>Wenn diese Einstellung aktiviert ist, wird im Shop automatisch die Test-API verwendet,&#xA;                        wenn man als Admin im Backend eingeloggt ist.&#xA;                    </Description>
-          <ValueName>testAsAdmin</ValueName>
-          <SelectboxOptions>
-            <Option value="N" sort="1"><![CDATA[Nein]]></Option>
-            <Option value="Y" sort="2"><![CDATA[Ja]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="zahl" initialValue="0" sort="70" conf="Y">
-          <Name>Zahlungserinnerung</Name>
-          <Description>Soll bei fehlgeschlagener Zahlung ein Zahlungslink verschickt werden? Angabe in Stunden&#xA;                        nach Bestellung. (0 = deaktiviert)&#xA;                    </Description>
-          <ValueName>reminder</ValueName>
-        </Setting>
-        <Setting type="selectbox" initialValue="C" sort="80" conf="Y">
-          <Name>Kunden bei Mollie anlegen (Customer API)</Name>
-          <Description>Wenn diese Einstellung aktiviert ist, hat der Kunde die Möglichkeit, per Checkbox,&#xA;                        seine Kundendaten bei Mollie zu speichern. Z.B. für Single-Click Checkout benötigt.&#xA;                    </Description>
-          <ValueName>useCustomerAPI</ValueName>
-          <SelectboxOptions>
-            <Option value="C" sort="1"><![CDATA[Ja, Checkbox]]></Option>
-            <Option value="N" sort="2"><![CDATA[Nein]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="text" initialValue="" sort="15" conf="Y">
-          <Name>Profile ID:</Name>
-          <Description>Füge hier deinen mollie Profil ID (pfl_) ein. Wird benötigt um mollie Components zu&#xA;                        aktivieren&#xA;                    </Description>
-          <ValueName>profileId</ValueName>
-        </Setting>
-        <Setting type="selectbox" initialValue="Y" sort="16" conf="Y">
-          <Name>Zahlungsart zurücksetzen</Name>
-          <Description>Versucht, nach fehlgeschlagener oder abgebrochener Zahlung, die Zahlungsart bei Mollie&#xA;                        zurückzusetzen&#xA;                    </Description>
-          <ValueName>resetMethod</ValueName>
-          <SelectboxOptions>
-            <Option value="N" sort="1"><![CDATA[Nein]]></Option>
-            <Option value="Y" sort="2"><![CDATA[Ja]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="selectbox" initialValue="Y" sort="50" conf="Y">
-          <Name>Nur bezahlte Bestellungen in die WAWI übertragen</Name>
-          <Description>Wenn diese Einstellung deaktiviert ist, können alle Bestellungen direkt von der WAWI&#xA;                        abgerufen werden.&#xA;                    </Description>
-          <ValueName>onlyPaid</ValueName>
-          <SelectboxOptions>
-            <Option value="Y" sort="1"><![CDATA[Ja]]></Option>
-            <Option value="N" sort="2"><![CDATA[Nein]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="selectbox" initialValue="B" sort="50" conf="Y">
-          <Name>Teilversand Verhalten</Name>
-          <Description>Bei Gastbestellungen und Teilversand.</Description>
-          <ValueName>shippingMode</ValueName>
-          <SelectboxOptions>
-            <Option value="A" sort="1"><![CDATA[Direkt alles versenden]]></Option>
-            <Option value="B" sort="2"><![CDATA[Erst bei komplett Versand versenden]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="selectbox" initialValue="Y" sort="51" conf="Y">
-          <Name>Versand bei Mollie</Name>
-          <Description>Soll Versandinformation für OrderAPI Methoden an Mollie gesendet werden?.</Description>
-          <ValueName>shippingActive</ValueName>
-          <SelectboxOptions>
-            <Option value="Y" sort="1"><![CDATA[Ja]]></Option>
-            <Option value="K" sort="2"><![CDATA[Nur Kunden & Komplettversand]]></Option>
-            <Option value="N" sort="3"><![CDATA[Nein, ich mache alles manuell.]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="selectbox" initialValue="N" sort="40" conf="Y">
-          <Name>Bestellungen automatisch stornieren</Name>
-          <Description>Wenn diese Einstellung aktiviert ist, werden komplett Stornierte Bestellungen auch bei&#xA;                        Mollie storniert oder rückerstattet.&#xA;                    </Description>
-          <ValueName>autoRefund</ValueName>
-          <SelectboxOptions>
-            <Option value="Y" sort="1"><![CDATA[Ja]]></Option>
-            <Option value="N" sort="2"><![CDATA[Nein]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="selectbox" initialValue="Y" sort="90" conf="Y">
-          <Name>Bestellabschluss</Name>
-          <Description>Hier kann das Bestellabschluss-Verhalten eingestellt werden.</Description>
-          <ValueName>checkoutMode</ValueName>
-          <SelectboxOptions>
-            <Option value="Y" sort="1"><![CDATA[Direkt weiterleiten]]></Option>
-            <Option value="D" sort="2"><![CDATA[Nach 3 Sekunden weiterleiten]]></Option>
-            <Option value="N" sort="2"><![CDATA[Nicht automatisch weiterleiten]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="selectbox" initialValue="de_DE" sort="60" conf="Y">
-          <Name>Fallback-Locale</Name>
-          <Description>Fallback, falls Locale nicht erkannt oder nicht vorhanden.</Description>
-          <ValueName>fallbackLocale</ValueName>
-          <SelectboxOptions>
-            <Option value="en_US" sort="1"><![CDATA[en_US]]></Option>
-            <Option value="nl_NL" sort="2"><![CDATA[nl_NL]]></Option>
-            <Option value="nl_BE" sort="3"><![CDATA[nl_BE]]></Option>
-            <Option value="fr_FR" sort="4"><![CDATA[fr_FR]]></Option>
-            <Option value="fr_BE" sort="5"><![CDATA[fr_BE]]></Option>
-            <Option value="de_DE" sort="6"><![CDATA[de_DE]]></Option>
-            <Option value="de_AT" sort="7"><![CDATA[de_AT]]></Option>
-            <Option value="de_CH" sort="8"><![CDATA[de_CH]]></Option>
-            <Option value="es_ES" sort="9"><![CDATA[es_ES]]></Option>
-            <Option value="ca_ES" sort="10"><![CDATA[ca_ES]]></Option>
-            <Option value="pt_PT" sort="11"><![CDATA[pt_PT]]></Option>
-            <Option value="it_IT" sort="12"><![CDATA[it_IT]]></Option>
-            <Option value="nb_NO" sort="13"><![CDATA[nb_NO]]></Option>
-            <Option value="sv_SE" sort="14"><![CDATA[sv_SE]]></Option>
-            <Option value="fi_FI" sort="15"><![CDATA[fi_FI]]></Option>
-            <Option value="da_DK" sort="16"><![CDATA[da_DK]]></Option>
-            <Option value="is_IS" sort="17"><![CDATA[is_IS]]></Option>
-            <Option value="hu_HU" sort="18"><![CDATA[hu_HU]]></Option>
-            <Option value="pl_PL" sort="19"><![CDATA[pl_PL]]></Option>
-            <Option value="lv_LV" sort="20"><![CDATA[lv_LV]]></Option>
-            <Option value="lt_LT" sort="21"><![CDATA[lt_LT]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="selectbox" initialValue="N" sort="30" conf="Y">
-          <Name>Checkout Styles laden</Name>
-          <Description>Lädt Stylesheets für das Evo Template, um den Checkout zu verschönern.</Description>
-          <ValueName>load_styles</ValueName>
-          <SelectboxOptions>
-            <Option value="N" sort="1"><![CDATA[Nein]]></Option>
-            <Option value="Y" sort="2"><![CDATA[Ja, nur Mollie]]></Option>
-            <Option value="A" sort="3"><![CDATA[Ja, alle]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="selectbox" initialValue="N" sort="40" conf="Y">
-          <Name>Artikel mit rationalen Stückzahlen</Name>
-          <Description>Artikel mit rationalen Stückzahlen werden dann unterstützt, jedoch als ein Artikel&#xA;                        behandelt. KEIN Teilversand hierfür möglich!&#xA;                    </Description>
-          <ValueName>supportQ</ValueName>
-          <SelectboxOptions>
-            <Option value="Y" sort="1"><![CDATA[Ja, mollie hier anbieten]]></Option>
-            <Option value="N" sort="2"><![CDATA[Nein, mollie hier nicht anbieten]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="selectbox" initialValue="ord_tr" sort="100" conf="Y">
-          <Name>TransaktionsID des Zahlungseingangs:</Name>
-          <Description>Welche ID soll an die WAWI übetragen werden? Bei PayPal wird immer die PayPal Referenz&#xA;                        angegeben.&#xA;                    </Description>
-          <ValueName>wawiPaymentID</ValueName>
-          <SelectboxOptions>
-            <Option value="ord" sort="1"><![CDATA[Order ID]]></Option>
-            <Option value="tr" sort="2"><![CDATA[Payment ID]]></Option>
-            <Option value="ord_tr" sort="3"><![CDATA[Order ID / Payment ID]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="text" initialValue="" sort="110" conf="Y">
-          <Name>Workflow-Secret:</Name>
-          <Description>Schlüssel, um die WAWI Workflow-Requests zu authentifizieren.</Description>
-          <ValueName>workflowSecret</ValueName>
-        </Setting>
-      </Settingslink>
-    </Adminmenu>
-    <Locales>
-      <Variable>
-        <Name>skipComponentsLink</Name>
-        <Description></Description>
-        <VariableLocalized iso="GER"><![CDATA[überspringen]]></VariableLocalized>
-        <VariableLocalized iso="ENG"><![CDATA[skip]]></VariableLocalized>
-        <VariableLocalized iso="FRE"><![CDATA[Ignorer]]></VariableLocalized>
-        <VariableLocalized iso="ITA"><![CDATA[salta]]></VariableLocalized>
-      </Variable>
-      <Variable>
-        <Name>cctitle</Name>
-        <Description></Description>
-        <VariableLocalized iso="GER"><![CDATA[Zahlungsinformationen]]></VariableLocalized>
-        <VariableLocalized iso="ENG"><![CDATA[Enter your payment information]]></VariableLocalized>
-        <VariableLocalized iso="FRE"><![CDATA[Informations de paiement]]></VariableLocalized>
-        <VariableLocalized iso="ITA"><![CDATA[Informazioni sulla Carta di Credito]]></VariableLocalized>
-      </Variable>
-      <Variable>
-        <Name>error_canceled</Name>
-        <Description></Description>
-        <VariableLocalized iso="GER"><![CDATA[Die Zahlung wurde von Ihnen abgebrochen. Wählen Sie ggf. eine andere
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<jtlshop3plugin>
+    <Name>Mollie</Name>
+    <Description>Mollie Payment Plugin</Description>
+    <Author>WebStollen GmbH</Author>
+    <URL>https://www.webstollen.de</URL>
+    <XMLVersion>102</XMLVersion>
+    <PluginID>ws_mollie</PluginID>
+    <Shop4Version>406</Shop4Version>
+    <Install>
+        <Version nr="100">
+            <SQL>100.sql</SQL>
+            <CreateDate>2019-02-11</CreateDate>
+        </Version>
+        <Version nr="101">
+            <CreateDate>2019-02-26</CreateDate>
+        </Version>
+        <Version nr="102">
+            <CreateDate>2019-04-23</CreateDate>
+        </Version>
+        <Version nr="103">
+            <CreateDate>2019-05-22</CreateDate>
+        </Version>
+        <Version nr="104">
+            <CreateDate>2019-07-12</CreateDate>
+        </Version>
+        <Version nr="105">
+            <CreateDate>2019-11-26</CreateDate>
+        </Version>
+        <Version nr="106">
+            <CreateDate>2019-12-18</CreateDate>
+        </Version>
+        <Version nr="107">
+            <SQL>107.sql</SQL>
+            <CreateDate>2020-03-02</CreateDate>
+        </Version>
+        <Version nr="108">
+            <CreateDate>2020-04-24</CreateDate>
+        </Version>
+        <Version nr="109">
+            <SQL>109.sql</SQL>
+            <CreateDate>2020-08-17</CreateDate>
+        </Version>
+        <Version nr="110">
+            <CreateDate>2020-11-19</CreateDate>
+        </Version>
+        <Version nr="111">
+            <CreateDate>2021-01-11</CreateDate>
+        </Version>
+        <Version nr="200">
+            <SQL>200.sql</SQL>
+            <CreateDate>2021-04-22</CreateDate>
+        </Version>
+        <Version nr="201">
+            <CreateDate>2021-04-23</CreateDate>
+        </Version>
+        <Version nr="202">
+            <CreateDate>2021-05-06</CreateDate>
+        </Version>
+        <Hooks>
+            <Hook id="75">75_bestellungInDb.php</Hook>
+            <Hook id="131">131_globalinclude.php</Hook>
+            <Hook id="132">132_headPostGet.php</Hook>
+            <Hook id="140">140_smarty.php</Hook>
+            <Hook id="180">180_checkbox.php</Hook>
+            <Hook id="181">181_sync.php</Hook>
+            <Hook id="210">210_storno.php</Hook>
+        </Hooks>
+        <Adminmenu>
+            <Customlink sort="10">
+                <Name>Bestellungen</Name>
+                <Filename>orders.php</Filename>
+            </Customlink>
+            <Customlink sort="20">
+                <Name>Zahlungsarten</Name>
+                <Filename>paymentmethods.php</Filename>
+            </Customlink>
+            <Customlink sort="999">
+                <Name>Info</Name>
+                <Filename>info.php</Filename>
+            </Customlink>
+            <Settingslink sort="998">
+                <Name>Einstellungen</Name>
+                <Setting type="text" initialValue="" sort="10" conf="Y">
+                    <Name>Live API Key:</Name>
+                    <Description>Füge hier deinen mollie API Key ein</Description>
+                    <ValueName>api_key</ValueName>
+                </Setting>
+                <Setting type="text" initialValue="" sort="11" conf="Y">
+                    <Name>Test API Key:</Name>
+                    <Description>Füge hier deinen mollie API Key ein</Description>
+                    <ValueName>test_api_key</ValueName>
+                </Setting>
+                <Setting type="selectbox" initialValue="Y" sort="12" conf="Y">
+                    <Name>Test API als Admin</Name>
+                    <Description>Wenn diese Einstellung aktiviert ist, wird im Shop automatisch die Test-API verwendet,&#xA;
+                        wenn man als Admin im Backend eingeloggt ist.&#xA;
+                    </Description>
+                    <ValueName>testAsAdmin</ValueName>
+                    <SelectboxOptions>
+                        <Option value="N" sort="1"><![CDATA[Nein]]></Option>
+                        <Option value="Y" sort="2"><![CDATA[Ja]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="zahl" initialValue="0" sort="70" conf="Y">
+                    <Name>Zahlungserinnerung</Name>
+                    <Description>Soll bei fehlgeschlagener Zahlung ein Zahlungslink verschickt werden? Angabe in Stunden&#xA;
+                        nach Bestellung. (0 = deaktiviert)&#xA;
+                    </Description>
+                    <ValueName>reminder</ValueName>
+                </Setting>
+                <Setting type="selectbox" initialValue="C" sort="80" conf="Y">
+                    <Name>Kunden bei Mollie anlegen (Customer API)</Name>
+                    <Description>Wenn diese Einstellung aktiviert ist, hat der Kunde die Möglichkeit, per Checkbox,&#xA;
+                        seine Kundendaten bei Mollie zu speichern. Z.B. für Single-Click Checkout benötigt.&#xA;
+                    </Description>
+                    <ValueName>useCustomerAPI</ValueName>
+                    <SelectboxOptions>
+                        <Option value="C" sort="1"><![CDATA[Ja, Checkbox]]></Option>
+                        <Option value="N" sort="2"><![CDATA[Nein]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="text" initialValue="" sort="15" conf="Y">
+                    <Name>Profile ID:</Name>
+                    <Description>Füge hier deinen mollie Profil ID (pfl_) ein. Wird benötigt um mollie Components zu&#xA;
+                        aktivieren&#xA;
+                    </Description>
+                    <ValueName>profileId</ValueName>
+                </Setting>
+                <Setting type="selectbox" initialValue="Y" sort="16" conf="Y">
+                    <Name>Zahlungsart zurücksetzen</Name>
+                    <Description>Versucht, nach fehlgeschlagener oder abgebrochener Zahlung, die Zahlungsart bei Mollie&#xA;
+                        zurückzusetzen&#xA;
+                    </Description>
+                    <ValueName>resetMethod</ValueName>
+                    <SelectboxOptions>
+                        <Option value="N" sort="1"><![CDATA[Nein]]></Option>
+                        <Option value="Y" sort="2"><![CDATA[Ja]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="selectbox" initialValue="Y" sort="50" conf="Y">
+                    <Name>Nur bezahlte Bestellungen in die WAWI übertragen</Name>
+                    <Description>Wenn diese Einstellung deaktiviert ist, können alle Bestellungen direkt von der WAWI&#xA;
+                        abgerufen werden.&#xA;
+                    </Description>
+                    <ValueName>onlyPaid</ValueName>
+                    <SelectboxOptions>
+                        <Option value="Y" sort="1"><![CDATA[Ja]]></Option>
+                        <Option value="N" sort="2"><![CDATA[Nein]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="selectbox" initialValue="B" sort="50" conf="Y">
+                    <Name>Teilversand Verhalten</Name>
+                    <Description>Bei Gastbestellungen und Teilversand.</Description>
+                    <ValueName>shippingMode</ValueName>
+                    <SelectboxOptions>
+                        <Option value="A" sort="1"><![CDATA[Direkt alles versenden]]></Option>
+                        <Option value="B" sort="2"><![CDATA[Erst bei komplett Versand versenden]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="selectbox" initialValue="Y" sort="51" conf="Y">
+                    <Name>Versand bei Mollie</Name>
+                    <Description>Soll Versandinformation für OrderAPI Methoden an Mollie gesendet werden?.</Description>
+                    <ValueName>shippingActive</ValueName>
+                    <SelectboxOptions>
+                        <Option value="Y" sort="1"><![CDATA[Ja]]></Option>
+                        <Option value="K" sort="2"><![CDATA[Nur Kunden & Komplettversand]]></Option>
+                        <Option value="N" sort="3"><![CDATA[Nein, ich mache alles manuell.]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="selectbox" initialValue="N" sort="40" conf="Y">
+                    <Name>Bestellungen automatisch stornieren</Name>
+                    <Description>Wenn diese Einstellung aktiviert ist, werden komplett Stornierte Bestellungen auch bei&#xA;
+                        Mollie storniert oder rückerstattet.&#xA;
+                    </Description>
+                    <ValueName>autoRefund</ValueName>
+                    <SelectboxOptions>
+                        <Option value="Y" sort="1"><![CDATA[Ja]]></Option>
+                        <Option value="N" sort="2"><![CDATA[Nein]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="selectbox" initialValue="Y" sort="90" conf="Y">
+                    <Name>Bestellabschluss</Name>
+                    <Description>Hier kann das Bestellabschluss-Verhalten eingestellt werden.</Description>
+                    <ValueName>checkoutMode</ValueName>
+                    <SelectboxOptions>
+                        <Option value="Y" sort="1"><![CDATA[Direkt weiterleiten]]></Option>
+                        <Option value="D" sort="2"><![CDATA[Nach 3 Sekunden weiterleiten]]></Option>
+                        <Option value="N" sort="2"><![CDATA[Nicht automatisch weiterleiten]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="selectbox" initialValue="de_DE" sort="60" conf="Y">
+                    <Name>Fallback-Locale</Name>
+                    <Description>Fallback, falls Locale nicht erkannt oder nicht vorhanden.</Description>
+                    <ValueName>fallbackLocale</ValueName>
+                    <SelectboxOptions>
+                        <Option value="en_US" sort="1"><![CDATA[en_US]]></Option>
+                        <Option value="nl_NL" sort="2"><![CDATA[nl_NL]]></Option>
+                        <Option value="nl_BE" sort="3"><![CDATA[nl_BE]]></Option>
+                        <Option value="fr_FR" sort="4"><![CDATA[fr_FR]]></Option>
+                        <Option value="fr_BE" sort="5"><![CDATA[fr_BE]]></Option>
+                        <Option value="de_DE" sort="6"><![CDATA[de_DE]]></Option>
+                        <Option value="de_AT" sort="7"><![CDATA[de_AT]]></Option>
+                        <Option value="de_CH" sort="8"><![CDATA[de_CH]]></Option>
+                        <Option value="es_ES" sort="9"><![CDATA[es_ES]]></Option>
+                        <Option value="ca_ES" sort="10"><![CDATA[ca_ES]]></Option>
+                        <Option value="pt_PT" sort="11"><![CDATA[pt_PT]]></Option>
+                        <Option value="it_IT" sort="12"><![CDATA[it_IT]]></Option>
+                        <Option value="nb_NO" sort="13"><![CDATA[nb_NO]]></Option>
+                        <Option value="sv_SE" sort="14"><![CDATA[sv_SE]]></Option>
+                        <Option value="fi_FI" sort="15"><![CDATA[fi_FI]]></Option>
+                        <Option value="da_DK" sort="16"><![CDATA[da_DK]]></Option>
+                        <Option value="is_IS" sort="17"><![CDATA[is_IS]]></Option>
+                        <Option value="hu_HU" sort="18"><![CDATA[hu_HU]]></Option>
+                        <Option value="pl_PL" sort="19"><![CDATA[pl_PL]]></Option>
+                        <Option value="lv_LV" sort="20"><![CDATA[lv_LV]]></Option>
+                        <Option value="lt_LT" sort="21"><![CDATA[lt_LT]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="selectbox" initialValue="N" sort="30" conf="Y">
+                    <Name>Checkout Styles laden</Name>
+                    <Description>Lädt Stylesheets für das Evo Template, um den Checkout zu verschönern.</Description>
+                    <ValueName>load_styles</ValueName>
+                    <SelectboxOptions>
+                        <Option value="N" sort="1"><![CDATA[Nein]]></Option>
+                        <Option value="Y" sort="2"><![CDATA[Ja, nur Mollie]]></Option>
+                        <Option value="A" sort="3"><![CDATA[Ja, alle]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="selectbox" initialValue="N" sort="40" conf="Y">
+                    <Name>Artikel mit rationalen Stückzahlen</Name>
+                    <Description>Artikel mit rationalen Stückzahlen werden dann unterstützt, jedoch als ein Artikel&#xA;
+                        behandelt. KEIN Teilversand hierfür möglich!&#xA;
+                    </Description>
+                    <ValueName>supportQ</ValueName>
+                    <SelectboxOptions>
+                        <Option value="Y" sort="1"><![CDATA[Ja, mollie hier anbieten]]></Option>
+                        <Option value="N" sort="2"><![CDATA[Nein, mollie hier nicht anbieten]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="selectbox" initialValue="ord_tr" sort="100" conf="Y">
+                    <Name>TransaktionsID des Zahlungseingangs:</Name>
+                    <Description>Welche ID soll an die WAWI übetragen werden? Bei PayPal wird immer die PayPal Referenz&#xA;
+                        angegeben.&#xA;
+                    </Description>
+                    <ValueName>wawiPaymentID</ValueName>
+                    <SelectboxOptions>
+                        <Option value="ord" sort="1"><![CDATA[Order ID]]></Option>
+                        <Option value="tr" sort="2"><![CDATA[Payment ID]]></Option>
+                        <Option value="ord_tr" sort="3"><![CDATA[Order ID / Payment ID]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="text" initialValue="" sort="110" conf="Y">
+                    <Name>Workflow-Secret:</Name>
+                    <Description>Schlüssel, um die WAWI Workflow-Requests zu authentifizieren.</Description>
+                    <ValueName>workflowSecret</ValueName>
+                </Setting>
+            </Settingslink>
+        </Adminmenu>
+        <Locales>
+            <Variable>
+                <Name>skipComponentsLink</Name>
+                <Description></Description>
+                <VariableLocalized iso="GER"><![CDATA[überspringen]]></VariableLocalized>
+                <VariableLocalized iso="ENG"><![CDATA[skip]]></VariableLocalized>
+                <VariableLocalized iso="FRE"><![CDATA[Ignorer]]></VariableLocalized>
+                <VariableLocalized iso="ITA"><![CDATA[salta]]></VariableLocalized>
+            </Variable>
+            <Variable>
+                <Name>cctitle</Name>
+                <Description></Description>
+                <VariableLocalized iso="GER"><![CDATA[Zahlungsinformationen]]></VariableLocalized>
+                <VariableLocalized iso="ENG"><![CDATA[Enter your payment information]]></VariableLocalized>
+                <VariableLocalized iso="FRE"><![CDATA[Informations de paiement]]></VariableLocalized>
+                <VariableLocalized iso="ITA"><![CDATA[Informazioni sulla Carta di Credito]]></VariableLocalized>
+            </Variable>
+            <Variable>
+                <Name>error_canceled</Name>
+                <Description></Description>
+                <VariableLocalized iso="GER"><![CDATA[Die Zahlung wurde von Ihnen abgebrochen. Wählen Sie ggf. eine andere
                     Zahlart aus.
                 ]]></VariableLocalized>
-        <VariableLocalized iso="ENG"><![CDATA[
+                <VariableLocalized iso="ENG"><![CDATA[
                     You canceled the payment. Please select a different payment method if necessary.]]></VariableLocalized>
-        <VariableLocalized iso="FRE"><![CDATA[
+                <VariableLocalized iso="FRE"><![CDATA[
                     Votre paiement a été annulé. Veuillez sélectionner un autre mode de paiement si nécessaire.]]></VariableLocalized>
-        <VariableLocalized iso="ITA"><![CDATA[
+                <VariableLocalized iso="ITA"><![CDATA[
                     Hai annullato il pagamento. Se necessario, scegli un metodo di pagamento diverso.]]></VariableLocalized>
-      </Variable>
-      <Variable>
-        <Name>error_expired</Name>
-        <Description></Description>
-        <VariableLocalized iso="GER"><![CDATA[Ihre Zahlungssession ist abgelaufen, bitte versuchen Sie es erneut.
+            </Variable>
+            <Variable>
+                <Name>error_expired</Name>
+                <Description></Description>
+                <VariableLocalized iso="GER"><![CDATA[Ihre Zahlungssession ist abgelaufen, bitte versuchen Sie es erneut.
                 ]]></VariableLocalized>
-        <VariableLocalized iso="ENG"><![CDATA[
+                <VariableLocalized iso="ENG"><![CDATA[
                     Your payment session has expired, please try again.]]></VariableLocalized>
-        <VariableLocalized iso="FRE"><![CDATA[
+                <VariableLocalized iso="FRE"><![CDATA[
                     Votre session de paiement a expiré, s'il vous plaît essayer à nouveau.]]></VariableLocalized>
-        <VariableLocalized iso="ITA"><![CDATA[
+                <VariableLocalized iso="ITA"><![CDATA[
                     La tua sessione di pagamento è scaduta, riprovi.]]></VariableLocalized>
-      </Variable>
-      <Variable>
-        <Name>error_open</Name>
-        <Description></Description>
-        <VariableLocalized iso="GER"><![CDATA[Bei der Zahlung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut,
+            </Variable>
+            <Variable>
+                <Name>error_open</Name>
+                <Description></Description>
+                <VariableLocalized iso="GER"><![CDATA[Bei der Zahlung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut,
                     oder wählen Sie eine andere Zahlungsart.
                 ]]></VariableLocalized>
-        <VariableLocalized iso="ENG"><![CDATA[
+                <VariableLocalized iso="ENG"><![CDATA[
                     The payment process failed. Please try again or choose a different payment method.]]></VariableLocalized>
-        <VariableLocalized iso="FRE"><![CDATA[
+                <VariableLocalized iso="FRE"><![CDATA[
                     Une erreur s'est produite lors du paiement. Veuillez réessayer ou choisir un autre mode de paiement.]]></VariableLocalized>
-        <VariableLocalized iso="ITA"><![CDATA[
+                <VariableLocalized iso="ITA"><![CDATA[
                     Si è verificato un errore con il pagamento. Riprovi o scegli un metodo di pagamento diverso.]]></VariableLocalized>
-      </Variable>
-      <Variable>
-        <Name>error_failed</Name>
-        <Description></Description>
-        <VariableLocalized iso="GER"><![CDATA[Bei der Zahlung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut,
+            </Variable>
+            <Variable>
+                <Name>error_failed</Name>
+                <Description></Description>
+                <VariableLocalized iso="GER"><![CDATA[Bei der Zahlung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut,
                     oder wählen Sie eine andere Zahlungsart.
                 ]]></VariableLocalized>
-        <VariableLocalized iso="ENG"><![CDATA[
+                <VariableLocalized iso="ENG"><![CDATA[
                     The payment process failed. Please try again or choose a different paymentmethod.]]></VariableLocalized>
-        <VariableLocalized iso="FRE"><![CDATA[
+                <VariableLocalized iso="FRE"><![CDATA[
                     Une erreur s'est produite lors du paiement. Veuillez réessayer ou choisir un autre mode de paiement.]]></VariableLocalized>
-        <VariableLocalized iso="ITA"><![CDATA[
+                <VariableLocalized iso="ITA"><![CDATA[
                     Si è verificato un errore con il pagamento. Riprovi o scegli un metodo di pagamento diverso.]]></VariableLocalized>
-      </Variable>
-      <Variable>
-        <Name>error_create</Name>
-        <Description></Description>
-        <VariableLocalized iso="GER"><![CDATA[
+            </Variable>
+            <Variable>
+                <Name>error_create</Name>
+                <Description></Description>
+                <VariableLocalized iso="GER"><![CDATA[
                     Bei der Zahlung ist ein Fehler aufgetreten. Bitte nehmen Sie mit uns Kontakt auf.]]></VariableLocalized>
-        <VariableLocalized iso="ENG"><![CDATA[
+                <VariableLocalized iso="ENG"><![CDATA[
                     The payment process failed. Please contact us.]]></VariableLocalized>
-        <VariableLocalized iso="FRE"><![CDATA[
+                <VariableLocalized iso="FRE"><![CDATA[
                     Une erreur s'est produite lors du paiement. Contactez nous s'il vous plait.]]></VariableLocalized>
-        <VariableLocalized iso="ITA"><![CDATA[
+                <VariableLocalized iso="ITA"><![CDATA[
                     Si è verificato un errore con il pagamento. Ci contatti per favore.]]></VariableLocalized>
-      </Variable>
-      <Variable>
-        <Name>lbl_cardHolder</Name>
-        <Description></Description>
-        <VariableLocalized iso="GER"><![CDATA[Karteninhaber:]]></VariableLocalized>
-        <VariableLocalized iso="ENG"><![CDATA[Card holder:]]></VariableLocalized>
-        <VariableLocalized iso="FRE"><![CDATA[Titulaire de la carte:]]></VariableLocalized>
-        <VariableLocalized iso="ITA"><![CDATA[Titolare della Carta:]]></VariableLocalized>
-      </Variable>
-      <Variable>
-        <Name>lbl_cardNumber</Name>
-        <Description></Description>
-        <VariableLocalized iso="GER"><![CDATA[Kartennummer:]]></VariableLocalized>
-        <VariableLocalized iso="ENG"><![CDATA[Card number:]]></VariableLocalized>
-        <VariableLocalized iso="FRE"><![CDATA[Numéro de carte:]]></VariableLocalized>
-        <VariableLocalized iso="ITA"><![CDATA[Numero Carta:]]></VariableLocalized>
-      </Variable>
-      <Variable>
-        <Name>lbl_expiryDate</Name>
-        <Description></Description>
-        <VariableLocalized iso="GER"><![CDATA[Ablaufdatum:]]></VariableLocalized>
-        <VariableLocalized iso="ENG"><![CDATA[Expiry date:]]></VariableLocalized>
-        <VariableLocalized iso="FRE"><![CDATA[Date d'expiration:]]></VariableLocalized>
-        <VariableLocalized iso="ITA"><![CDATA[Data scadenza:]]></VariableLocalized>
-      </Variable>
-      <Variable>
-        <Name>lbl_varificationCode</Name>
-        <Description></Description>
-        <VariableLocalized iso="GER"><![CDATA[CVC/CVV:]]></VariableLocalized>
-        <VariableLocalized iso="ENG"><![CDATA[CVC/CVV:]]></VariableLocalized>
-        <VariableLocalized iso="FRE"><![CDATA[CVC/CVV:]]></VariableLocalized>
-        <VariableLocalized iso="ITA"><![CDATA[CVC/CVV:]]></VariableLocalized>
-      </Variable>
-      <Variable>
-        <Name>cvchint_1</Name>
-        <Description></Description>
-        <VariableLocalized iso="GER"><![CDATA[So findet man die CVV/CVC Nummer]]></VariableLocalized>
-        <VariableLocalized iso="ENG"><![CDATA[How to find the CVV/CVC number]]></VariableLocalized>
-        <VariableLocalized iso="FRE"><![CDATA[Comment trouver le numéro CVC/CVV]]></VariableLocalized>
-        <VariableLocalized iso="ITA"><![CDATA[Cosi trovi il numero CVV/CVC]]></VariableLocalized>
-      </Variable>
-      <Variable>
-        <Name>cvchint_2</Name>
-        <Description></Description>
-        <VariableLocalized iso="GER"><![CDATA[Die dreistellige CVV/CVC Nummer wird bei Visa und Mastercard auf der Rückseite,
+            </Variable>
+            <Variable>
+                <Name>lbl_cardHolder</Name>
+                <Description></Description>
+                <VariableLocalized iso="GER"><![CDATA[Karteninhaber:]]></VariableLocalized>
+                <VariableLocalized iso="ENG"><![CDATA[Card holder:]]></VariableLocalized>
+                <VariableLocalized iso="FRE"><![CDATA[Titulaire de la carte:]]></VariableLocalized>
+                <VariableLocalized iso="ITA"><![CDATA[Titolare della Carta:]]></VariableLocalized>
+            </Variable>
+            <Variable>
+                <Name>lbl_cardNumber</Name>
+                <Description></Description>
+                <VariableLocalized iso="GER"><![CDATA[Kartennummer:]]></VariableLocalized>
+                <VariableLocalized iso="ENG"><![CDATA[Card number:]]></VariableLocalized>
+                <VariableLocalized iso="FRE"><![CDATA[Numéro de carte:]]></VariableLocalized>
+                <VariableLocalized iso="ITA"><![CDATA[Numero Carta:]]></VariableLocalized>
+            </Variable>
+            <Variable>
+                <Name>lbl_expiryDate</Name>
+                <Description></Description>
+                <VariableLocalized iso="GER"><![CDATA[Ablaufdatum:]]></VariableLocalized>
+                <VariableLocalized iso="ENG"><![CDATA[Expiry date:]]></VariableLocalized>
+                <VariableLocalized iso="FRE"><![CDATA[Date d'expiration:]]></VariableLocalized>
+                <VariableLocalized iso="ITA"><![CDATA[Data scadenza:]]></VariableLocalized>
+            </Variable>
+            <Variable>
+                <Name>lbl_varificationCode</Name>
+                <Description></Description>
+                <VariableLocalized iso="GER"><![CDATA[CVC/CVV:]]></VariableLocalized>
+                <VariableLocalized iso="ENG"><![CDATA[CVC/CVV:]]></VariableLocalized>
+                <VariableLocalized iso="FRE"><![CDATA[CVC/CVV:]]></VariableLocalized>
+                <VariableLocalized iso="ITA"><![CDATA[CVC/CVV:]]></VariableLocalized>
+            </Variable>
+            <Variable>
+                <Name>cvchint_1</Name>
+                <Description></Description>
+                <VariableLocalized iso="GER"><![CDATA[So findet man die CVV/CVC Nummer]]></VariableLocalized>
+                <VariableLocalized iso="ENG"><![CDATA[How to find the CVV/CVC number]]></VariableLocalized>
+                <VariableLocalized iso="FRE"><![CDATA[Comment trouver le numéro CVC/CVV]]></VariableLocalized>
+                <VariableLocalized iso="ITA"><![CDATA[Cosi trovi il numero CVV/CVC]]></VariableLocalized>
+            </Variable>
+            <Variable>
+                <Name>cvchint_2</Name>
+                <Description></Description>
+                <VariableLocalized iso="GER"><![CDATA[Die dreistellige CVV/CVC Nummer wird bei Visa und Mastercard auf der Rückseite,
                     bei American Express auf der Vorderseite der Karte abgebildet.
                 ]]></VariableLocalized>
-        <VariableLocalized iso="ENG"><![CDATA[
+                <VariableLocalized iso="ENG"><![CDATA[
                     The three-digit CVV/CVC number is shown on the reverse for Visa and Mastercard, and on the front of the card for American Express.]]></VariableLocalized>
-        <VariableLocalized iso="FRE"><![CDATA[
+                <VariableLocalized iso="FRE"><![CDATA[
                     Le numéro CVC/CVV à trois chiffres est indiqué au dos de Visa et Mastercard et au recto de la carte American Express.]]></VariableLocalized>
-        <VariableLocalized iso="ITA"><![CDATA[
+                <VariableLocalized iso="ITA"><![CDATA[
                     Il numero CVV/CVC trovi nelle Carte VISA e MASTERCARD sul Retro, nella Carta American Express trovi sulla parte anteriore.]]></VariableLocalized>
-      </Variable>
-      <Variable>
-        <Name>mcErrorMessage</Name>
-        <Description>Ein oder mehrere Felder sind ungültig.</Description>
-        <VariableLocalized iso="GER"><![CDATA[Ein oder mehrere Felder sind ungültig.]]></VariableLocalized>
-        <VariableLocalized iso="ENG"><![CDATA[One or more fields are invalid.]]></VariableLocalized>
-        <VariableLocalized iso="FRE"><![CDATA[Un ou plusieurs champs ne sont pas valides.]]></VariableLocalized>
-        <VariableLocalized iso="ITA"><![CDATA[Uno o più Campi non sono validi.]]></VariableLocalized>
-      </Variable>
-      <Variable>
-        <Name>clearDescr</Name>
-        <Description>Kreditkarte: Token bereits vorhanden</Description>
-        <VariableLocalized iso="GER"><![CDATA[
+            </Variable>
+            <Variable>
+                <Name>mcErrorMessage</Name>
+                <Description>Ein oder mehrere Felder sind ungültig.</Description>
+                <VariableLocalized iso="GER"><![CDATA[Ein oder mehrere Felder sind ungültig.]]></VariableLocalized>
+                <VariableLocalized iso="ENG"><![CDATA[One or more fields are invalid.]]></VariableLocalized>
+                <VariableLocalized iso="FRE"><![CDATA[Un ou plusieurs champs ne sont pas valides.]]></VariableLocalized>
+                <VariableLocalized iso="ITA"><![CDATA[Uno o più Campi non sono validi.]]></VariableLocalized>
+            </Variable>
+            <Variable>
+                <Name>clearDescr</Name>
+                <Description>Kreditkarte: Token bereits vorhanden</Description>
+                <VariableLocalized iso="GER"><![CDATA[
                     Sie haben bereits Daten hinterlegt. Möchten Sie diese ändern?]]></VariableLocalized>
-        <VariableLocalized iso="ENG"><![CDATA[
+                <VariableLocalized iso="ENG"><![CDATA[
                     You have already entered data. Would you like to change this?]]></VariableLocalized>
-        <VariableLocalized iso="FRE"><![CDATA[
+                <VariableLocalized iso="FRE"><![CDATA[
                     Vous avez déjà saisi des données. Souhaitez-vous changer cela?]]></VariableLocalized>
-        <VariableLocalized iso="ITA"><![CDATA[Hai già inserito i dati. Vuoi cambiarli?]]></VariableLocalized>
-      </Variable>
-      <Variable>
-        <Name>clearButton</Name>
-        <Description>Kreditkarte: Token löschen</Description>
-        <VariableLocalized iso="GER"><![CDATA[Daten ändern]]></VariableLocalized>
-        <VariableLocalized iso="ENG"><![CDATA[Edit Data]]></VariableLocalized>
-        <VariableLocalized iso="FRE"><![CDATA[changer les données]]></VariableLocalized>
-        <VariableLocalized iso="ITA"><![CDATA[Cambiare Dati]]></VariableLocalized>
-      </Variable>
-      <Variable>
-        <Name>errAlreadyPaid</Name>
-        <Description>Wenn die Bestellung bereits bezahlt ist</Description>
-        <VariableLocalized iso="GER"><![CDATA[Diese Bestellung ist bereits bezahlt.]]></VariableLocalized>
-        <VariableLocalized iso="ENG"><![CDATA[This order has already been paid for.]]></VariableLocalized>
-        <VariableLocalized iso="FRE"><![CDATA[Cette commande a déjà été payée.]]></VariableLocalized>
-        <VariableLocalized iso="ITA"><![CDATA[Questo ordine è già stato pagato.]]></VariableLocalized>
-      </Variable>
-      <Variable>
-        <Name>errOrderNotFound</Name>
-        <Description>Wenn Bestellung nicht gefunden wurde.</Description>
-        <VariableLocalized iso="GER"><![CDATA[
+                <VariableLocalized iso="ITA"><![CDATA[Hai già inserito i dati. Vuoi cambiarli?]]></VariableLocalized>
+            </Variable>
+            <Variable>
+                <Name>clearButton</Name>
+                <Description>Kreditkarte: Token löschen</Description>
+                <VariableLocalized iso="GER"><![CDATA[Daten ändern]]></VariableLocalized>
+                <VariableLocalized iso="ENG"><![CDATA[Edit Data]]></VariableLocalized>
+                <VariableLocalized iso="FRE"><![CDATA[changer les données]]></VariableLocalized>
+                <VariableLocalized iso="ITA"><![CDATA[Cambiare Dati]]></VariableLocalized>
+            </Variable>
+            <Variable>
+                <Name>errAlreadyPaid</Name>
+                <Description>Wenn die Bestellung bereits bezahlt ist</Description>
+                <VariableLocalized iso="GER"><![CDATA[Diese Bestellung ist bereits bezahlt.]]></VariableLocalized>
+                <VariableLocalized iso="ENG"><![CDATA[This order has already been paid for.]]></VariableLocalized>
+                <VariableLocalized iso="FRE"><![CDATA[Cette commande a déjà été payée.]]></VariableLocalized>
+                <VariableLocalized iso="ITA"><![CDATA[Questo ordine è già stato pagato.]]></VariableLocalized>
+            </Variable>
+            <Variable>
+                <Name>errOrderNotFound</Name>
+                <Description>Wenn Bestellung nicht gefunden wurde.</Description>
+                <VariableLocalized iso="GER"><![CDATA[
                     Die Bestellung konnte leider nicht gefunden werden, wenden Sie sich ggf. an unseren Support.]]></VariableLocalized>
-        <VariableLocalized iso="ENG"><![CDATA[
+                <VariableLocalized iso="ENG"><![CDATA[
                     The order could not be found, please contact our support if necessary.]]></VariableLocalized>
-        <VariableLocalized iso="FRE"><![CDATA[
+                <VariableLocalized iso="FRE"><![CDATA[
                     La commande n'a pas pu être trouvée, veuillez contacter notre support si nécessaire.]]></VariableLocalized>
-        <VariableLocalized iso="ITA"><![CDATA[
+                <VariableLocalized iso="ITA"><![CDATA[
                     Impossibile trovare l'ordine, contatta il nostro supporto se necessario.]]></VariableLocalized>
-      </Variable>
-      <Variable>
-        <Name>checkboxText</Name>
-        <Description>Text der Checkbox, um einen Kunden bei Mollie anzulegen</Description>
-        <VariableLocalized iso="GER"><![CDATA[
+            </Variable>
+            <Variable>
+                <Name>checkboxText</Name>
+                <Description>Text der Checkbox, um einen Kunden bei Mollie anzulegen</Description>
+                <VariableLocalized iso="GER"><![CDATA[
                     Zahlungsinformationen beim Anbieter speichen]]></VariableLocalized>
-        <VariableLocalized iso="ENG"><![CDATA[Save payment information with the provider]]></VariableLocalized>
-        <VariableLocalized iso="FRE"><![CDATA[
+                <VariableLocalized iso="ENG"><![CDATA[Save payment information with the provider]]></VariableLocalized>
+                <VariableLocalized iso="FRE"><![CDATA[
                     Enregistrer les informations de paiement avec le fournisseur]]></VariableLocalized>
-        <VariableLocalized iso="ITA"><![CDATA[
+                <VariableLocalized iso="ITA"><![CDATA[
                     Salva le informazioni di pagamento con il provider]]></VariableLocalized>
-      </Variable>
-      <Variable>
-        <Name>checkboxDescr</Name>
-        <Description>Beschreibung der Checkbox, um einen Kunden bei Mollie anzulegen</Description>
-        <VariableLocalized iso="GER"><![CDATA[
+            </Variable>
+            <Variable>
+                <Name>checkboxDescr</Name>
+                <Description>Beschreibung der Checkbox, um einen Kunden bei Mollie anzulegen</Description>
+                <VariableLocalized iso="GER"><![CDATA[
                     Dies kann den Bestellvorgang bei der nächsten Bestellung beschleunigen.]]></VariableLocalized>
-        <VariableLocalized iso="ENG"><![CDATA[
+                <VariableLocalized iso="ENG"><![CDATA[
                     This can speed up the process for the next order.]]></VariableLocalized>
-        <VariableLocalized iso="FRE"><![CDATA[
+                <VariableLocalized iso="FRE"><![CDATA[
                     Cela peut accélérer le processus pour la prochaine commande.]]></VariableLocalized>
-        <VariableLocalized iso="ITA"><![CDATA[
+                <VariableLocalized iso="ITA"><![CDATA[
                     Questo può accelerare il processo di ordinazione per l'ordine successivo.]]></VariableLocalized>
-      </Variable>
-    </Locales>
-    <PaymentMethod>
-      <Method>
-        <Name>Mollie</Name>
-        <PictureURL>img/method/mollie@2x.png</PictureURL>
-        <Sort>1</Sort>
-        <SendMail>1</SendMail>
-        <Provider>mollie.com</Provider>
-        <TSCode>OTHER</TSCode>
-        <PreOrder>0</PreOrder>
-        <Soap>0</Soap>
-        <Curl>1</Curl>
-        <Sockets>0</Sockets>
-        <ClassFile>JTLMollie.php</ClassFile>
-        <ClassName>JTLMollie</ClassName>
-        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-        <MethodLanguage iso="GER">
-          <Name>Mollie</Name>
-          <ChargeName>Mollie</ChargeName>
-          <InfoText>Bezahlen Sie bequem mit verschiedenen Zahlungsmethoden.</InfoText>
-        </MethodLanguage>
-        <Setting type="selectbox" initialValue="order" sort="10" conf="Y">
-          <Name>API</Name>
-          <Description>Welche API soll verwendet werden?</Description>
-          <ValueName>api</ValueName>
-          <SelectboxOptions>
-            <Option value="order" sort="1"><![CDATA[Order API]]></Option>
-            <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="zahl" initialValue="100" sort="20" conf="Y">
-          <Name>Gültigkeit in Tagen</Name>
-          <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen? (Order API)</Description>
-          <ValueName>dueDays</ValueName>
-        </Setting>
-      </Method>
-      <Method>
-        <Name>Mollie Kreditkarte</Name>
-        <PictureURL>img/method/creditcard@2x.png</PictureURL>
-        <Sort>3</Sort>
-        <SendMail>1</SendMail>
-        <Provider>mollie.com</Provider>
-        <TSCode>CREDIT_CARD</TSCode>
-        <PreOrder>0</PreOrder>
-        <Soap>0</Soap>
-        <Curl>1</Curl>
-        <Sockets>0</Sockets>
-        <ClassFile>JTLMollieCreditCard.php</ClassFile>
-        <ClassName>JTLMollieCreditCard</ClassName>
-        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-        <AdditionalTemplateFile>tpl/mollieComponents.tpl</AdditionalTemplateFile>
-        <MethodLanguage iso="GER">
-          <Name>Kreditkarte</Name>
-          <ChargeName>Mollie</ChargeName>
-          <InfoText>Bezahlen Sie bequem mit Kreditkarte.</InfoText>
-        </MethodLanguage>
-        <Setting type="selectbox" initialValue="S" sort="30" conf="Y">
-          <Name>Mollie Components</Name>
-          <Description>Wenn diese Einstellung aktiviert ist, werden die Kreditkarten ggf. bereits im Shop&#xA;                        abgefragt.&#xA;                    </Description>
-          <ValueName>components</ValueName>
-          <SelectboxOptions>
-            <Option value="S" sort="1"><![CDATA[Ja, optional]]></Option>
-            <Option value="Y" sort="2"><![CDATA[Ja, obligatorisch]]></Option>
-            <Option value="N" sort="3"><![CDATA[Nein]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="selectbox" initialValue="S" sort="35" conf="Y">
-          <Name>Trustgrafik anzeigen</Name>
-          <Description>Bindet eine Trust-Grafik unterhalb des Kreditkartenformulars ein.</Description>
-          <ValueName>loadTrust</ValueName>
-          <SelectboxOptions>
-            <Option value="N" sort="1"><![CDATA[Nein]]></Option>
-            <Option value="Y" sort="2"><![CDATA[Ja]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
-          <Name>API</Name>
-          <Description>Welche API soll verwendet werden?</Description>
-          <ValueName>api</ValueName>
-          <SelectboxOptions>
-            <Option value="order" sort="1"><![CDATA[Order API]]></Option>
-            <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="zahl" initialValue="100" sort="45" conf="Y">
-          <Name>Gültigkeit in Tagen</Name>
-          <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen? (Order API)</Description>
-          <ValueName>dueDays</ValueName>
-        </Setting>
-      </Method>
-      <Method>
-        <Name>Mollie Apple Pay</Name>
-        <PictureURL>img/method/applepay@2x.png</PictureURL>
-        <Sort>3</Sort>
-        <SendMail>1</SendMail>
-        <Provider>mollie.com</Provider>
-        <TSCode>OTHER</TSCode>
-        <PreOrder>0</PreOrder>
-        <Soap>0</Soap>
-        <Curl>1</Curl>
-        <Sockets>0</Sockets>
-        <ClassFile>JTLMollieApplePay.php</ClassFile>
-        <ClassName>JTLMollieApplePay</ClassName>
-        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-        <MethodLanguage iso="GER">
-          <Name>Apple Pay</Name>
-          <ChargeName>Mollie</ChargeName>
-          <InfoText>Bezahlen Sie bequem mit Apple Pay.</InfoText>
-        </MethodLanguage>
-        <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
-          <Name>API</Name>
-          <Description>Welche API soll verwendet werden?</Description>
-          <ValueName>api</ValueName>
-          <SelectboxOptions>
-            <Option value="order" sort="1"><![CDATA[Order API]]></Option>
-            <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="zahl" initialValue="100" sort="45" conf="Y">
-          <Name>Gültigkeit in Tagen</Name>
-          <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen? (Order API)</Description>
-          <ValueName>dueDays</ValueName>
-        </Setting>
-      </Method>
-      <Method>
-        <Name>Mollie Bancontact</Name>
-        <PictureURL>img/method/bancontact@2x.png</PictureURL>
-        <Sort>4</Sort>
-        <SendMail>1</SendMail>
-        <Provider>mollie.com</Provider>
-        <TSCode>OTHER</TSCode>
-        <PreOrder>0</PreOrder>
-        <Soap>0</Soap>
-        <Curl>1</Curl>
-        <Sockets>0</Sockets>
-        <ClassFile>JTLMollieBancontact.php</ClassFile>
-        <ClassName>JTLMollieBancontact</ClassName>
-        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-        <MethodLanguage iso="GER">
-          <Name>Bancontact</Name>
-          <ChargeName>Mollie</ChargeName>
-          <InfoText>Bezahlen Sie bequem mit Bancontact.</InfoText>
-        </MethodLanguage>
-        <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
-          <Name>API</Name>
-          <Description>Welche API soll verwendet werden?</Description>
-          <ValueName>api</ValueName>
-          <SelectboxOptions>
-            <Option value="order" sort="1"><![CDATA[Order API]]></Option>
-            <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="zahl" initialValue="100" sort="45" conf="Y">
-          <Name>Gültigkeit in Tagen</Name>
-          <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen? (Order API)</Description>
-          <ValueName>dueDays</ValueName>
-        </Setting>
-      </Method>
-      <Method>
-        <Name>Mollie Banktransfer</Name>
-        <PictureURL>img/method/banktransfer@2x.png</PictureURL>
-        <Sort>5</Sort>
-        <SendMail>1</SendMail>
-        <Provider>mollie.com</Provider>
-        <TSCode>OTHER</TSCode>
-        <PreOrder>0</PreOrder>
-        <Soap>0</Soap>
-        <Curl>1</Curl>
-        <Sockets>0</Sockets>
-        <ClassFile>JTLMollieBanktransfer.php</ClassFile>
-        <ClassName>JTLMollieBanktransfer</ClassName>
-        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-        <MethodLanguage iso="GER">
-          <Name>SEPA Überweisung</Name>
-          <ChargeName>Mollie</ChargeName>
-          <InfoText>Bezahlen Sie bequem mit SEPA Überweisung.</InfoText>
-        </MethodLanguage>
-        <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
-          <Name>API</Name>
-          <Description>Welche API soll verwendet werden?</Description>
-          <ValueName>api</ValueName>
-          <SelectboxOptions>
-            <Option value="order" sort="1"><![CDATA[Order API]]></Option>
-            <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="zahl" initialValue="100" sort="50" conf="Y">
-          <Name>Gültigkeit in Tagen</Name>
-          <Description>Wie lange hat der Kunde Zeit die Überweisung zu tätigen?</Description>
-          <ValueName>dueDays</ValueName>
-        </Setting>
-      </Method>
-      <Method>
-        <Name>Mollie Belfius</Name>
-        <PictureURL>img/method/belfius@2x.png</PictureURL>
-        <Sort>6</Sort>
-        <SendMail>1</SendMail>
-        <Provider>mollie.com</Provider>
-        <TSCode>OTHER</TSCode>
-        <PreOrder>0</PreOrder>
-        <Soap>0</Soap>
-        <Curl>1</Curl>
-        <Sockets>0</Sockets>
-        <ClassFile>JTLMollieBelfius.php</ClassFile>
-        <ClassName>JTLMollieBelfius</ClassName>
-        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-        <MethodLanguage iso="GER">
-          <Name>Belfius</Name>
-          <ChargeName>Mollie</ChargeName>
-          <InfoText>Bezahlen Sie bequem mit Belfius.</InfoText>
-        </MethodLanguage>
-        <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
-          <Name>API</Name>
-          <Description>Welche API soll verwendet werden?</Description>
-          <ValueName>api</ValueName>
-          <SelectboxOptions>
-            <Option value="order" sort="1"><![CDATA[Order API]]></Option>
-            <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="zahl" initialValue="100" sort="45" conf="Y">
-          <Name>Gültigkeit in Tagen</Name>
-          <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen? (Order API)</Description>
-          <ValueName>dueDays</ValueName>
-        </Setting>
-      </Method>
-      <Method>
-        <Name>Mollie DirectDebit</Name>
-        <PictureURL>img/method/directdebit@2x.png</PictureURL>
-        <Sort>7</Sort>
-        <SendMail>1</SendMail>
-        <Provider>mollie.com</Provider>
-        <TSCode>DIRECT_DEBIT</TSCode>
-        <PreOrder>0</PreOrder>
-        <Soap>0</Soap>
-        <Curl>1</Curl>
-        <Sockets>0</Sockets>
-        <ClassFile>JTLMollieDirectDebit.php</ClassFile>
-        <ClassName>JTLMollieDirectDebit</ClassName>
-        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-        <MethodLanguage iso="GER">
-          <Name>SEPA Lastschrift</Name>
-          <ChargeName>Mollie</ChargeName>
-          <InfoText>Bezahlen Sie bequem mit SEPA Lastschrift.</InfoText>
-        </MethodLanguage>
-      </Method>
-      <Method>
-        <Name>Mollie EPS</Name>
-        <PictureURL>img/method/eps@2x.png</PictureURL>
-        <Sort>2</Sort>
-        <SendMail>1</SendMail>
-        <Provider>mollie.com</Provider>
-        <TSCode>OTHER</TSCode>
-        <PreOrder>0</PreOrder>
-        <Soap>0</Soap>
-        <Curl>1</Curl>
-        <Sockets>0</Sockets>
-        <ClassFile>JTLMollieEPS.php</ClassFile>
-        <ClassName>JTLMollieEPS</ClassName>
-        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-        <MethodLanguage iso="GER">
-          <Name>EPS</Name>
-          <ChargeName>mollie</ChargeName>
-          <InfoText>Bezahlen Sie bequem mit EPS.</InfoText>
-        </MethodLanguage>
-        <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
-          <Name>API</Name>
-          <Description>Welche API soll verwendet werden?</Description>
-          <ValueName>api</ValueName>
-          <SelectboxOptions>
-            <Option value="order" sort="1"><![CDATA[Order API]]></Option>
-            <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="zahl" initialValue="100" sort="45" conf="Y">
-          <Name>Gültigkeit in Tagen</Name>
-          <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen? (Order API)</Description>
-          <ValueName>dueDays</ValueName>
-        </Setting>
-      </Method>
-      <Method>
-        <Name>Mollie Giftcard</Name>
-        <PictureURL>img/method/giftcard@2x.png</PictureURL>
-        <Sort>8</Sort>
-        <SendMail>1</SendMail>
-        <Provider>mollie.com</Provider>
-        <TSCode>OTHER</TSCode>
-        <PreOrder>0</PreOrder>
-        <Soap>0</Soap>
-        <Curl>1</Curl>
-        <Sockets>0</Sockets>
-        <ClassFile>JTLMollieGiftcard.php</ClassFile>
-        <ClassName>JTLMollieGiftcard</ClassName>
-        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-        <MethodLanguage iso="GER">
-          <Name>Gift cards</Name>
-          <ChargeName>Mollie</ChargeName>
-          <InfoText>Bezahlen Sie bequem mit Gift cards.</InfoText>
-        </MethodLanguage>
-      </Method>
-      <Method>
-        <Name>Mollie Giropay</Name>
-        <PictureURL>img/method/giropay@2x.png</PictureURL>
-        <Sort>9</Sort>
-        <SendMail>1</SendMail>
-        <Provider>mollie.com</Provider>
-        <TSCode>GIROPAY</TSCode>
-        <PreOrder>0</PreOrder>
-        <Soap>0</Soap>
-        <Curl>1</Curl>
-        <Sockets>0</Sockets>
-        <ClassFile>JTLMollieGiropay.php</ClassFile>
-        <ClassName>JTLMollieGiropay</ClassName>
-        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-        <MethodLanguage iso="GER">
-          <Name>Giropay</Name>
-          <ChargeName>mMllie</ChargeName>
-          <InfoText>Bezahlen Sie bequem mit Giropay.</InfoText>
-        </MethodLanguage>
-        <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
-          <Name>API</Name>
-          <Description>Welche API soll verwendet werden?</Description>
-          <ValueName>api</ValueName>
-          <SelectboxOptions>
-            <Option value="order" sort="1"><![CDATA[Order API]]></Option>
-            <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="zahl" initialValue="100" sort="45" conf="Y">
-          <Name>Gültigkeit in Tagen</Name>
-          <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen? (Order API)</Description>
-          <ValueName>dueDays</ValueName>
-        </Setting>
-      </Method>
-      <Method>
-        <Name>Mollie iDEAL</Name>
-        <PictureURL>img/method/ideal@2x.png</PictureURL>
-        <Sort>10</Sort>
-        <SendMail>1</SendMail>
-        <Provider>mollie.com</Provider>
-        <TSCode>OTHER</TSCode>
-        <PreOrder>0</PreOrder>
-        <Soap>0</Soap>
-        <Curl>1</Curl>
-        <Sockets>0</Sockets>
-        <ClassFile>JTLMollieIDEAL.php</ClassFile>
-        <ClassName>JTLMollieIDEAL</ClassName>
-        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-        <MethodLanguage iso="GER">
-          <Name>iDEAL</Name>
-          <ChargeName>Mollie</ChargeName>
-          <InfoText>Bezahlen Sie bequem mit iDEAL.</InfoText>
-        </MethodLanguage>
-        <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
-          <Name>API</Name>
-          <Description>Welche API soll verwendet werden?</Description>
-          <ValueName>api</ValueName>
-          <SelectboxOptions>
-            <Option value="order" sort="1"><![CDATA[Order API]]></Option>
-            <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="zahl" initialValue="100" sort="45" conf="Y">
-          <Name>Gültigkeit in Tagen</Name>
-          <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen? (Order API)</Description>
-          <ValueName>dueDays</ValueName>
-        </Setting>
-      </Method>
-      <Method>
-        <Name>Mollie ING HomePay</Name>
-        <PictureURL>img/method/inghomepay@2x.png</PictureURL>
-        <Sort>11</Sort>
-        <SendMail>1</SendMail>
-        <Provider>mollie.com</Provider>
-        <TSCode>OTHER</TSCode>
-        <PreOrder>0</PreOrder>
-        <Soap>0</Soap>
-        <Curl>1</Curl>
-        <Sockets>0</Sockets>
-        <ClassFile>JTLMollieINGHomePay.php</ClassFile>
-        <ClassName>JTLMollieINGHomePay</ClassName>
-        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-        <MethodLanguage iso="GER">
-          <Name>ING HomePay</Name>
-          <ChargeName>mollie</ChargeName>
-          <InfoText>Bezahlen Sie bequem mit ING HomePay.</InfoText>
-        </MethodLanguage>
-      </Method>
-      <Method>
-        <Name>Mollie KBC</Name>
-        <PictureURL>img/method/kbc@2x.png</PictureURL>
-        <Sort>12</Sort>
-        <SendMail>1</SendMail>
-        <Provider>mollie.com</Provider>
-        <TSCode>OTHER</TSCode>
-        <PreOrder>0</PreOrder>
-        <Soap>0</Soap>
-        <Curl>1</Curl>
-        <Sockets>0</Sockets>
-        <ClassFile>JTLMollieKBC.php</ClassFile>
-        <ClassName>JTLMollieKBC</ClassName>
-        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-        <MethodLanguage iso="GER">
-          <Name>KBC</Name>
-          <ChargeName>Mollie</ChargeName>
-          <InfoText>Bezahlen Sie bequem mit KBC.</InfoText>
-        </MethodLanguage>
-        <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
-          <Name>API</Name>
-          <Description>Welche API soll verwendet werden?</Description>
-          <ValueName>api</ValueName>
-          <SelectboxOptions>
-            <Option value="order" sort="1"><![CDATA[Order API]]></Option>
-            <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="zahl" initialValue="100" sort="45" conf="Y">
-          <Name>Gültigkeit in Tagen</Name>
-          <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen? (Order API)</Description>
-          <ValueName>dueDays</ValueName>
-        </Setting>
-      </Method>
-      <Method>
-        <Name>Mollie PayPal</Name>
-        <PictureURL>img/method/paypal@2x.png</PictureURL>
-        <Sort>13</Sort>
-        <SendMail>1</SendMail>
-        <Provider>mollie.com</Provider>
-        <TSCode>PAYPAL</TSCode>
-        <PreOrder>0</PreOrder>
-        <Soap>0</Soap>
-        <Curl>1</Curl>
-        <Sockets>0</Sockets>
-        <ClassFile>JTLMolliePayPal.php</ClassFile>
-        <ClassName>JTLMolliePayPal</ClassName>
-        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-        <MethodLanguage iso="GER">
-          <Name>PayPal</Name>
-          <ChargeName>Mollie</ChargeName>
-          <InfoText>Bezahlen Sie bequem mit PayPal.</InfoText>
-        </MethodLanguage>
-        <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
-          <Name>API</Name>
-          <Description>Welche API soll verwendet werden?</Description>
-          <ValueName>api</ValueName>
-          <SelectboxOptions>
-            <Option value="order" sort="1"><![CDATA[Order API]]></Option>
-            <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="zahl" initialValue="100" sort="45" conf="Y">
-          <Name>Gültigkeit in Tagen</Name>
-          <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen? (Order API)</Description>
-          <ValueName>dueDays</ValueName>
-        </Setting>
-      </Method>
-      <Method>
-        <Name>Mollie paysafecard</Name>
-        <PictureURL>img/method/paysafecard@2x.png</PictureURL>
-        <Sort>14</Sort>
-        <SendMail>1</SendMail>
-        <Provider>mollie.com</Provider>
-        <TSCode>OTHER</TSCode>
-        <PreOrder>0</PreOrder>
-        <Soap>0</Soap>
-        <Curl>1</Curl>
-        <Sockets>0</Sockets>
-        <ClassFile>JTLMolliePaysafecard.php</ClassFile>
-        <ClassName>JTLMolliePaysafecard</ClassName>
-        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-        <MethodLanguage iso="GER">
-          <Name>paysafecard</Name>
-          <ChargeName>Mollie</ChargeName>
-          <InfoText>Bezahlen Sie bequem mit paysafecard.</InfoText>
-        </MethodLanguage>
-        <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
-          <Name>API</Name>
-          <Description>Welche API soll verwendet werden?</Description>
-          <ValueName>api</ValueName>
-          <SelectboxOptions>
-            <Option value="order" sort="1"><![CDATA[Order API]]></Option>
-            <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="zahl" initialValue="100" sort="45" conf="Y">
-          <Name>Gültigkeit in Tagen</Name>
-          <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen? (Order API)</Description>
-          <ValueName>dueDays</ValueName>
-        </Setting>
-      </Method>
-      <Method>
-        <Name>Mollie SOFORT</Name>
-        <PictureURL>img/method/sofort@2x.png</PictureURL>
-        <Sort>15</Sort>
-        <SendMail>1</SendMail>
-        <Provider>mollie.com</Provider>
-        <TSCode>DIRECT_E_BANKING</TSCode>
-        <PreOrder>0</PreOrder>
-        <Soap>0</Soap>
-        <Curl>1</Curl>
-        <Sockets>0</Sockets>
-        <ClassFile>JTLMollieSofort.php</ClassFile>
-        <ClassName>JTLMollieSofort</ClassName>
-        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-        <MethodLanguage iso="GER">
-          <Name>SOFORT</Name>
-          <ChargeName>Mollie</ChargeName>
-          <InfoText>Bezahlen Sie bequem mit SOFORT.</InfoText>
-        </MethodLanguage>
-        <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
-          <Name>API</Name>
-          <Description>Welche API soll verwendet werden?</Description>
-          <ValueName>api</ValueName>
-          <SelectboxOptions>
-            <Option value="order" sort="1"><![CDATA[Order API]]></Option>
-            <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="zahl" initialValue="100" sort="45" conf="Y">
-          <Name>Gültigkeit in Tagen</Name>
-          <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen? (Order API)</Description>
-          <ValueName>dueDays</ValueName>
-        </Setting>
-      </Method>
-      <Method>
-        <Name>mollie Klarna Pay Later</Name>
-        <PictureURL>img/method/klarna@2x.png</PictureURL>
-        <Sort>16</Sort>
-        <SendMail>1</SendMail>
-        <Provider>mollie.com</Provider>
-        <TSCode>INVOICE</TSCode>
-        <PreOrder>0</PreOrder>
-        <Soap>0</Soap>
-        <Curl>1</Curl>
-        <Sockets>0</Sockets>
-        <ClassFile>JTLMollieKlarnaPayLater.php</ClassFile>
-        <ClassName>JTLMollieKlarnaPayLater</ClassName>
-        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-        <MethodLanguage iso="GER">
-          <Name>Klarna Pay Later</Name>
-          <ChargeName>mollie</ChargeName>
-          <InfoText>Bezahlen Sie bequem mit Klarna Pay Later.</InfoText>
-        </MethodLanguage>
-        <Setting type="zahl" initialValue="28" sort="45" conf="Y">
-          <Name>Gültigkeit in Tagen</Name>
-          <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen?</Description>
-          <ValueName>dueDays</ValueName>
-        </Setting>
-      </Method>
-      <Method>
-        <Name>Mollie Klarna Slice It</Name>
-        <PictureURL>img/method/klarna@2x.png</PictureURL>
-        <Sort>17</Sort>
-        <SendMail>1</SendMail>
-        <Provider>mollie.com</Provider>
-        <TSCode>FINANCING</TSCode>
-        <PreOrder>0</PreOrder>
-        <Soap>0</Soap>
-        <Curl>1</Curl>
-        <Sockets>0</Sockets>
-        <ClassFile>JTLMollieKlarnaSliceIt.php</ClassFile>
-        <ClassName>JTLMollieKlarnaSliceIt</ClassName>
-        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-        <MethodLanguage iso="GER">
-          <Name>Klarna Slice It</Name>
-          <ChargeName>Mollie</ChargeName>
-          <InfoText>Bezahlen Sie bequem mit Klarna Slice It.</InfoText>
-        </MethodLanguage>
-        <Setting type="zahl" initialValue="28" sort="45" conf="Y">
-          <Name>Gültigkeit in Tagen</Name>
-          <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen?</Description>
-          <ValueName>dueDays</ValueName>
-        </Setting>
-      </Method>
-      <Method>
-        <Name>Mollie Przelewy24</Name>
-        <PictureURL>img/method/Przelewy24@2x.png</PictureURL>
-        <Sort>17</Sort>
-        <SendMail>1</SendMail>
-        <Provider>mollie.com</Provider>
-        <TSCode>OTHER</TSCode>
-        <PreOrder>0</PreOrder>
-        <Soap>0</Soap>
-        <Curl>1</Curl>
-        <Sockets>0</Sockets>
-        <ClassFile>JTLMolliePrzelewy24.php</ClassFile>
-        <ClassName>JTLMolliePrzelewy24</ClassName>
-        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-        <MethodLanguage iso="GER">
-          <Name>Przelewy24</Name>
-          <ChargeName>mollie</ChargeName>
-          <InfoText>Bezahlen Sie bequem mit Przelewy24.</InfoText>
-        </MethodLanguage>
-        <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
-          <Name>API</Name>
-          <Description>Welche API soll verwendet werden?</Description>
-          <ValueName>api</ValueName>
-          <SelectboxOptions>
-            <Option value="order" sort="1"><![CDATA[Order API]]></Option>
-            <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="zahl" initialValue="100" sort="45" conf="Y">
-          <Name>Gültigkeit in Tagen</Name>
-          <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen? (Order API)</Description>
-          <ValueName>dueDays</ValueName>
-        </Setting>
-      </Method>
-      <Method>
-        <Name>Mollie MyBank</Name>
-        <PictureURL>img/method/mybank@2x.png</PictureURL>
-        <Sort>17</Sort>
-        <SendMail>1</SendMail>
-        <Provider>mollie.com</Provider>
-        <TSCode>OTHER</TSCode>
-        <PreOrder>0</PreOrder>
-        <Soap>0</Soap>
-        <Curl>1</Curl>
-        <Sockets>0</Sockets>
-        <ClassFile>JTLMollieMyBank.php</ClassFile>
-        <ClassName>JTLMollieMyBank</ClassName>
-        <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-        <MethodLanguage iso="GER">
-          <Name>MyBank</Name>
-          <ChargeName>Mollie</ChargeName>
-          <InfoText>Bezahlen Sie bequem mit MyBank.</InfoText>
-        </MethodLanguage>
-        <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
-          <Name>API</Name>
-          <Description>Welche API soll verwendet werden?</Description>
-          <ValueName>api</ValueName>
-          <SelectboxOptions>
-            <Option value="order" sort="1"><![CDATA[Order API]]></Option>
-            <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
-          </SelectboxOptions>
-        </Setting>
-        <Setting type="zahl" initialValue="100" sort="45" conf="Y">
-          <Name>Gültigkeit in Tagen</Name>
-          <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen? (Order API)</Description>
-          <ValueName>dueDays</ValueName>
-        </Setting>
-      </Method>
-    </PaymentMethod>
-    <Emailtemplate>
-      <Template>
-        <Name>Zahlungs-Erinnerungsemail</Name>
-        <Description>&#xA;                    Wird versendet, falls eine Zahlung fehlschlägt oder abgebrochen wurde.</Description>
-        <Type>text/html</Type>
-        <ModulId>zahlungserinnerung</ModulId>
-        <Active>Y</Active>
-        <AKZ>0</AKZ>
-        <WRB>0</WRB>
-        <AGB>0</AGB>
-        <TemplateLanguage iso="ENG">
-          <Subject>Payment reminder</Subject>
-          <ContentHtml>{includeMailTemplate template=header type=html}&#xA;Hello {$Kunde-&gt;cVorname} {$Kunde-&gt;cNachname},&#xA;&lt;br&gt;&#xA;thank you for your order at {$Einstellungen.global.global_shopname}.&lt;br&gt;&#xA;&lt;br&gt;&#xA;&lt;p&gt;Unfortunatly we did not receive a payment confirmation for your order &lt;b&gt;{$oPluginMail-&gt;Bestellung-&gt;cBestellNr}&lt;/b&gt; as yet.&lt;/p&gt;&#xA;&lt;p&gt;If you had an error, or any other problem while paying, please try again with the following link.&lt;/p&gt;&#xA;&lt;p&gt;Amount due: {$oPluginMail-&gt;Amount}&lt;/p&gt;&#xA;&lt;p&gt;Pay now: &lt;a href=&#34;{$oPluginMail-&gt;PayURL}&#34;&gt;{$oPluginMail-&gt;PayURL}&lt;/a&gt;&lt;/p&gt;&#xA;{includeMailTemplate template=footer type=html}</ContentHtml>
-          <ContentText>{includeMailTemplate template=header type=text}&#xA;&#xA;Hello {$Kunde-&gt;cVorname} {$Kunde-&gt;cNachname},&#xA;&#xA;thank you for your order at {$Einstellungen.global.global_shopname}.&#xA;&#xA;Unfortunatly we did not receive a payment confirmation for your order {$oPluginMail-&gt;Bestellung-&gt;cBestellNr} as yet.&#xA;If you had an error, or any other problem while paying, please try again with the following link.&#xA;&#xA;Amount due: {$oPluginMail-&gt;Amount}&#xA;Pay now: {$oPluginMail-&gt;PayURL}&#xA;&#xA;{includeMailTemplate template=footer type=text}</ContentText>
-        </TemplateLanguage>
-      </Template>
-    </Emailtemplate>
-  </Install>
+            </Variable>
+        </Locales>
+        <PaymentMethod>
+            <Method>
+                <Name>Mollie</Name>
+                <PictureURL>img/method/mollie@2x.png</PictureURL>
+                <Sort>1</Sort>
+                <SendMail>1</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <PreOrder>0</PreOrder>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollie.php</ClassFile>
+                <ClassName>JTLMollie</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>Mollie</Name>
+                    <ChargeName>Mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit verschiedenen Zahlungsmethoden.</InfoText>
+                </MethodLanguage>
+                <Setting type="selectbox" initialValue="order" sort="10" conf="Y">
+                    <Name>API</Name>
+                    <Description>Welche API soll verwendet werden?</Description>
+                    <ValueName>api</ValueName>
+                    <SelectboxOptions>
+                        <Option value="order" sort="1"><![CDATA[Order API]]></Option>
+                        <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="zahl" initialValue="100" sort="20" conf="Y">
+                    <Name>Gültigkeit in Tagen</Name>
+                    <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen? (Order API)</Description>
+                    <ValueName>dueDays</ValueName>
+                </Setting>
+            </Method>
+            <Method>
+                <Name>Mollie Kreditkarte</Name>
+                <PictureURL>img/method/creditcard@2x.png</PictureURL>
+                <Sort>3</Sort>
+                <SendMail>1</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>CREDIT_CARD</TSCode>
+                <PreOrder>0</PreOrder>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieCreditCard.php</ClassFile>
+                <ClassName>JTLMollieCreditCard</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <AdditionalTemplateFile>tpl/mollieComponents.tpl</AdditionalTemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>Kreditkarte</Name>
+                    <ChargeName>Mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit Kreditkarte.</InfoText>
+                </MethodLanguage>
+                <Setting type="selectbox" initialValue="S" sort="30" conf="Y">
+                    <Name>Mollie Components</Name>
+                    <Description>Wenn diese Einstellung aktiviert ist, werden die Kreditkarten ggf. bereits im Shop&#xA;
+                        abgefragt.&#xA;
+                    </Description>
+                    <ValueName>components</ValueName>
+                    <SelectboxOptions>
+                        <Option value="S" sort="1"><![CDATA[Ja, optional]]></Option>
+                        <Option value="Y" sort="2"><![CDATA[Ja, obligatorisch]]></Option>
+                        <Option value="N" sort="3"><![CDATA[Nein]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="selectbox" initialValue="S" sort="35" conf="Y">
+                    <Name>Trustgrafik anzeigen</Name>
+                    <Description>Bindet eine Trust-Grafik unterhalb des Kreditkartenformulars ein.</Description>
+                    <ValueName>loadTrust</ValueName>
+                    <SelectboxOptions>
+                        <Option value="N" sort="1"><![CDATA[Nein]]></Option>
+                        <Option value="Y" sort="2"><![CDATA[Ja]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
+                    <Name>API</Name>
+                    <Description>Welche API soll verwendet werden?</Description>
+                    <ValueName>api</ValueName>
+                    <SelectboxOptions>
+                        <Option value="order" sort="1"><![CDATA[Order API]]></Option>
+                        <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="zahl" initialValue="100" sort="45" conf="Y">
+                    <Name>Gültigkeit in Tagen</Name>
+                    <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen? (Order API)</Description>
+                    <ValueName>dueDays</ValueName>
+                </Setting>
+            </Method>
+            <Method>
+                <Name>Mollie Apple Pay</Name>
+                <PictureURL>img/method/applepay@2x.png</PictureURL>
+                <Sort>3</Sort>
+                <SendMail>1</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <PreOrder>0</PreOrder>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieApplePay.php</ClassFile>
+                <ClassName>JTLMollieApplePay</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>Apple Pay</Name>
+                    <ChargeName>Mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit Apple Pay.</InfoText>
+                </MethodLanguage>
+                <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
+                    <Name>API</Name>
+                    <Description>Welche API soll verwendet werden?</Description>
+                    <ValueName>api</ValueName>
+                    <SelectboxOptions>
+                        <Option value="order" sort="1"><![CDATA[Order API]]></Option>
+                        <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="zahl" initialValue="100" sort="45" conf="Y">
+                    <Name>Gültigkeit in Tagen</Name>
+                    <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen? (Order API)</Description>
+                    <ValueName>dueDays</ValueName>
+                </Setting>
+            </Method>
+            <Method>
+                <Name>Mollie Bancontact</Name>
+                <PictureURL>img/method/bancontact@2x.png</PictureURL>
+                <Sort>4</Sort>
+                <SendMail>1</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <PreOrder>0</PreOrder>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieBancontact.php</ClassFile>
+                <ClassName>JTLMollieBancontact</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>Bancontact</Name>
+                    <ChargeName>Mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit Bancontact.</InfoText>
+                </MethodLanguage>
+                <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
+                    <Name>API</Name>
+                    <Description>Welche API soll verwendet werden?</Description>
+                    <ValueName>api</ValueName>
+                    <SelectboxOptions>
+                        <Option value="order" sort="1"><![CDATA[Order API]]></Option>
+                        <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="zahl" initialValue="100" sort="45" conf="Y">
+                    <Name>Gültigkeit in Tagen</Name>
+                    <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen? (Order API)</Description>
+                    <ValueName>dueDays</ValueName>
+                </Setting>
+            </Method>
+            <Method>
+                <Name>Mollie Banktransfer</Name>
+                <PictureURL>img/method/banktransfer@2x.png</PictureURL>
+                <Sort>5</Sort>
+                <SendMail>1</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <PreOrder>0</PreOrder>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieBanktransfer.php</ClassFile>
+                <ClassName>JTLMollieBanktransfer</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>SEPA Überweisung</Name>
+                    <ChargeName>Mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit SEPA Überweisung.</InfoText>
+                </MethodLanguage>
+                <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
+                    <Name>API</Name>
+                    <Description>Welche API soll verwendet werden?</Description>
+                    <ValueName>api</ValueName>
+                    <SelectboxOptions>
+                        <Option value="order" sort="1"><![CDATA[Order API]]></Option>
+                        <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="zahl" initialValue="100" sort="50" conf="Y">
+                    <Name>Gültigkeit in Tagen</Name>
+                    <Description>Wie lange hat der Kunde Zeit die Überweisung zu tätigen?</Description>
+                    <ValueName>dueDays</ValueName>
+                </Setting>
+            </Method>
+            <Method>
+                <Name>Mollie Belfius</Name>
+                <PictureURL>img/method/belfius@2x.png</PictureURL>
+                <Sort>6</Sort>
+                <SendMail>1</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <PreOrder>0</PreOrder>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieBelfius.php</ClassFile>
+                <ClassName>JTLMollieBelfius</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>Belfius</Name>
+                    <ChargeName>Mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit Belfius.</InfoText>
+                </MethodLanguage>
+                <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
+                    <Name>API</Name>
+                    <Description>Welche API soll verwendet werden?</Description>
+                    <ValueName>api</ValueName>
+                    <SelectboxOptions>
+                        <Option value="order" sort="1"><![CDATA[Order API]]></Option>
+                        <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="zahl" initialValue="100" sort="45" conf="Y">
+                    <Name>Gültigkeit in Tagen</Name>
+                    <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen? (Order API)</Description>
+                    <ValueName>dueDays</ValueName>
+                </Setting>
+            </Method>
+            <Method>
+                <Name>Mollie DirectDebit</Name>
+                <PictureURL>img/method/directdebit@2x.png</PictureURL>
+                <Sort>7</Sort>
+                <SendMail>1</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>DIRECT_DEBIT</TSCode>
+                <PreOrder>0</PreOrder>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieDirectDebit.php</ClassFile>
+                <ClassName>JTLMollieDirectDebit</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>SEPA Lastschrift</Name>
+                    <ChargeName>Mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit SEPA Lastschrift.</InfoText>
+                </MethodLanguage>
+            </Method>
+            <Method>
+                <Name>Mollie EPS</Name>
+                <PictureURL>img/method/eps@2x.png</PictureURL>
+                <Sort>2</Sort>
+                <SendMail>1</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <PreOrder>0</PreOrder>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieEPS.php</ClassFile>
+                <ClassName>JTLMollieEPS</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>EPS</Name>
+                    <ChargeName>mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit EPS.</InfoText>
+                </MethodLanguage>
+                <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
+                    <Name>API</Name>
+                    <Description>Welche API soll verwendet werden?</Description>
+                    <ValueName>api</ValueName>
+                    <SelectboxOptions>
+                        <Option value="order" sort="1"><![CDATA[Order API]]></Option>
+                        <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="zahl" initialValue="100" sort="45" conf="Y">
+                    <Name>Gültigkeit in Tagen</Name>
+                    <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen? (Order API)</Description>
+                    <ValueName>dueDays</ValueName>
+                </Setting>
+            </Method>
+            <Method>
+                <Name>Mollie Giftcard</Name>
+                <PictureURL>img/method/giftcard@2x.png</PictureURL>
+                <Sort>8</Sort>
+                <SendMail>1</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <PreOrder>0</PreOrder>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieGiftcard.php</ClassFile>
+                <ClassName>JTLMollieGiftcard</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>Gift cards</Name>
+                    <ChargeName>Mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit Gift cards.</InfoText>
+                </MethodLanguage>
+            </Method>
+            <Method>
+                <Name>Mollie Giropay</Name>
+                <PictureURL>img/method/giropay@2x.png</PictureURL>
+                <Sort>9</Sort>
+                <SendMail>1</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>GIROPAY</TSCode>
+                <PreOrder>0</PreOrder>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieGiropay.php</ClassFile>
+                <ClassName>JTLMollieGiropay</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>Giropay</Name>
+                    <ChargeName>mMllie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit Giropay.</InfoText>
+                </MethodLanguage>
+                <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
+                    <Name>API</Name>
+                    <Description>Welche API soll verwendet werden?</Description>
+                    <ValueName>api</ValueName>
+                    <SelectboxOptions>
+                        <Option value="order" sort="1"><![CDATA[Order API]]></Option>
+                        <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="zahl" initialValue="100" sort="45" conf="Y">
+                    <Name>Gültigkeit in Tagen</Name>
+                    <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen? (Order API)</Description>
+                    <ValueName>dueDays</ValueName>
+                </Setting>
+            </Method>
+            <Method>
+                <Name>Mollie iDEAL</Name>
+                <PictureURL>img/method/ideal@2x.png</PictureURL>
+                <Sort>10</Sort>
+                <SendMail>1</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <PreOrder>0</PreOrder>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieIDEAL.php</ClassFile>
+                <ClassName>JTLMollieIDEAL</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>iDEAL</Name>
+                    <ChargeName>Mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit iDEAL.</InfoText>
+                </MethodLanguage>
+                <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
+                    <Name>API</Name>
+                    <Description>Welche API soll verwendet werden?</Description>
+                    <ValueName>api</ValueName>
+                    <SelectboxOptions>
+                        <Option value="order" sort="1"><![CDATA[Order API]]></Option>
+                        <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="zahl" initialValue="100" sort="45" conf="Y">
+                    <Name>Gültigkeit in Tagen</Name>
+                    <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen? (Order API)</Description>
+                    <ValueName>dueDays</ValueName>
+                </Setting>
+            </Method>
+            <Method>
+                <Name>Mollie ING HomePay</Name>
+                <PictureURL>img/method/inghomepay@2x.png</PictureURL>
+                <Sort>11</Sort>
+                <SendMail>1</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <PreOrder>0</PreOrder>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieINGHomePay.php</ClassFile>
+                <ClassName>JTLMollieINGHomePay</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>ING HomePay</Name>
+                    <ChargeName>mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit ING HomePay.</InfoText>
+                </MethodLanguage>
+            </Method>
+            <Method>
+                <Name>Mollie KBC</Name>
+                <PictureURL>img/method/kbc@2x.png</PictureURL>
+                <Sort>12</Sort>
+                <SendMail>1</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <PreOrder>0</PreOrder>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieKBC.php</ClassFile>
+                <ClassName>JTLMollieKBC</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>KBC</Name>
+                    <ChargeName>Mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit KBC.</InfoText>
+                </MethodLanguage>
+                <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
+                    <Name>API</Name>
+                    <Description>Welche API soll verwendet werden?</Description>
+                    <ValueName>api</ValueName>
+                    <SelectboxOptions>
+                        <Option value="order" sort="1"><![CDATA[Order API]]></Option>
+                        <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="zahl" initialValue="100" sort="45" conf="Y">
+                    <Name>Gültigkeit in Tagen</Name>
+                    <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen? (Order API)</Description>
+                    <ValueName>dueDays</ValueName>
+                </Setting>
+            </Method>
+            <Method>
+                <Name>Mollie PayPal</Name>
+                <PictureURL>img/method/paypal@2x.png</PictureURL>
+                <Sort>13</Sort>
+                <SendMail>1</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>PAYPAL</TSCode>
+                <PreOrder>0</PreOrder>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMolliePayPal.php</ClassFile>
+                <ClassName>JTLMolliePayPal</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>PayPal</Name>
+                    <ChargeName>Mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit PayPal.</InfoText>
+                </MethodLanguage>
+                <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
+                    <Name>API</Name>
+                    <Description>Welche API soll verwendet werden?</Description>
+                    <ValueName>api</ValueName>
+                    <SelectboxOptions>
+                        <Option value="order" sort="1"><![CDATA[Order API]]></Option>
+                        <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="zahl" initialValue="100" sort="45" conf="Y">
+                    <Name>Gültigkeit in Tagen</Name>
+                    <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen? (Order API)</Description>
+                    <ValueName>dueDays</ValueName>
+                </Setting>
+            </Method>
+            <Method>
+                <Name>Mollie paysafecard</Name>
+                <PictureURL>img/method/paysafecard@2x.png</PictureURL>
+                <Sort>14</Sort>
+                <SendMail>1</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <PreOrder>0</PreOrder>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMolliePaysafecard.php</ClassFile>
+                <ClassName>JTLMolliePaysafecard</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>paysafecard</Name>
+                    <ChargeName>Mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit paysafecard.</InfoText>
+                </MethodLanguage>
+                <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
+                    <Name>API</Name>
+                    <Description>Welche API soll verwendet werden?</Description>
+                    <ValueName>api</ValueName>
+                    <SelectboxOptions>
+                        <Option value="order" sort="1"><![CDATA[Order API]]></Option>
+                        <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="zahl" initialValue="100" sort="45" conf="Y">
+                    <Name>Gültigkeit in Tagen</Name>
+                    <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen? (Order API)</Description>
+                    <ValueName>dueDays</ValueName>
+                </Setting>
+            </Method>
+            <Method>
+                <Name>Mollie SOFORT</Name>
+                <PictureURL>img/method/sofort@2x.png</PictureURL>
+                <Sort>15</Sort>
+                <SendMail>1</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>DIRECT_E_BANKING</TSCode>
+                <PreOrder>0</PreOrder>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieSofort.php</ClassFile>
+                <ClassName>JTLMollieSofort</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>SOFORT</Name>
+                    <ChargeName>Mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit SOFORT.</InfoText>
+                </MethodLanguage>
+                <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
+                    <Name>API</Name>
+                    <Description>Welche API soll verwendet werden?</Description>
+                    <ValueName>api</ValueName>
+                    <SelectboxOptions>
+                        <Option value="order" sort="1"><![CDATA[Order API]]></Option>
+                        <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="zahl" initialValue="100" sort="45" conf="Y">
+                    <Name>Gültigkeit in Tagen</Name>
+                    <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen? (Order API)</Description>
+                    <ValueName>dueDays</ValueName>
+                </Setting>
+            </Method>
+            <Method>
+                <Name>mollie Klarna Pay Later</Name>
+                <PictureURL>img/method/klarna@2x.png</PictureURL>
+                <Sort>16</Sort>
+                <SendMail>1</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>INVOICE</TSCode>
+                <PreOrder>0</PreOrder>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieKlarnaPayLater.php</ClassFile>
+                <ClassName>JTLMollieKlarnaPayLater</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>Klarna Pay Later</Name>
+                    <ChargeName>mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit Klarna Pay Later.</InfoText>
+                </MethodLanguage>
+                <Setting type="zahl" initialValue="28" sort="45" conf="Y">
+                    <Name>Gültigkeit in Tagen</Name>
+                    <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen?</Description>
+                    <ValueName>dueDays</ValueName>
+                </Setting>
+            </Method>
+            <Method>
+                <Name>Mollie Klarna Slice It</Name>
+                <PictureURL>img/method/klarna@2x.png</PictureURL>
+                <Sort>17</Sort>
+                <SendMail>1</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>FINANCING</TSCode>
+                <PreOrder>0</PreOrder>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieKlarnaSliceIt.php</ClassFile>
+                <ClassName>JTLMollieKlarnaSliceIt</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>Klarna Slice It</Name>
+                    <ChargeName>Mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit Klarna Slice It.</InfoText>
+                </MethodLanguage>
+                <Setting type="zahl" initialValue="28" sort="45" conf="Y">
+                    <Name>Gültigkeit in Tagen</Name>
+                    <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen?</Description>
+                    <ValueName>dueDays</ValueName>
+                </Setting>
+            </Method>
+            <Method>
+                <Name>Mollie Przelewy24</Name>
+                <PictureURL>img/method/Przelewy24@2x.png</PictureURL>
+                <Sort>17</Sort>
+                <SendMail>1</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <PreOrder>0</PreOrder>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMolliePrzelewy24.php</ClassFile>
+                <ClassName>JTLMolliePrzelewy24</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>Przelewy24</Name>
+                    <ChargeName>mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit Przelewy24.</InfoText>
+                </MethodLanguage>
+                <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
+                    <Name>API</Name>
+                    <Description>Welche API soll verwendet werden?</Description>
+                    <ValueName>api</ValueName>
+                    <SelectboxOptions>
+                        <Option value="order" sort="1"><![CDATA[Order API]]></Option>
+                        <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="zahl" initialValue="100" sort="45" conf="Y">
+                    <Name>Gültigkeit in Tagen</Name>
+                    <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen? (Order API)</Description>
+                    <ValueName>dueDays</ValueName>
+                </Setting>
+            </Method>
+            <Method>
+                <Name>Mollie MyBank</Name>
+                <PictureURL>img/method/mybank@2x.png</PictureURL>
+                <Sort>17</Sort>
+                <SendMail>1</SendMail>
+                <Provider>mollie.com</Provider>
+                <TSCode>OTHER</TSCode>
+                <PreOrder>0</PreOrder>
+                <Soap>0</Soap>
+                <Curl>1</Curl>
+                <Sockets>0</Sockets>
+                <ClassFile>JTLMollieMyBank.php</ClassFile>
+                <ClassName>JTLMollieMyBank</ClassName>
+                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
+                <MethodLanguage iso="GER">
+                    <Name>MyBank</Name>
+                    <ChargeName>Mollie</ChargeName>
+                    <InfoText>Bezahlen Sie bequem mit MyBank.</InfoText>
+                </MethodLanguage>
+                <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
+                    <Name>API</Name>
+                    <Description>Welche API soll verwendet werden?</Description>
+                    <ValueName>api</ValueName>
+                    <SelectboxOptions>
+                        <Option value="order" sort="1"><![CDATA[Order API]]></Option>
+                        <Option value="payment" sort="2"><![CDATA[Payment API]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+                <Setting type="zahl" initialValue="100" sort="45" conf="Y">
+                    <Name>Gültigkeit in Tagen</Name>
+                    <Description>Wie lange hat der Kunde Zeit die Bestellung zu bezahlen? (Order API)</Description>
+                    <ValueName>dueDays</ValueName>
+                </Setting>
+            </Method>
+        </PaymentMethod>
+        <Emailtemplate>
+            <Template>
+                <Name>Zahlungs-Erinnerungsemail</Name>
+                <Description>&#xA; Wird versendet, falls eine Zahlung fehlschlägt oder abgebrochen wurde.</Description>
+                <Type>text/html</Type>
+                <ModulId>zahlungserinnerung</ModulId>
+                <Active>Y</Active>
+                <AKZ>0</AKZ>
+                <WRB>0</WRB>
+                <AGB>0</AGB>
+                <TemplateLanguage iso="ENG">
+                    <Subject>Payment reminder</Subject>
+                    <ContentHtml>{includeMailTemplate template=header type=html}&#xA;Hello {$Kunde-&gt;cVorname}
+                        {$Kunde-&gt;cNachname},&#xA;&lt;br&gt;&#xA;thank you for your order at
+                        {$Einstellungen.global.global_shopname}.&lt;br&gt;&#xA;&lt;br&gt;&#xA;&lt;p&gt;Unfortunatly we
+                        did not receive a payment confirmation for your order &lt;b&gt;{$oPluginMail-&gt;Bestellung-&gt;cBestellNr}&lt;/b&gt;
+                        as yet.&lt;/p&gt;&#xA;&lt;p&gt;If you had an error, or any other problem while paying, please
+                        try again with the following link.&lt;/p&gt;&#xA;&lt;p&gt;Amount due: {$oPluginMail-&gt;Amount}&lt;/p&gt;&#xA;&lt;p&gt;Pay
+                        now: &lt;a href=&#34;{$oPluginMail-&gt;PayURL}&#34;&gt;{$oPluginMail-&gt;PayURL}&lt;/a&gt;&lt;/p&gt;&#xA;{includeMailTemplate
+                        template=footer type=html}
+                    </ContentHtml>
+                    <ContentText>{includeMailTemplate template=header type=text}&#xA;&#xA;Hello {$Kunde-&gt;cVorname}
+                        {$Kunde-&gt;cNachname},&#xA;&#xA;thank you for your order at
+                        {$Einstellungen.global.global_shopname}.&#xA;&#xA;Unfortunatly we did not receive a payment
+                        confirmation for your order {$oPluginMail-&gt;Bestellung-&gt;cBestellNr} as yet.&#xA;If you had
+                        an error, or any other problem while paying, please try again with the following link.&#xA;&#xA;Amount
+                        due: {$oPluginMail-&gt;Amount}&#xA;Pay now: {$oPluginMail-&gt;PayURL}&#xA;&#xA;{includeMailTemplate
+                        template=footer type=text}
+                    </ContentText>
+                </TemplateLanguage>
+            </Template>
+        </Emailtemplate>
+    </Install>
 </jtlshop3plugin>
