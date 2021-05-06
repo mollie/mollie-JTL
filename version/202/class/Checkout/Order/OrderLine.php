@@ -177,7 +177,9 @@ class OrderLine extends AbstractResource
             }
 
         }
-        $this->metadata = $metadata;
+        if (json_encode($metadata) !== false) {
+            $this->metadata = $metadata;
+        }
 
         return $this;
 
