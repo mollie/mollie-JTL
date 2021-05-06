@@ -156,7 +156,7 @@ class OrderLine extends AbstractResource
             $this->sku = $oPosition->Artikel->cArtNr;
             $metadata['kArtikel'] = $oPosition->kArtikel;
             if ($oPosition->cUnique !== '') {
-                $metadata['cUnique'] = $oPosition->cUnique;
+                $metadata['cUnique'] = utf8_encode($oPosition->cUnique);
             }
         }
 
@@ -165,10 +165,10 @@ class OrderLine extends AbstractResource
             /** @var WarenkorbPosEigenschaft $warenkorbPosEigenschaft */
             foreach ($oPosition->WarenkorbPosEigenschaftArr as $warenkorbPosEigenschaft) {
                 $metadata['properties'][] = [
-                    'kEigenschaft' => $warenkorbPosEigenschaft->kEigenschaft,
-                    'kEigenschaftWert' => $warenkorbPosEigenschaft->kEigenschaftWert,
-                    'name' => $warenkorbPosEigenschaft->cEigenschaftName,
-                    'value' => $warenkorbPosEigenschaft->cEigenschaftWertName,
+                    'kEigenschaft' => (int)$warenkorbPosEigenschaft->kEigenschaft,
+                    'kEigenschaftWert' => (int)$warenkorbPosEigenschaft->kEigenschaftWert,
+                    'name' => utf8_encode($warenkorbPosEigenschaft->cEigenschaftName),
+                    'value' => utf8_encode($warenkorbPosEigenschaft->cEigenschaftWertName),
                 ];
                 if (strlen(json_encode($metadata)) > 1000) {
                     array_pop($metadata['properties']);
@@ -177,7 +177,9 @@ class OrderLine extends AbstractResource
             }
 
         }
-        $this->metadata = $metadata;
+        if (json_encode($metadata) !== false) {
+            $this->metadata = $metadata;
+        }
 
         return $this;
 
