@@ -9,11 +9,19 @@
             <th>Review:</th>
             <td>{$profile->review->status}</td>
         {/if}
+        {if $profile->_links->checkoutPreviewUrl->href}
+            <td width="15%" style="text-align: right;">
+                <a class="btn btn-success" href="{$profile->_links->checkoutPreviewUrl->href}" target="_blank">Checkout
+                    Preview <i class="fa fa-external-link"></i></a>
+            </td>
+        {/if}
+        <td width="15%" style="text-align: right;">
+            <a class="btn btn-info" href="https://www.mollie.com/dashboard" target="_blank">Mollie Dashboard <i
+                        class="fa fa-external-link"></i></a>
+        </td>
     </tr>
 </table>
-
 <hr/>
-
 <div class="row">
     <form action="plugin.php" method="get">
         <input type="hidden" name="kPlugin" value="{$oPlugin->kPlugin}">
@@ -43,7 +51,7 @@
                    value="{if "amount"|array_key_exists:$smarty.get && $smarty.get.amount}{$smarty.get.amount}{else}10{/if}"
                    name="amount" id="cAmount">
         </div>
-        <div class="col-xs-12 col-sm-3">
+        <div class="col-xs-12 col-sm-3" style="text-align: right">
             <input id="cActive" type="checkbox" value="1" name="active"
                    {if "active"|array_key_exists:$smarty.get}checked="checked"{/if}><label for="cActive">Nur aktive
                 ZA</label>
@@ -52,8 +60,7 @@
         </div>
     </form>
 </div>
-
-
+<hr/>
 {if $allMethods && $allMethods|count}
     <table class="table table-striped table-condensed">
         <thead>
@@ -106,7 +113,8 @@
                             Bestellabschluss
                         {/if*}
                         <br/>
-                        <b>Gültigkeit</b>: {$method->maxExpiryDays} Tage
+                        <b>Gültigkeit</b>
+                        : {$method->maxExpiryDays} Tage
 
                     {else}
                         <b>Derzeit nicht unterstützt.</b>

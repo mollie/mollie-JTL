@@ -216,7 +216,11 @@ try {
     $payments = Shop::DB()->executeQueryPrepared("SELECT * FROM xplugin_ws_mollie_payments WHERE kBestellung IS NOT NULL ORDER BY dCreatedAt DESC LIMIT 1000;", [], 2);
     foreach ($payments as $i => $payment) {
         $payment = new Payment($payment);
-        $checkouts[$payment->kBestellung] = AbstractCheckout::fromModel($payment, false);
+        try {
+            $checkouts[$payment->kBestellung] = AbstractCheckout::fromModel($payment, false);
+        } catch (Exception $e) {
+            //Helper::addAlert($e->getMessage(), 'danger', 'orders');
+        }
     }
 
     Shop::Smarty()->assign('payments', $payments)
