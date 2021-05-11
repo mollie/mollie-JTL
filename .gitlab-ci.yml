@@ -38,7 +38,7 @@ pack:
   script:
     - rm -rf .gitlab-ci.yml .git/
     - cd ..
-    - compiler $CI_PROJECT_DIR $CI_PROJECT_DIR
+    - if [ $SKIP_COMPILE = 1 ]; then echo "Skipped Compiler!"; else compiler $CI_PROJECT_DIR $CI_PROJECT_DIR; fi
     - zip -r $CI_PROJECT_DIR/$CI_PROJECT_NAME-$CI_COMMIT_REF_NAME.zip $CI_PROJECT_NAME
   artifacts:
     expire_in: 30 days
@@ -52,4 +52,5 @@ upload:
     - master
   script:
     - aws configure set region eu-central-1
-    - aws s3 cp $CI_PROJECT_NAME-$CI_COMMIT_REF_NAME.zip s3://$S3_BUCKET/jtl-plugins/$CI_PROJECT_NAME/$CI_PROJECT_NAME-$CI_COMMIT_REF_NAME.zip
+    - if [ $SKIP_COMPILE = 1 ]; then export SRC_PREFIX="-src"; fi
+    - aws s3 cp $CI_PROJECT_NAME-$CI_COMMIT_REF_NAME.zip s3://$S3_BUCKET/jtl-plugins/$CI_PROJECT_NAME/$CI_PROJECT_NAME-$CI_COMMIT_REF_NAME$SRC_PREFIX.zip

@@ -416,13 +416,13 @@ abstract class AbstractCheckout
                 $oKunde = $this->getBestellung()->oKunde;
 
                 $customer = [
-                    'name' => trim($oKunde->cVorname . ' ' . $oKunde->cNachname),
-                    'email' => $oKunde->cMail,
+                    'name' => utf8_encode(trim($oKunde->cVorname . ' ' . $oKunde->cNachname)),
+                    'email' => utf8_encode($oKunde->cMail),
                     'locale' => self::getLocale($_SESSION['cISOSprache'], $oKunde->cLand),
                     'metadata' => (object)[
                         'kKunde' => $oKunde->kKunde,
                         'kKundengruppe' => $oKunde->kKundengruppe,
-                        'cKundenNr' => $oKunde->cKundenNr,
+                        'cKundenNr' => utf8_encode($oKunde->cKundenNr),
                     ],
                 ];
 
