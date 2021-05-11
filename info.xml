@@ -57,6 +57,10 @@
         <Version nr="202">
             <CreateDate>2021-05-06</CreateDate>
         </Version>
+        <Version nr="203">
+            <CreateDate>2021-05-11</CreateDate>
+            <SQL>203.sql</SQL>
+        </Version>
         <Hooks>
             <Hook id="75">75_bestellungInDb.php</Hook>
             <Hook id="131">131_globalinclude.php</Hook>
