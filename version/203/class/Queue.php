@@ -32,7 +32,6 @@ class Queue
                 Jtllog::writeLog(sprintf('%s already locked since %s', $todo->kId, $todo->bLock ?: 'just now'));
                 continue;
             }
-            Jtllog::writeLog(sprintf('%s was locked.', $todo->kId));
 
             if ((list($type, $id) = explode(':', $todo->cType))) {
                 try {
@@ -172,7 +171,6 @@ class Queue
         if ($todo->kId && Shop::DB()->executeQueryPrepared(sprintf('UPDATE %s SET `bLock` = NULL WHERE kId = :kId', QueueModel::TABLE), [
                 'kId' => $todo->kId
             ], 3) >= 1) {
-            Jtllog::writeLog(sprintf('%s was unlocked.', $todo->kId));
         }
 
     }

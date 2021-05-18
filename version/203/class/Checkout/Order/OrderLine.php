@@ -138,7 +138,9 @@ class OrderLine extends AbstractResource
 
         // Fraction? include quantity and unit in name
         $this->name = $isFrac ? sprintf("%s (%.2f %s)", $oPosition->cName, (float)$oPosition->nAnzahl, $oPosition->cEinheit) : $oPosition->cName;
-
+        if(!$this->name){
+            $this->name = '(null)';
+        }
         $this->mapType($oPosition->nPosTyp);
 
         //$unitPriceNetto = round(($currency->fFaktor * $netto), 4);
