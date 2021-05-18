@@ -75,7 +75,7 @@
     {/if}
     {if $components == 'S'}
         <div class="skip-mollie-components" style="margin: 10px; text-align: right">
-            <a href="#" class="btn btn-primary" id="skipMollieComponents">{$mollieLang.skipComponentsLink}</a>
+            <a href="#" id="skipMollieComponents">{$mollieLang.skipComponentsLink}</a>
         </div>
     {/if}
 </div>

@@ -265,10 +265,10 @@
             <Variable>
                 <Name>skipComponentsLink</Name>
                 <Description></Description>
-                <VariableLocalized iso="GER"><![CDATA[überspringen]]></VariableLocalized>
-                <VariableLocalized iso="ENG"><![CDATA[skip]]></VariableLocalized>
-                <VariableLocalized iso="FRE"><![CDATA[Ignorer]]></VariableLocalized>
-                <VariableLocalized iso="ITA"><![CDATA[salta]]></VariableLocalized>
+                <VariableLocalized iso="GER"><![CDATA[überspringen und später eingeben]]></VariableLocalized>
+                <VariableLocalized iso="ENG"><![CDATA[skip and enter later]]></VariableLocalized>
+                <VariableLocalized iso="FRE"><![CDATA[sauter et entrer plus tard]]></VariableLocalized>
+                <VariableLocalized iso="ITA"><![CDATA[salta ed entra più tardi]]></VariableLocalized>
             </Variable>
             <Variable>
                 <Name>cctitle</Name>
