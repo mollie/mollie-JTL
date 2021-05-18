@@ -153,7 +153,7 @@ abstract class AbstractCheckout
 
         $sql = "SELECT p.kId FROM xplugin_ws_mollie_payments p JOIN tbestellung b ON b.kBestellung = p.kBestellung "
             . "WHERE (p.dReminder IS NULL OR p.dReminder = '0000-00-00 00:00:00') "
-            . "AND p.dCreatedAt < NOW() - INTERVAL :d HOUR AND p.dCreatedAt > NOW() - INTERVAL 7 DAY "
+            . "AND p.dCreatedAt < NOW() - INTERVAL :d MINUTE AND p.dCreatedAt > NOW() - INTERVAL 7 DAY "
             . "AND p.cStatus IN ('created','open', 'expired', 'failed', 'canceled') AND NOT b.cStatus = '-1'";
 
         $remindables = Shop::DB()->executeQueryPrepared($sql, [

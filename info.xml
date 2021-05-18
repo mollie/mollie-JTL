@@ -108,7 +108,7 @@
                 </Setting>
                 <Setting type="zahl" initialValue="0" sort="70" conf="Y">
                     <Name>Zahlungserinnerung</Name>
-                    <Description>Soll bei fehlgeschlagener Zahlung ein Zahlungslink verschickt werden? Angabe in Stunden
+                    <Description>Soll bei fehlgeschlagener Zahlung ein Zahlungslink verschickt werden? Angabe in Minuten
                         nach Bestellung. (0 = deaktiviert)
                     </Description>
                     <ValueName>reminder</ValueName>
