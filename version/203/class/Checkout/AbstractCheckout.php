@@ -4,7 +4,10 @@
 namespace ws_mollie\Checkout;
 
 
+use Artikel;
+use ArtikelHelper;
 use Bestellung;
+use EigenschaftWert;
 use Exception;
 use Jtllog;
 use JTLMollie;
@@ -15,7 +18,6 @@ use Mollie\Api\Types\OrderStatus;
 use Mollie\Api\Types\PaymentStatus;
 use PaymentMethod;
 use RuntimeException;
-use Session;
 use Shop;
 use stdClass;
 use ws_mollie\API;
@@ -357,6 +359,171 @@ abstract class AbstractCheckout
             return PaymentCheckout::cancel($checkout);
         }
         throw new RuntimeException('AbstractCheckout::cancel: Invalid Checkout!');
+    }
+
+    /**
+     * Storno Order
+     */
+    public function storno()
+    {
+        if (in_array((int)$this->getBestellung()->cStatus, [1, 2])) {
+
+            $conf = Shop::getSettings([CONF_GLOBAL, CONF_TRUSTEDSHOPS]);
+            $nArtikelAnzeigefilter = (int)$conf['global']['artikel_artikelanzeigefilter'];
+
+            foreach ($this->getBestellung()->Positionen as $pos) {
+                if ($pos->kArtikel && $pos->Artikel && $pos->Artikel->cLagerBeachten === 'Y') {
+                    self::aktualisiereLagerbestand($pos->Artikel, -1 * $pos->nAnzahl, $pos->WarenkorbPosEigenschaftArr, $nArtikelAnzeigefilter);
+                }
+            }
+
+            Shop::DB()->executeQueryPrepared('UPDATE tbestellung SET cStatus = :cStatus WHERE kBestellung = :kBestellung', [':cStatus' => '-1', ':kBestellung' => $this->getBestellung()->kBestellung], 3);
+        }
+    }
+
+    protected static function aktualisiereLagerbestand($Artikel, $nAnzahl, $WarenkorbPosEigenschaftArr, $nArtikelAnzeigefilter = 1)
+    {
+        $artikelBestand = (float)$Artikel->fLagerbestand;
+
+        if (isset($Artikel->cLagerBeachten) && $Artikel->cLagerBeachten === 'Y') {
+            if ($Artikel->cLagerVariation === 'Y' &&
+                is_array($WarenkorbPosEigenschaftArr) &&
+                count($WarenkorbPosEigenschaftArr) > 0
+            ) {
+                foreach ($WarenkorbPosEigenschaftArr as $eWert) {
+                    $EigenschaftWert = new EigenschaftWert($eWert->kEigenschaftWert);
+                    if ($EigenschaftWert->fPackeinheit == 0) {
+                        $EigenschaftWert->fPackeinheit = 1;
+                    }
+                    Shop::DB()->query(
+                        "UPDATE teigenschaftwert
+                        SET fLagerbestand = fLagerbestand - " . ($nAnzahl * $EigenschaftWert->fPackeinheit) . "
+                        WHERE kEigenschaftWert = " . (int)$eWert->kEigenschaftWert, 4
+                    );
+                }
+            } elseif ($Artikel->fPackeinheit > 0) {
+                // Stückliste
+                if ($Artikel->kStueckliste > 0) {
+                    $artikelBestand = self::aktualisiereStuecklistenLagerbestand($Artikel, $nAnzahl);
+                } else {
+                    Shop::DB()->query(
+                        "UPDATE tartikel
+                        SET fLagerbestand = IF (fLagerbestand >= " . ($nAnzahl * $Artikel->fPackeinheit) . ", 
+                        (fLagerbestand - " . ($nAnzahl * $Artikel->fPackeinheit) . "), fLagerbestand)
+                        WHERE kArtikel = " . (int)$Artikel->kArtikel, 4
+                    );
+                    $tmpArtikel = Shop::DB()->select('tartikel', 'kArtikel', (int)$Artikel->kArtikel, null, null, null, null, false, 'fLagerbestand');
+                    if ($tmpArtikel !== null) {
+                        $artikelBestand = (float)$tmpArtikel->fLagerbestand;
+                    }
+                    // Stücklisten Komponente
+                    if (ArtikelHelper::isStuecklisteKomponente($Artikel->kArtikel)) {
+                        self::aktualisiereKomponenteLagerbestand($Artikel->kArtikel, $artikelBestand, isset($Artikel->cLagerKleinerNull) && $Artikel->cLagerKleinerNull === 'Y' ? true : false);
+                    }
+                }
+                // Aktualisiere Merkmale in tartikelmerkmal vom Vaterartikel
+                if ($Artikel->kVaterArtikel > 0) {
+                    Artikel::beachteVarikombiMerkmalLagerbestand($Artikel->kVaterArtikel, $nArtikelAnzeigefilter);
+                }
+            }
+        }
+
+        return $artikelBestand;
+    }
+
+    protected static function aktualisiereStuecklistenLagerbestand($oStueckListeArtikel, $nAnzahl)
+    {
+        $nAnzahl = (float)$nAnzahl;
+        $kStueckListe = (int)$oStueckListeArtikel->kStueckliste;
+        $bestandAlt = (float)$oStueckListeArtikel->fLagerbestand;
+        $bestandNeu = $bestandAlt;
+        $bestandUeberverkauf = $bestandAlt;
+
+        if ($nAnzahl > 0) {
+            // Gibt es lagerrelevante Komponenten in der Stückliste?
+            $oKomponente_arr = Shop::DB()->query(
+                "SELECT tstueckliste.kArtikel, tstueckliste.fAnzahl
+                FROM tstueckliste
+                JOIN tartikel
+                  ON tartikel.kArtikel = tstueckliste.kArtikel
+                WHERE tstueckliste.kStueckliste = {$kStueckListe}
+                    AND tartikel.cLagerBeachten = 'Y'", 2
+            );
+
+            if (is_array($oKomponente_arr) && count($oKomponente_arr) > 0) {
+                // wenn ja, dann wird für diese auch der Bestand aktualisiert
+                $options = Artikel::getDefaultOptions();
+
+                $options->nKeineSichtbarkeitBeachten = 1;
+
+                foreach ($oKomponente_arr as $oKomponente) {
+                    $tmpArtikel = new Artikel();
+                    $tmpArtikel->fuelleArtikel($oKomponente->kArtikel, $options);
+
+                    $komponenteBestand = floor(self::aktualisiereLagerbestand($tmpArtikel, $nAnzahl * $oKomponente->fAnzahl, null) / $oKomponente->fAnzahl);
+
+                    if ($komponenteBestand < $bestandNeu && $tmpArtikel->cLagerKleinerNull !== 'Y') {
+                        // Neuer Bestand ist der Kleinste Komponententbestand aller Artikel ohne Überverkauf
+                        $bestandNeu = $komponenteBestand;
+                    } elseif ($komponenteBestand < $bestandUeberverkauf) {
+                        // Für Komponenten mit Überverkauf wird der kleinste Bestand ermittelt.
+                        $bestandUeberverkauf = $komponenteBestand;
+                    }
+                }
+            }
+
+            // Ist der alte gleich dem neuen Bestand?
+            if ($bestandAlt === $bestandNeu) {
+                // Es sind keine lagerrelevanten Komponenten vorhanden, die den Bestand der Stückliste herabsetzen.
+                if ($bestandUeberverkauf === $bestandNeu) {
+                    // Es gibt auch keine Komponenten mit Überverkäufen, die den Bestand verringern, deshalb wird
+                    // der Bestand des Stücklistenartikels anhand des Verkaufs verringert
+                    $bestandNeu = $bestandNeu - $nAnzahl * $oStueckListeArtikel->fPackeinheit;
+                } else {
+                    // Da keine lagerrelevanten Komponenten vorhanden sind, wird der kleinste Bestand der
+                    // Komponentent mit Überverkauf verwendet.
+                    $bestandNeu = $bestandUeberverkauf;
+                }
+
+                Shop::DB()->update('tartikel', 'kArtikel', (int)$oStueckListeArtikel->kArtikel, (object)[
+                    'fLagerbestand' => $bestandNeu,
+                ]);
+            }
+            // Kein Lagerbestands-Update für die Stückliste notwendig! Dies erfolgte bereits über die Komponentenabfrage und
+            // die dortige Lagerbestandsaktualisierung!
+        }
+
+        return $bestandNeu;
+    }
+
+    protected static function aktualisiereKomponenteLagerbestand($kKomponenteArtikel, $fLagerbestand, $bLagerKleinerNull)
+    {
+        $kKomponenteArtikel = (int)$kKomponenteArtikel;
+        $fLagerbestand = (float)$fLagerbestand;
+
+        $oStueckliste_arr = Shop::DB()->query(
+            "SELECT tstueckliste.kStueckliste, tstueckliste.fAnzahl,
+                tartikel.kArtikel, tartikel.fLagerbestand, tartikel.cLagerKleinerNull
+            FROM tstueckliste
+            JOIN tartikel
+                ON tartikel.kStueckliste = tstueckliste.kStueckliste
+            WHERE tstueckliste.kArtikel = {$kKomponenteArtikel}
+                AND tartikel.cLagerBeachten = 'Y'", 2
+        );
+
+        if (is_array($oStueckliste_arr) && count($oStueckliste_arr) > 0) {
+            foreach ($oStueckliste_arr as $oStueckliste) {
+                // Ist der aktuelle Bestand der Stückliste größer als dies mit dem Bestand der Komponente möglich wäre?
+                $maxAnzahl = floor($fLagerbestand / $oStueckliste->fAnzahl);
+                if ($maxAnzahl < (float)$oStueckliste->fLagerbestand && (!$bLagerKleinerNull || $oStueckliste->cLagerKleinerNull === 'Y')) {
+                    // wenn ja, dann den Bestand der Stückliste entsprechend verringern, aber nur wenn die Komponente nicht
+                    // überberkaufbar ist oder die gesamte Stückliste Überverkäufe zulässt
+                    Shop::DB()->update('tartikel', 'kArtikel', (int)$oStueckliste->kArtikel, (object)[
+                        'fLagerbestand' => $maxAnzahl,
+                    ]);
+                }
+            }
+        }
     }
 
     /**

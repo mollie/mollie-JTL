@@ -23,6 +23,29 @@ class Queue
 
     use Plugin;
 
+
+    public static function storno($delay)
+    {
+        if (!$delay) {
+            return true;
+        }
+
+        $open = Shop::DB()->executeQueryPrepared("SELECT p.kBestellung, b.cStatus FROM xplugin_ws_mollie_payments p JOIN tbestellung b ON b.kBestellung = p.kBestellung WHERE b.cStatus IN ('1', '2') AND p.dCreatedAt < NOW() - INTERVAL :d HOUR",
+            [':d' => $delay], 2);
+
+        foreach ($open as $o) {
+            try {
+
+                $checkout = AbstractCheckout::fromBestellung($o->kBestellung);
+                $checkout->storno();
+
+            } catch (Exception $e) {
+                Helper::logExc($e);
+            }
+        }
+        return true;
+    }
+
     public static function run($limit = 10)
     {
 

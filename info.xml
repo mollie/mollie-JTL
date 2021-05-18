@@ -113,6 +113,13 @@
                     </Description>
                     <ValueName>reminder</ValueName>
                 </Setting>
+                <Setting type="zahl" initialValue="0" sort="71" conf="Y">
+                    <Name>Unbezahlte Bestellungen stornieren</Name>
+                    <Description>Soll bei fehlgeschlagener Zahlung die Bestellung storniert werden? Angabe in Stunden
+                        nach Bestellung. (0 = deaktiviert)
+                    </Description>
+                    <ValueName>autoStorno</ValueName>
+                </Setting>
                 <Setting type="selectbox" initialValue="C" sort="80" conf="Y">
                     <Name>Kunden bei Mollie anlegen (Customer API)</Name>
                     <Description>Wenn diese Einstellung aktiviert ist, hat der Kunde die Möglichkeit, per Checkbox,
