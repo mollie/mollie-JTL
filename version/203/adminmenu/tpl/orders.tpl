@@ -132,7 +132,9 @@
             head.appendChild(link);
         }
         $(document).ready(function () {
-            $('.datatable').DataTable();
+            $('.datatable').dataTable({
+                stateSave: true,
+            });
         });
     </script>
     <div class="row form-inline">
