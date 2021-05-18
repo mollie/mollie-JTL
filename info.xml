@@ -95,10 +95,10 @@
                     <Description>Füge hier deinen mollie API Key ein</Description>
                     <ValueName>test_api_key</ValueName>
                 </Setting>
-                <Setting type="selectbox" initialValue="Y" sort="12" conf="Y">
+                <Setting type="selectbox" initialValue="N" sort="12" conf="Y">
                     <Name>Test API als Admin</Name>
-                    <Description>Wenn diese Einstellung aktiviert ist, wird im Shop automatisch die Test-API verwendet,&#xA;
-                        wenn man als Admin im Backend eingeloggt ist.&#xA;
+                    <Description>Wenn diese Einstellung aktiviert ist, wird im Shop automatisch die Test-API verwendet,
+                        wenn man als Admin im Backend eingeloggt ist.
                     </Description>
                     <ValueName>testAsAdmin</ValueName>
                     <SelectboxOptions>
@@ -108,15 +108,15 @@
                 </Setting>
                 <Setting type="zahl" initialValue="0" sort="70" conf="Y">
                     <Name>Zahlungserinnerung</Name>
-                    <Description>Soll bei fehlgeschlagener Zahlung ein Zahlungslink verschickt werden? Angabe in Stunden&#xA;
-                        nach Bestellung. (0 = deaktiviert)&#xA;
+                    <Description>Soll bei fehlgeschlagener Zahlung ein Zahlungslink verschickt werden? Angabe in Stunden
+                        nach Bestellung. (0 = deaktiviert)
                     </Description>
                     <ValueName>reminder</ValueName>
                 </Setting>
                 <Setting type="selectbox" initialValue="C" sort="80" conf="Y">
                     <Name>Kunden bei Mollie anlegen (Customer API)</Name>
-                    <Description>Wenn diese Einstellung aktiviert ist, hat der Kunde die Möglichkeit, per Checkbox,&#xA;
-                        seine Kundendaten bei Mollie zu speichern. Z.B. für Single-Click Checkout benötigt.&#xA;
+                    <Description>Wenn diese Einstellung aktiviert ist, hat der Kunde die Möglichkeit, per Checkbox,
+                        seine Kundendaten bei Mollie zu speichern. Z.B. für Single-Click Checkout benötigt.
                     </Description>
                     <ValueName>useCustomerAPI</ValueName>
                     <SelectboxOptions>
@@ -126,15 +126,15 @@
                 </Setting>
                 <Setting type="text" initialValue="" sort="15" conf="Y">
                     <Name>Profile ID:</Name>
-                    <Description>Füge hier deinen mollie Profil ID (pfl_) ein. Wird benötigt um mollie Components zu&#xA;
-                        aktivieren&#xA;
+                    <Description>Füge hier deinen mollie Profil ID (pfl_) ein. Wird benötigt um mollie Components zu
+                        aktivieren
                     </Description>
                     <ValueName>profileId</ValueName>
                 </Setting>
                 <Setting type="selectbox" initialValue="Y" sort="16" conf="Y">
                     <Name>Zahlungsart zurücksetzen</Name>
-                    <Description>Versucht, nach fehlgeschlagener oder abgebrochener Zahlung, die Zahlungsart bei Mollie&#xA;
-                        zurückzusetzen&#xA;
+                    <Description>Versucht, nach fehlgeschlagener oder abgebrochener Zahlung, die Zahlungsart bei Mollie
+                        zurückzusetzen
                     </Description>
                     <ValueName>resetMethod</ValueName>
                     <SelectboxOptions>
@@ -144,8 +144,8 @@
                 </Setting>
                 <Setting type="selectbox" initialValue="Y" sort="50" conf="Y">
                     <Name>Nur bezahlte Bestellungen in die WAWI übertragen</Name>
-                    <Description>Wenn diese Einstellung deaktiviert ist, können alle Bestellungen direkt von der WAWI&#xA;
-                        abgerufen werden.&#xA;
+                    <Description>Wenn diese Einstellung deaktiviert ist, können alle Bestellungen direkt von der WAWI
+                        abgerufen werden.
                     </Description>
                     <ValueName>onlyPaid</ValueName>
                     <SelectboxOptions>
@@ -174,8 +174,8 @@
                 </Setting>
                 <Setting type="selectbox" initialValue="N" sort="40" conf="Y">
                     <Name>Bestellungen automatisch stornieren</Name>
-                    <Description>Wenn diese Einstellung aktiviert ist, werden komplett Stornierte Bestellungen auch bei&#xA;
-                        Mollie storniert oder rückerstattet.&#xA;
+                    <Description>Wenn diese Einstellung aktiviert ist, werden komplett Stornierte Bestellungen auch bei
+                        Mollie storniert oder rückerstattet.
                     </Description>
                     <ValueName>autoRefund</ValueName>
                     <SelectboxOptions>
@@ -233,8 +233,8 @@
                 </Setting>
                 <Setting type="selectbox" initialValue="N" sort="40" conf="Y">
                     <Name>Artikel mit rationalen Stückzahlen</Name>
-                    <Description>Artikel mit rationalen Stückzahlen werden dann unterstützt, jedoch als ein Artikel&#xA;
-                        behandelt. KEIN Teilversand hierfür möglich!&#xA;
+                    <Description>Artikel mit rationalen Stückzahlen werden dann unterstützt, jedoch als ein Artikel
+                        behandelt. KEIN Teilversand hierfür möglich!
                     </Description>
                     <ValueName>supportQ</ValueName>
                     <SelectboxOptions>
@@ -244,8 +244,8 @@
                 </Setting>
                 <Setting type="selectbox" initialValue="ord_tr" sort="100" conf="Y">
                     <Name>TransaktionsID des Zahlungseingangs:</Name>
-                    <Description>Welche ID soll an die WAWI übetragen werden? Bei PayPal wird immer die PayPal Referenz&#xA;
-                        angegeben.&#xA;
+                    <Description>Welche ID soll an die WAWI übetragen werden? Bei PayPal wird immer die PayPal Referenz
+                        angegeben.
                     </Description>
                     <ValueName>wawiPaymentID</ValueName>
                     <SelectboxOptions>
@@ -522,8 +522,8 @@
                 </MethodLanguage>
                 <Setting type="selectbox" initialValue="S" sort="30" conf="Y">
                     <Name>Mollie Components</Name>
-                    <Description>Wenn diese Einstellung aktiviert ist, werden die Kreditkarten ggf. bereits im Shop&#xA;
-                        abgefragt.&#xA;
+                    <Description>Wenn diese Einstellung aktiviert ist, werden die Kreditkarten ggf. bereits im Shop
+                        abgefragt.
                     </Description>
                     <ValueName>components</ValueName>
                     <SelectboxOptions>
@@ -1112,7 +1112,7 @@
         <Emailtemplate>
             <Template>
                 <Name>Zahlungs-Erinnerungsemail</Name>
-                <Description>&#xA; Wird versendet, falls eine Zahlung fehlschlägt oder abgebrochen wurde.</Description>
+                <Description>Wird versendet, falls eine Zahlung fehlschlägt oder abgebrochen wurde.</Description>
                 <Type>text/html</Type>
                 <ModulId>zahlungserinnerung</ModulId>
                 <Active>Y</Active>
@@ -1121,23 +1121,39 @@
                 <AGB>0</AGB>
                 <TemplateLanguage iso="ENG">
                     <Subject>Payment reminder</Subject>
-                    <ContentHtml>{includeMailTemplate template=header type=html}&#xA;Hello {$Kunde-&gt;cVorname}
-                        {$Kunde-&gt;cNachname},&#xA;&lt;br&gt;&#xA;thank you for your order at
-                        {$Einstellungen.global.global_shopname}.&lt;br&gt;&#xA;&lt;br&gt;&#xA;&lt;p&gt;Unfortunatly we
-                        did not receive a payment confirmation for your order &lt;b&gt;{$oPluginMail-&gt;Bestellung-&gt;cBestellNr}&lt;/b&gt;
-                        as yet.&lt;/p&gt;&#xA;&lt;p&gt;If you had an error, or any other problem while paying, please
-                        try again with the following link.&lt;/p&gt;&#xA;&lt;p&gt;Amount due: {$oPluginMail-&gt;Amount}&lt;/p&gt;&#xA;&lt;p&gt;Pay
-                        now: &lt;a href=&#34;{$oPluginMail-&gt;PayURL}&#34;&gt;{$oPluginMail-&gt;PayURL}&lt;/a&gt;&lt;/p&gt;&#xA;{includeMailTemplate
-                        template=footer type=html}
-                    </ContentHtml>
-                    <ContentText>{includeMailTemplate template=header type=text}&#xA;&#xA;Hello {$Kunde-&gt;cVorname}
-                        {$Kunde-&gt;cNachname},&#xA;&#xA;thank you for your order at
-                        {$Einstellungen.global.global_shopname}.&#xA;&#xA;Unfortunatly we did not receive a payment
-                        confirmation for your order {$oPluginMail-&gt;Bestellung-&gt;cBestellNr} as yet.&#xA;If you had
-                        an error, or any other problem while paying, please try again with the following link.&#xA;&#xA;Amount
-                        due: {$oPluginMail-&gt;Amount}&#xA;Pay now: {$oPluginMail-&gt;PayURL}&#xA;&#xA;{includeMailTemplate
-                        template=footer type=text}
-                    </ContentText>
+                    <ContentHtml><![CDATA[{includeMailTemplate template=header type=html}
+                        Hello {$Kunde->cVorname} {$Kunde->cNachname},<br>thank you for your order at {$Einstellungen.global.global_shopname}.<br><br><p>Unfortunatly we did not receive a payment confirmation for your order <b>{$oPluginMail->Bestellung->cBestellNr}</b> as yet.</p><p>If you had an error, or any other problem while paying, please try again with the following link.</p><p>Amount due: {$oPluginMail->Amount}</p><p>Pay now: <a href="{$oPluginMail->PayURL}">{$oPluginMail->PayURL}</a></p>
+                        {includeMailTemplate template=footer type=html}]]></ContentHtml>
+                    <ContentText><![CDATA[{includeMailTemplate template=header type=text}
+                    Hello {$Kunde->cVorname} {$Kunde->cNachname},
+
+                    thank you for your order at {$Einstellungen.global.global_shopname}.
+
+                    Unfortunatly we did not receive a payment confirmation for your order {$oPluginMail->Bestellung->cBestellNr} as yet.
+                    If you had an error, or any other problem while paying, please try again with the following link.
+
+                    Amount due: {$oPluginMail->Amount}
+                    Pay now: {$oPluginMail->PayURL}
+
+                    {includeMailTemplate template=footer type=text}]]></ContentText>
+                </TemplateLanguage>
+                <TemplateLanguage iso="GER">
+                    <Subject>Zahlungserinnerung</Subject>
+                    <ContentHtml><![CDATA[{includeMailTemplate template=header type=html}
+                    Guten Tag {$Kunde->cVorname} {$Kunde->cNachname},<br>vielen Dank für Ihre Bestellung bei {$Einstellungen.global.global_shopname}.<br><br><p>Leider konnten wir für die Bestellung <b>{$oPluginMail->Bestellung->cBestellNr}</b> bisher keinen Zahlungseingang feststellen.</p><p>Sollte es bei der Zahlung zu Problemen gekommen sein, können Sie diese über den folgenden Link einfach erneut versuchen.</p><p>Zu zahlender Betrag: {$oPluginMail->Amount}</p><p>Jetzt bezahlen: <a href="{$oPluginMail->PayURL}">{$oPluginMail->PayURL}</a></p>
+                    {includeMailTemplate template=footer type=html}]]></ContentHtml>
+                    <ContentText><![CDATA[{{includeMailTemplate template=header type=text}
+                    Guten Tag {$Kunde->cVorname} {$Kunde->cNachname},
+
+                    vielen Dank für Ihre Bestellung bei {$Einstellungen.global.global_shopname}.
+
+                    Leider konnten wir für die Bestellung {$oPluginMail->Bestellung->cBestellNr} bisher keinen Zahlungseingang feststellen.
+                    Sollte es bei der Zahlung zu Problemen gekommen sein, können Sie diese über den folgenden Link einfach erneut versuchen.
+
+                    Zu zahlender Betrag: {$oPluginMail->Amount}
+                    Jetzt bezahlen: {$oPluginMail->PayURL}
+
+                    {includeMailTemplate template=footer type=text}]]></ContentText>
                 </TemplateLanguage>
             </Template>
         </Emailtemplate>
