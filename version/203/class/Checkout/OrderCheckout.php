@@ -303,7 +303,7 @@ class OrderCheckout extends AbstractCheckout
      */
     public function getIncomingPayment()
     {
-        if (!$this->getMollie()) {
+        if (!$this->getMollie(true)) {
             return null;
         }
 

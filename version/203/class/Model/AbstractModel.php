@@ -81,11 +81,11 @@ abstract class AbstractModel implements JsonSerializable
         }
 
         if ($this->new) {
-            Shop::DB()->insert(static::TABLE, $this->data);
+            Shop::DB()->insertRow(static::TABLE, $this->data);
             $this->new = false;
             return true;
         }
-        Shop::DB()->update(static::TABLE, static::PRIMARY, $this->data->{static::PRIMARY}, $this->data);
+        Shop::DB()->updateRow(static::TABLE, static::PRIMARY, $this->data->{static::PRIMARY}, $this->data);
         return true;
     }
 

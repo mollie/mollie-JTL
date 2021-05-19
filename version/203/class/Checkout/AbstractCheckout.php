@@ -21,7 +21,6 @@ use RuntimeException;
 use Session;
 use Shop;
 use stdClass;
-use StringHandler;
 use ws_mollie\API;
 use ws_mollie\Checkout\Payment\Amount;
 use ws_mollie\Helper;
@@ -109,10 +108,9 @@ abstract class AbstractCheckout
             ], 1)) && $res->kId;
     }
 
-    public static function finalizeOrder($hash, $id, $test = false)
+    public static function finalizeOrder($sessionHash, $id, $test = false)
     {
         try {
-            $sessionHash = substr(StringHandler::htmlentities(StringHandler::filterXSS($hash)), 1);
             if ($paymentSession = Shop::DB()->select('tzahlungsession', 'cZahlungsID', $sessionHash)) {
                 if (session_id() !== $paymentSession->cSID) {
                     session_destroy();
@@ -146,7 +144,7 @@ abstract class AbstractCheckout
                         $paymentSession->nBezahlt = 1;
                         $paymentSession->dZeitBezahlt = 'now()';
                     } else {
-                        throw new Exception('Mollie Status invalid: ' . $mollie->status . '\n' . print_r([$hash, $id], 1));
+                        throw new Exception('Mollie Status invalid: ' . $mollie->status . '\n' . print_r([$sessionHash, $id], 1));
                     }
 
                     if ($order->kBestellung) {
@@ -165,7 +163,7 @@ abstract class AbstractCheckout
                             $checkout = new $checkoutClass($order, $api);
                         }
                         $checkout->setMollie($mollie);
-                        $checkout->handleNotification($hash);
+                        $checkout->handleNotification($sessionHash);
                     }
                 } else {
                     Jtllog::writeLog(sprintf('PaymentSession bereits bezahlt: %s - ID: %s => Queue', $sessionHash, $id), JTLLOG_LEVEL_NOTICE);
@@ -205,7 +203,7 @@ abstract class AbstractCheckout
         }
 
         $oBestellung = $order;
-        if ($model->kBestellung && !$order) {
+        if (!$order) {
             $oBestellung = new Bestellung($model->kBestellung, $bFill);
             if (!$oBestellung->kBestellung) {
                 throw new RuntimeException(sprintf('Error loading Bestellung: %s', $model->kBestellung));
@@ -337,6 +335,92 @@ abstract class AbstractCheckout
     }
 
     /**
+     * @param false $force
+     * @return Order|\Mollie\Api\Resources\Payment|null
+     */
+    abstract public function getMollie($force = false);
+
+    public function Log($msg, $level = LOGLEVEL_NOTICE)
+    {
+        $data = '';
+        if ($this->getBestellung()) {
+            $data .= '#' . $this->getBestellung()->kBestellung;
+        }
+        if ($this->getMollie()) {
+            $data .= '$' . $this->getMollie()->id;
+        }
+        ZahlungsLog::add($this->PaymentMethod()->moduleID, "[" . microtime(true) . " - " . $_SERVER['PHP_SELF'] . "] " . $msg, $data, $level);
+        return $this;
+    }
+
+    /**
+     * @return Bestellung
+     */
+    public function getBestellung()
+    {
+        if (!$this->oBestellung && $this->getModel()->kBestellung) {
+            $this->oBestellung = new Bestellung($this->getModel()->kBestellung, true);
+        }
+        return $this->oBestellung;
+    }
+
+    /**
+     * @return Payment
+     */
+    public function getModel()
+    {
+        if (!$this->model) {
+            $this->model = Payment::fromID($this->oBestellung->kBestellung, 'kBestellung');
+        }
+        return $this->model;
+    }
+
+    /**
+     * @param $model
+     * @return $this
+     */
+    protected function setModel($model)
+    {
+        if (!$this->model) {
+            $this->model = $model;
+        } else {
+            throw new RuntimeException('Model already set.');
+        }
+        return $this;
+    }
+
+    /**
+     * @return JTLMollie
+     */
+    public function PaymentMethod()
+    {
+        if (!$this->paymentMethod) {
+            if ($this->getBestellung()->Zahlungsart && strpos($this->getBestellung()->Zahlungsart->cModulId, "kPlugin_{$this::Plugin()->kPlugin}_") !== false) {
+                $this->paymentMethod = PaymentMethod::create($this->getBestellung()->Zahlungsart->cModulId);
+            } else {
+                $this->paymentMethod = PaymentMethod::create("kPlugin_{$this::Plugin()->kPlugin}_mollie");
+            }
+        }
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
+        return $this->paymentMethod;
+    }
+
+    /**
+     * @return API
+     */
+    public function API()
+    {
+        if (!$this->api) {
+            if ($this->getModel()->kID) {
+                $this->api = new API($this->getModel()->cMode === 'test');
+            } else {
+                $this->api = new API(API::getMode());
+            }
+        }
+        return $this->api;
+    }
+
+    /**
      * @param $checkout
      * @return Order|\Mollie\Api\Resources\Payment
      * @throws ApiException
@@ -384,42 +468,6 @@ abstract class AbstractCheckout
             $this->method = $pm::METHOD;
         }
 
-    }
-
-    /**
-     * @return Bestellung
-     */
-    public function getBestellung()
-    {
-        if (!$this->oBestellung && $this->getModel()->kBestellung) {
-            $this->oBestellung = new Bestellung($this->getModel()->kBestellung, true);
-        }
-        return $this->oBestellung;
-    }
-
-    /**
-     * @return Payment
-     */
-    public function getModel()
-    {
-        if (!$this->model) {
-            $this->model = Payment::fromID($this->oBestellung->kBestellung, 'kBestellung');
-        }
-        return $this->model;
-    }
-
-    /**
-     * @param $model
-     * @return $this
-     */
-    protected function setModel($model)
-    {
-        if (!$this->model) {
-            $this->model = $model;
-        } else {
-            throw new RuntimeException('Model already set.');
-        }
-        return $this;
     }
 
     /**
@@ -481,56 +529,6 @@ abstract class AbstractCheckout
             }
         }
         return $this->customer;
-    }
-
-    /**
-     * @return API
-     */
-    public function API()
-    {
-        if (!$this->api) {
-            if ($this->getModel()->kID) {
-                $this->api = new API($this->getModel()->cMode === 'test');
-            } else {
-                $this->api = new API(API::getMode());
-            }
-        }
-        return $this->api;
-    }
-
-    public function Log($msg, $level = LOGLEVEL_NOTICE)
-    {
-        $data = '';
-        if ($this->getBestellung()) {
-            $data .= '#' . $this->getBestellung()->kBestellung;
-        }
-        if ($this->getMollie()) {
-            $data .= '$' . $this->getMollie()->id;
-        }
-        ZahlungsLog::add($this->PaymentMethod()->moduleID, "[" . microtime(true) . " - " . $_SERVER['PHP_SELF'] . "] " . $msg, $data, $level);
-        return $this;
-    }
-
-    /**
-     * @param false $force
-     * @return Order|\Mollie\Api\Resources\Payment|null
-     */
-    abstract public function getMollie($force = false);
-
-    /**
-     * @return JTLMollie
-     */
-    public function PaymentMethod()
-    {
-        if (!$this->paymentMethod) {
-            if ($this->getBestellung()->Zahlungsart && strpos($this->getBestellung()->Zahlungsart->cModulId, "kPlugin_{$this::Plugin()->kPlugin}_") !== false) {
-                $this->paymentMethod = PaymentMethod::create($this->getBestellung()->Zahlungsart->cModulId);
-            } else {
-                $this->paymentMethod = PaymentMethod::create("kPlugin_{$this::Plugin()->kPlugin}_mollie");
-            }
-        }
-        /** @noinspection PhpIncompatibleReturnTypeInspection */
-        return $this->paymentMethod;
     }
 
     public static function getLocale($cISOSprache = null, $country = null)
@@ -848,7 +846,7 @@ abstract class AbstractCheckout
 
         $this->getModel()->kBestellung = $this->getBestellung()->kBestellung;
         $this->getModel()->cOrderNumber = $this->getBestellung()->cBestellNr;
-        $this->getModel()->cHash = $this->getHash();
+        $this->getModel()->cHash = trim($this->getHash(), '_');
 
         $this->getModel()->bSynced = $this->getModel()->bSynced !== null ? $this->getModel()->bSynced : Helper::getSetting('onlyPaid') !== 'Y';
         return $this;

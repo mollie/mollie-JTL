@@ -8,6 +8,7 @@ use Exception;
 use Jtllog;
 use RuntimeException;
 use Shop;
+use StringHandler;
 use ws_mollie\Checkout\AbstractCheckout;
 use ws_mollie\Checkout\OrderCheckout;
 use ws_mollie\Checkout\PaymentCheckout;
@@ -22,6 +23,7 @@ class Queue extends AbstractHook
     public static function bestellungInDB(array $args_arr)
     {
         if (array_key_exists('oBestellung', $args_arr)
+            && $args_arr['oBestellung']->kBestellung
             && $args_arr['oBestellung']->fGesamtsumme > 0
             && self::Plugin()->oPluginEinstellungAssoc_arr['onlyPaid'] === 'Y'
             && AbstractCheckout::isMollie((int)$args_arr['oBestellung']->kZahlungsart, true)) {
@@ -80,8 +82,9 @@ class Queue extends AbstractHook
     {
         if (array_key_exists('mollie', $_REQUEST) && (int)$_REQUEST['mollie'] === 1 && array_key_exists('id', $_REQUEST)) {
 
-            if (array_key_exists('hash', $_REQUEST)) {
-                AbstractCheckout::finalizeOrder($_REQUEST['hash'], $_REQUEST['id'], array_key_exists('test', $_REQUEST));
+            if (array_key_exists('hash', $_REQUEST) && $hash = trim(StringHandler::htmlentities(StringHandler::filterXSS($_REQUEST['hash'])), '_')) {
+
+                AbstractCheckout::finalizeOrder($hash, $_REQUEST['id'], array_key_exists('test', $_REQUEST));
             } else {
                 self::saveToQueue($_REQUEST['id'], $_REQUEST['id'], 'webhook');
             }
