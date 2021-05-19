@@ -18,10 +18,14 @@ use Mollie\Api\Types\OrderStatus;
 use Mollie\Api\Types\PaymentStatus;
 use PaymentMethod;
 use RuntimeException;
+use Session;
 use Shop;
 use stdClass;
+use StringHandler;
 use ws_mollie\API;
+use ws_mollie\Checkout\Payment\Amount;
 use ws_mollie\Helper;
+use ws_mollie\Hook\Queue;
 use ws_mollie\Model\Customer;
 use ws_mollie\Model\Payment;
 use ws_mollie\Traits\Plugin;
@@ -53,7 +57,6 @@ abstract class AbstractCheckout
      * @var \Mollie\Api\Resources\Customer|null
      */
     protected $customer;
-
     /**
      * @var string
      */
@@ -106,6 +109,119 @@ abstract class AbstractCheckout
             ], 1)) && $res->kId;
     }
 
+    public static function finalizeOrder($hash, $id, $test = false)
+    {
+        try {
+            $sessionHash = substr(StringHandler::htmlentities(StringHandler::filterXSS($hash)), 1);
+            if ($paymentSession = Shop::DB()->select('tzahlungsession', 'cZahlungsID', $sessionHash)) {
+                if (session_id() !== $paymentSession->cSID) {
+                    session_destroy();
+                    session_id($paymentSession->cSID);
+                    $session = Session::getInstance(true, true);
+                } else {
+                    $session = Session::getInstance(false);
+                }
+
+                if ((!isset($paymentSession->nBezahlt) || !$paymentSession->nBezahlt)
+                    && (!isset($paymentSession->kBestellung) || !$paymentSession->kBestellung)
+                    && isset($_SESSION['Warenkorb']->PositionenArr)
+                    && count($_SESSION['Warenkorb']->PositionenArr)) {
+
+                    $paymentSession->cNotifyID = $id;
+                    $paymentSession->dNotify = 'now()';
+                    Shop::DB()->update('tzahlungsession', 'cZahlungsID', $sessionHash, $paymentSession);
+
+                    $api = new API($test);
+                    if (substr($id, 0, 3) === 'tr_') {
+                        $mollie = $api->Client()->payments->get($id);
+                    } else {
+                        $mollie = $api->Client()->orders->get($id);
+                    }
+
+                    if (in_array($mollie->status, [OrderStatus::STATUS_PENDING, OrderStatus::STATUS_AUTHORIZED, OrderStatus::STATUS_PAID], true)) {
+                        require_once PFAD_ROOT . PFAD_INCLUDES . 'bestellabschluss_inc.php';
+                        require_once PFAD_ROOT . PFAD_INCLUDES . 'mailTools.php';
+                        $order = finalisiereBestellung();
+                        $session->cleanUp();
+                        $paymentSession->nBezahlt = 1;
+                        $paymentSession->dZeitBezahlt = 'now()';
+                    } else {
+                        throw new Exception('Mollie Status invalid: ' . $mollie->status . '\n' . print_r([$hash, $id], 1));
+                    }
+
+                    if ($order->kBestellung) {
+
+                        $paymentSession->kBestellung = (int)$order->kBestellung;
+                        Shop::DB()->update('tzahlungsession', 'cZahlungsID', $sessionHash, $paymentSession);
+
+                        try {
+                            $checkout = AbstractCheckout::fromID($id, false, $order);
+                        } catch (Exception $e) {
+                            if (substr($id, 0, 3) === 'tr_') {
+                                $checkoutClass = PaymentCheckout::class;
+                            } else {
+                                $checkoutClass = OrderCheckout::class;
+                            }
+                            $checkout = new $checkoutClass($order, $api);
+                        }
+                        $checkout->setMollie($mollie);
+                        $checkout->handleNotification($hash);
+                    }
+                } else {
+                    Jtllog::writeLog(sprintf('PaymentSession bereits bezahlt: %s - ID: %s => Queue', $sessionHash, $id), JTLLOG_LEVEL_NOTICE);
+                    Queue::saveToQueue($id, $id, 'webhook');
+                }
+            } else {
+                Jtllog::writeLog(sprintf('PaymentSession nicht gefunden: %s - ID: %s => Queue', $sessionHash, $id), JTLLOG_LEVEL_ERROR);
+                Queue::saveToQueue($id, $id, 'webhook');
+            }
+        } catch (Exception $e) {
+            Helper::logExc($e);
+        }
+    }
+
+    /**
+     * @param $id
+     * @return OrderCheckout|PaymentCheckout
+     * @throws RuntimeException
+     */
+    public static function fromID($id, $bFill = true, Bestellung $order = null)
+    {
+        if ($model = Payment::fromID($id)) {
+            return static::fromModel($model, $bFill, $order);
+        }
+        throw new RuntimeException(sprintf('Error loading Order: %s', $id));
+    }
+
+    /**
+     * @param $model
+     * @param bool $bFill
+     * @return OrderCheckout|PaymentCheckout
+     */
+    public static function fromModel($model, $bFill = true, Bestellung $order = null)
+    {
+        if (!$model) {
+            throw new RuntimeException(sprintf('Error loading Order for Model: %s', print_r($model, 1)));
+        }
+
+        $oBestellung = $order;
+        if ($model->kBestellung && !$order) {
+            $oBestellung = new Bestellung($model->kBestellung, $bFill);
+            if (!$oBestellung->kBestellung) {
+                throw new RuntimeException(sprintf('Error loading Bestellung: %s', $model->kBestellung));
+            }
+        }
+
+        if (strpos($model->kID, 'tr_') !== false) {
+            $self = new PaymentCheckout($oBestellung);
+        } else {
+            $self = new OrderCheckout($oBestellung);
+        }
+
+        $self->setModel($model);
+        return $self;
+    }
+
     /**
      * @param $kBestellung
      * @return OrderCheckout|PaymentCheckout
@@ -117,32 +233,6 @@ abstract class AbstractCheckout
             return self::fromModel($model);
         }
         throw new RuntimeException(sprintf('Error loading Order for Bestellung: %s', $kBestellung));
-    }
-
-    /**
-     * @param $model
-     * @return OrderCheckout|PaymentCheckout
-     * @throws RuntimeException
-     */
-    public static function fromModel($model, $bFill = true)
-    {
-        if (!$model) {
-            throw new RuntimeException(sprintf('Error loading Order for Model: %s', print_r($model, 1)));
-        }
-
-        $oBestellung = new Bestellung($model->kBestellung, $bFill);
-        if (!$oBestellung->kBestellung) {
-            throw new RuntimeException(sprintf('Error loading Bestellung: %s', $model->kBestellung));
-        }
-
-        if (strpos($model->kID, 'tr_') !== false) {
-            $self = new PaymentCheckout($oBestellung);
-        } else {
-            $self = new OrderCheckout($oBestellung);
-        }
-
-        $self->setModel($model);
-        return $self;
     }
 
     public static function sendReminders()
@@ -217,19 +307,6 @@ abstract class AbstractCheckout
     }
 
     /**
-     * @param $id
-     * @return OrderCheckout|PaymentCheckout
-     * @throws RuntimeException
-     */
-    public static function fromID($id)
-    {
-        if ($model = Payment::fromID($id)) {
-            return static::fromModel($model);
-        }
-        throw new RuntimeException(sprintf('Error loading Order: %s', $id));
-    }
-
-    /**
      * @param AbstractCheckout $checkout
      * @return \Mollie\Api\Resources\BaseResource|\Mollie\Api\Resources\Refund
      * @throws ApiException
@@ -260,22 +337,53 @@ abstract class AbstractCheckout
     }
 
     /**
-     * @param false $force
-     * @return Order|\Mollie\Api\Resources\Payment|null
+     * @param $checkout
+     * @return Order|\Mollie\Api\Resources\Payment
+     * @throws ApiException
      */
-    abstract public function getMollie($force = false);
-
-    public function Log($msg, $level = LOGLEVEL_NOTICE)
+    public static function cancel($checkout)
     {
-        $data = '';
+        if ($checkout instanceof OrderCheckout) {
+            return OrderCheckout::cancel($checkout);
+        }
+        if ($checkout instanceof PaymentCheckout) {
+            return PaymentCheckout::cancel($checkout);
+        }
+        throw new RuntimeException('AbstractCheckout::cancel: Invalid Checkout!');
+    }
+
+    public function loadRequest($options = [])
+    {
         if ($this->getBestellung()) {
-            $data .= '#' . $this->getBestellung()->kBestellung;
+            if ($this->getBestellung()->oKunde->nRegistriert
+                && ($customer = $this->getCustomer(
+                    array_key_exists('mollie_create_customer', $_SESSION['cPost_arr'] ?: []) && $_SESSION['cPost_arr']['mollie_create_customer'] === 'Y')
+                )
+                && isset($customer)) {
+                $options['customerId'] = $customer->id;
+            }
+            $this->amount = Amount::factory($this->getBestellung()->fGesamtsummeKundenwaehrung, $this->getBestellung()->Waehrung->cISO, true);
+            $this->redirectUrl = $this->PaymentMethod()->duringCheckout ? Shop::getURL() . '/bestellabschluss.php?' . http_build_query(['hash' => $this->getHash()]) : $this->PaymentMethod()->getReturnURL($this->getBestellung());
+            $this->metadata = [
+                'kBestellung' => $this->getBestellung()->kBestellung ?: $this->getBestellung()->cBestellNr,
+                'kKunde' => $this->getBestellung()->kKunde,
+                'kKundengruppe' => Session::getInstance()->CustomerGroup()->kKundengruppe,
+                'cHash' => $this->getHash(),
+            ];
         }
-        if ($this->getMollie()) {
-            $data .= '$' . $this->getMollie()->id;
+        $this->locale = self::getLocale($_SESSION['cISOSprache'], Session::getInstance()->Customer()->cLand);
+        $this->webhookUrl = Shop::getURL(true) . '/?' . http_build_query([
+                'mollie' => 1,
+                'hash' => $this->getHash(),
+                'test' => $this->API()->isTest() ?: null,
+            ]);
+
+        $pm = $this->PaymentMethod();
+        $isPayAgain = strpos($_SERVER['PHP_SELF'], 'bestellab_again') !== false;
+        if ($pm::METHOD !== '' && (self::Plugin()->oPluginEinstellungAssoc_arr['resetMethod'] !== 'Y' || !$isPayAgain)) {
+            $this->method = $pm::METHOD;
         }
-        ZahlungsLog::add($this->PaymentMethod()->moduleID, "[" . microtime(true) . " - " . $_SERVER['PHP_SELF'] . "] " . $msg, $data, $level);
-        return $this;
+
     }
 
     /**
@@ -315,19 +423,64 @@ abstract class AbstractCheckout
     }
 
     /**
-     * @return JTLMollie
+     * @return \Mollie\Api\Resources\Customer|null
+     * @todo: Kunde wieder löschbar machen ?!
      */
-    public function PaymentMethod()
+    public function getCustomer($createOrUpdate = false)
     {
-        if (!$this->paymentMethod) {
-            if ($this->getBestellung()->Zahlungsart && strpos($this->getBestellung()->Zahlungsart->cModulId, "kPlugin_{$this::Plugin()->kPlugin}_") !== false) {
-                $this->paymentMethod = PaymentMethod::create($this->getBestellung()->Zahlungsart->cModulId);
-            } else {
-                $this->paymentMethod = PaymentMethod::create("kPlugin_{$this::Plugin()->kPlugin}_mollie");
+        if (!$this->customer) {
+            $customerModel = Customer::fromID($this->getBestellung()->oKunde->kKunde, 'kKunde');
+            if ($customerModel->customerId) {
+                try {
+                    $this->customer = $this->API()->Client()->customers->get($customerModel->customerId);
+                } catch (ApiException $e) {
+                    $this->Log(sprintf("Fehler beim laden des Mollie Customers %s (kKunde: %d): %s", $customerModel->customerId, $customerModel->kKunde, $e->getMessage()), LOGLEVEL_ERROR);
+                }
+            }
+
+            if ($createOrUpdate) {
+                $oKunde = $this->getBestellung()->oKunde;
+
+                $customer = [
+                    'name' => utf8_encode(trim($oKunde->cVorname . ' ' . $oKunde->cNachname)),
+                    'email' => utf8_encode($oKunde->cMail),
+                    'locale' => self::getLocale($_SESSION['cISOSprache'], $oKunde->cLand),
+                    'metadata' => (object)[
+                        'kKunde' => $oKunde->kKunde,
+                        'kKundengruppe' => $oKunde->kKundengruppe,
+                        'cKundenNr' => utf8_encode($oKunde->cKundenNr),
+                    ],
+                ];
+
+                if ($this->customer) { // UPDATE
+
+                    $this->customer->name = $customer['name'];
+                    $this->customer->email = $customer['email'];
+                    $this->customer->locale = $customer['locale'];
+                    $this->customer->metadata = $customer['metadata'];
+
+                    try {
+                        $this->customer->update();
+                    } catch (Exception $e) {
+                        $this->Log(sprintf("Fehler beim aktualisieren des Mollie Customers %s: %s\n%s", $this->customer->id, $e->getMessage(), print_r($customer, 1)), LOGLEVEL_ERROR);
+                    }
+
+
+                } else { // create
+
+                    try {
+                        $this->customer = $this->API()->Client()->customers->create($customer);
+                        $customerModel->kKunde = $oKunde->kKunde;
+                        $customerModel->customerId = $this->customer->id;
+                        $customerModel->save();
+                        $this->Log(sprintf("Customer '%s' für Kunde %s (%d) bei Mollie angelegt.", $this->customer->id, $this->customer->name, $this->getBestellung()->kKunde));
+                    } catch (Exception $e) {
+                        $this->Log(sprintf("Fehler beim anlegen eines Mollie Customers: %s\n%s", $e->getMessage(), print_r($customer, 1)), LOGLEVEL_ERROR);
+                    }
+                }
             }
         }
-        /** @noinspection PhpIncompatibleReturnTypeInspection */
-        return $this->paymentMethod;
+        return $this->customer;
     }
 
     /**
@@ -345,20 +498,72 @@ abstract class AbstractCheckout
         return $this->api;
     }
 
-    /**
-     * @param $checkout
-     * @return Order|\Mollie\Api\Resources\Payment
-     * @throws ApiException
-     */
-    public static function cancel($checkout)
+    public function Log($msg, $level = LOGLEVEL_NOTICE)
     {
-        if ($checkout instanceof OrderCheckout) {
-            return OrderCheckout::cancel($checkout);
+        $data = '';
+        if ($this->getBestellung()) {
+            $data .= '#' . $this->getBestellung()->kBestellung;
         }
-        if ($checkout instanceof PaymentCheckout) {
-            return PaymentCheckout::cancel($checkout);
+        if ($this->getMollie()) {
+            $data .= '$' . $this->getMollie()->id;
         }
-        throw new RuntimeException('AbstractCheckout::cancel: Invalid Checkout!');
+        ZahlungsLog::add($this->PaymentMethod()->moduleID, "[" . microtime(true) . " - " . $_SERVER['PHP_SELF'] . "] " . $msg, $data, $level);
+        return $this;
+    }
+
+    /**
+     * @param false $force
+     * @return Order|\Mollie\Api\Resources\Payment|null
+     */
+    abstract public function getMollie($force = false);
+
+    /**
+     * @return JTLMollie
+     */
+    public function PaymentMethod()
+    {
+        if (!$this->paymentMethod) {
+            if ($this->getBestellung()->Zahlungsart && strpos($this->getBestellung()->Zahlungsart->cModulId, "kPlugin_{$this::Plugin()->kPlugin}_") !== false) {
+                $this->paymentMethod = PaymentMethod::create($this->getBestellung()->Zahlungsart->cModulId);
+            } else {
+                $this->paymentMethod = PaymentMethod::create("kPlugin_{$this::Plugin()->kPlugin}_mollie");
+            }
+        }
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
+        return $this->paymentMethod;
+    }
+
+    public static function getLocale($cISOSprache = null, $country = null)
+    {
+
+        if ($cISOSprache === null) {
+            $cISOSprache = gibStandardsprache()->cISO;
+        }
+        if (array_key_exists($cISOSprache, self::$localeLangs)) {
+            $locale = self::$localeLangs[$cISOSprache]['lang'];
+            if ($country && is_array(self::$localeLangs[$cISOSprache]['country']) && in_array($country, self::$localeLangs[$cISOSprache]['country'], true)) {
+                $locale .= '_' . strtoupper($country);
+            } else {
+                $locale .= '_' . self::$localeLangs[$cISOSprache]['country'][0];
+            }
+            return $locale;
+        }
+
+        return self::Plugin()->oPluginEinstellungAssoc_arr['fallbackLocale'];
+    }
+
+    /**
+     * @return string
+     */
+    public function getHash()
+    {
+        if ($this->getModel()->cHash) {
+            return $this->getModel()->cHash;
+        }
+        if (!$this->hash) {
+            $this->hash = $this->PaymentMethod()->generateHash($this->oBestellung);
+        }
+        return $this->hash;
     }
 
     /**
@@ -366,18 +571,24 @@ abstract class AbstractCheckout
      */
     public function storno()
     {
-        if (in_array((int)$this->getBestellung()->cStatus, [1, 2])) {
+        if (in_array((int)$this->getBestellung()->cStatus, [BESTELLUNG_STATUS_OFFEN, BESTELLUNG_STATUS_IN_BEARBEITUNG], true)) {
+
+            $log = [];
 
             $conf = Shop::getSettings([CONF_GLOBAL, CONF_TRUSTEDSHOPS]);
             $nArtikelAnzeigefilter = (int)$conf['global']['artikel_artikelanzeigefilter'];
 
             foreach ($this->getBestellung()->Positionen as $pos) {
                 if ($pos->kArtikel && $pos->Artikel && $pos->Artikel->cLagerBeachten === 'Y') {
+                    $log[] = sprintf('Reset stock of "%s" by %d', $pos->Artikel->cArtNr, -1 * $pos->nAnzahl);
                     self::aktualisiereLagerbestand($pos->Artikel, -1 * $pos->nAnzahl, $pos->WarenkorbPosEigenschaftArr, $nArtikelAnzeigefilter);
                 }
             }
+            $log[] = sprintf("Cancel order '%s'.", $this->getBestellung()->cBestellNr);
 
-            Shop::DB()->executeQueryPrepared('UPDATE tbestellung SET cStatus = :cStatus WHERE kBestellung = :kBestellung', [':cStatus' => '-1', ':kBestellung' => $this->getBestellung()->kBestellung], 3);
+            if (Shop::DB()->executeQueryPrepared('UPDATE tbestellung SET cStatus = :cStatus WHERE kBestellung = :kBestellung', [':cStatus' => '-1', ':kBestellung' => $this->getBestellung()->kBestellung], 3)) {
+                $this->Log(implode('\n', $log));
+            }
         }
     }
 
@@ -563,86 +774,6 @@ abstract class AbstractCheckout
         return $data;
     }
 
-    /**
-     * @return \Mollie\Api\Resources\Customer|null
-     * @todo: Kunde wieder löschbar machen ?!
-     */
-    public function getCustomer($createOrUpdate = false)
-    {
-        if (!$this->customer) {
-            $customerModel = Customer::fromID($this->getBestellung()->oKunde->kKunde, 'kKunde');
-            if ($customerModel->customerId) {
-                try {
-                    $this->customer = $this->API()->Client()->customers->get($customerModel->customerId);
-                } catch (ApiException $e) {
-                    $this->Log(sprintf("Fehler beim laden des Mollie Customers %s (kKunde: %d): %s", $customerModel->customerId, $customerModel->kKunde, $e->getMessage()), LOGLEVEL_ERROR);
-                }
-            }
-
-            if ($createOrUpdate) {
-                $oKunde = $this->getBestellung()->oKunde;
-
-                $customer = [
-                    'name' => utf8_encode(trim($oKunde->cVorname . ' ' . $oKunde->cNachname)),
-                    'email' => utf8_encode($oKunde->cMail),
-                    'locale' => self::getLocale($_SESSION['cISOSprache'], $oKunde->cLand),
-                    'metadata' => (object)[
-                        'kKunde' => $oKunde->kKunde,
-                        'kKundengruppe' => $oKunde->kKundengruppe,
-                        'cKundenNr' => utf8_encode($oKunde->cKundenNr),
-                    ],
-                ];
-
-                if ($this->customer) { // UPDATE
-
-                    $this->customer->name = $customer['name'];
-                    $this->customer->email = $customer['email'];
-                    $this->customer->locale = $customer['locale'];
-                    $this->customer->metadata = $customer['metadata'];
-
-                    try {
-                        $this->customer->update();
-                    } catch (Exception $e) {
-                        $this->Log(sprintf("Fehler beim aktualisieren des Mollie Customers %s: %s\n%s", $this->customer->id, $e->getMessage(), print_r($customer, 1)), LOGLEVEL_ERROR);
-                    }
-
-
-                } else { // create
-
-                    try {
-                        $this->customer = $this->API()->Client()->customers->create($customer);
-                        $customerModel->kKunde = $oKunde->kKunde;
-                        $customerModel->customerId = $this->customer->id;
-                        $customerModel->save();
-                        $this->Log(sprintf("Customer '%s' für Kunde %s (%d) bei Mollie angelegt.", $this->customer->id, $this->customer->name, $this->getBestellung()->kKunde));
-                    } catch (Exception $e) {
-                        $this->Log(sprintf("Fehler beim anlegen eines Mollie Customers: %s\n%s", $e->getMessage(), print_r($customer, 1)), LOGLEVEL_ERROR);
-                    }
-                }
-            }
-        }
-        return $this->customer;
-    }
-
-    public static function getLocale($cISOSprache = null, $country = null)
-    {
-
-        if ($cISOSprache === null) {
-            $cISOSprache = gibStandardsprache()->cISO;
-        }
-        if (array_key_exists($cISOSprache, self::$localeLangs)) {
-            $locale = self::$localeLangs[$cISOSprache]['lang'];
-            if ($country && is_array(self::$localeLangs[$cISOSprache]['country']) && in_array($country, self::$localeLangs[$cISOSprache]['country'], true)) {
-                $locale .= '_' . strtoupper($country);
-            } else {
-                $locale .= '_' . self::$localeLangs[$cISOSprache]['country'][0];
-            }
-            return $locale;
-        }
-
-        return self::Plugin()->oPluginEinstellungAssoc_arr['fallbackLocale'];
-    }
-
     abstract public function cancelOrRefund($force = false);
 
     /**
@@ -680,20 +811,6 @@ abstract class AbstractCheckout
                 }
             }
         }
-    }
-
-    /**
-     * @return string
-     */
-    public function getHash()
-    {
-        if ($this->getModel()->cHash) {
-            return $this->getModel()->cHash;
-        }
-        if (!$this->hash) {
-            $this->hash = $this->PaymentMethod()->generateHash($this->oBestellung);
-        }
-        return $this->hash;
     }
 
     /**
@@ -784,5 +901,21 @@ abstract class AbstractCheckout
     {
         return Shop::getURL(true) . '/?m_pay=' . md5($this->getModel()->kID . '-' . $this->getBestellung()->kBestellung);
     }
+
+    /**
+     * @param Bestellung $oBestellung
+     * @return $this
+     */
+    protected function setBestellung(Bestellung $oBestellung)
+    {
+        $this->oBestellung = $oBestellung;
+        return $this;
+    }
+
+    /**
+     * @param Order|\Mollie\Api\Resources\Payment $model
+     * @return self
+     */
+    abstract protected function setMollie($model);
 
 }

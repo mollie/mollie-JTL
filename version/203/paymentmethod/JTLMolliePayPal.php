@@ -11,6 +11,8 @@ class JTLMolliePayPal extends JTLMollie
 {
     const METHOD = \Mollie\Api\Types\PaymentMethod::PAYPAL;
 
+    const ALLOW_PAYMENT_BEFORE_ORDER = true;
+
     /**
      * @throws ApiException
      * @throws IncompatiblePlatform

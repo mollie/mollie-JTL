@@ -66,7 +66,7 @@ class JTLMollie extends PaymentMethod
 
         try {
 
-            if ($this->duringCheckout) {
+            if ($this->duringCheckout && !static::ALLOW_PAYMENT_BEFORE_ORDER) {
                 $this->Log(sprintf("Zahlung vor Bestellabschluss nicht unterstützt (%s)!", $order->cBestellNr), sprintf("#%s", $order->kBestellung), LOGLEVEL_ERROR);
                 return;
             }
@@ -223,8 +223,8 @@ class JTLMollie extends PaymentMethod
                 'resource' => 'orders',
                 'includeWallets' => 'applepay',
             ]);
-            foreach($active as $a){
-                $_SESSION['mollie_possibleMethods'][$key][] = (object)['id' =>$a->id];
+            foreach ($active as $a) {
+                $_SESSION['mollie_possibleMethods'][$key][] = (object)['id' => $a->id];
             }
         }
 

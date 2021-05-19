@@ -248,32 +248,9 @@ class OrderCheckout extends AbstractCheckout
     public function loadRequest($options = [])
     {
 
-        if ($this->getBestellung()->oKunde->nRegistriert
-            && ($customer = $this->getCustomer(
-                array_key_exists('mollie_create_customer', $_SESSION['cPost_arr'] ?: []) && $_SESSION['cPost_arr']['mollie_create_customer'] === 'Y')
-            )
-            && isset($customer)) {
-            $options['customerId'] = $customer->id;
-        }
+        parent::loadRequest($options);
 
-        $this->locale = self::getLocale($_SESSION['cISOSprache'], Session::getInstance()->Customer()->cLand);
-        $this->amount = Amount::factory($this->getBestellung()->fGesamtsummeKundenwaehrung, $this->getBestellung()->Waehrung->cISO, true);
         $this->orderNumber = $this->getBestellung()->cBestellNr;
-        $this->metadata = [
-            'kBestellung' => $this->getBestellung()->kBestellung,
-            'kKunde' => $this->getBestellung()->kKunde,
-            'kKundengruppe' => Session::getInstance()->CustomerGroup()->kKundengruppe,
-            'cHash' => $this->getHash(),
-        ];
-
-        $this->redirectUrl = $this->PaymentMethod()->getReturnURL($this->getBestellung());
-        $this->webhookUrl = Shop::getURL(true) . '/?mollie=1';
-
-        $pm = $this->PaymentMethod();
-        $isPayAgain = strpos($_SERVER['PHP_SELF'], 'bestellab_again') !== false;
-        if ($pm::METHOD !== '' && (self::Plugin()->oPluginEinstellungAssoc_arr['resetMethod'] !== 'Y' || !$isPayAgain)) {
-            $this->method = $pm::METHOD;
-        }
 
         $this->billingAddress = Address::factory($this->getBestellung()->oRechnungsadresse);
         if ($this->getBestellung()->Lieferadresse !== null) {
@@ -358,5 +335,17 @@ class OrderCheckout extends AbstractCheckout
             }
         }
         return null;
+    }
+
+    /**
+     * @param Order $model
+     * @return $this|AbstractCheckout
+     */
+    protected function setMollie($model)
+    {
+        if ($model instanceof Order) {
+            $this->order = $model;
+        }
+        return $this;
     }
 }
