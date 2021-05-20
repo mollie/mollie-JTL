@@ -6,6 +6,10 @@ class JTLMollieKBC extends JTLMollie
 {
     const METHOD = \Mollie\Api\Types\PaymentMethod::KBC;
 
+    const ALLOW_PAYMENT_BEFORE_ORDER = true;
+
+    const ALLOW_AUTO_STORNO = true;
+
     public function getPaymentOptions(Bestellung $order, $apiType)
     {
         return ['description' => substr($order->cBestellNr, 0, 13)];

@@ -6,5 +6,9 @@ class JTLMollieKlarnaPayLater extends JTLMollie
 {
     const MAX_EXPIRY_DAYS = 28;
 
+    const ALLOW_PAYMENT_BEFORE_ORDER = true;
+
+    const ALLOW_AUTO_STORNO = true;
+
     const METHOD = \Mollie\Api\Types\PaymentMethod::KLARNA_PAY_LATER;
 }

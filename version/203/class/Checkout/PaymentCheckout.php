@@ -195,4 +195,21 @@ class PaymentCheckout extends AbstractCheckout
         }
         return $this;
     }
+
+    /**
+     * @return $this
+     */
+    protected function updateOrderNumber(){
+        try {
+            if ($this->getMollie()) {
+                $this->getMollie()->description = 'Order ' . $this->getBestellung()->cBestellNr;
+                $this->getMollie()->webhookUrl = \Shop::getURL() . '/?mollie=1';
+                $this->getMollie()->update();
+            }
+        } catch (Exception $e) {
+            $this->Log('OrderCheckout::updateOrderNumber:' . $e->getMessage(), LOGLEVEL_ERROR);
+        }
+        return $this;
+    }
+
 }

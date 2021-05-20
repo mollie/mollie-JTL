@@ -20,6 +20,8 @@ class JTLMollie extends PaymentMethod
 
     const MAX_EXPIRY_DAYS = 100;
 
+    const ALLOW_AUTO_STORNO = false;
+
     const ALLOW_PAYMENT_BEFORE_ORDER = false;
 
     /**

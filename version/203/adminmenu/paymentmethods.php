@@ -73,11 +73,12 @@ try {
             $shop = $oPlugin->oPluginZahlungsmethodeAssoc_arr[$key];
         }
 
-
         $maxExpiryDays = $oClass ? $oClass->getExpiryDays() : null;
         $allMethods[$method->id] = (object)[
             'mollie' => $method,
             'class' => $class,
+            'allowPreOrder' => $oClass ? $oClass::ALLOW_PAYMENT_BEFORE_ORDER : false,
+            'allowAutoStorno' => $oClass ? $oClass::ALLOW_AUTO_STORNO : false,
             'oClass' => $oClass,
             'shop' => $shop,
             'maxExpiryDays' => $oClass ? $maxExpiryDays : null,
@@ -90,7 +91,8 @@ try {
     Shop::Smarty()->assign('profile', $profile)
         ->assign('currencies', Mollie::getCurrencies())
         ->assign('locales', Mollie::getLocales())
-        ->assign('allMethods', $allMethods);
+        ->assign('allMethods', $allMethods)
+        ->assign('settings', $oPlugin->oPluginEinstellungAssoc_arr);
     Shop::Smarty()->display($oPlugin->cAdminmenuPfad . '/tpl/paymentmethods.tpl');
 } catch (Exception $e) {
     echo "<div class='alert alert-danger'>{$e->getMessage()}</div>";

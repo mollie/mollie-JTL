@@ -23,7 +23,7 @@ class Queue extends AbstractHook
     public static function bestellungInDB(array $args_arr)
     {
         if (array_key_exists('oBestellung', $args_arr)
-            && $args_arr['oBestellung']->kBestellung
+            && $_SESSION['Zahlungsart'] && (int)$_SESSION['Zahlungsart']->nWaehrendBestellung === 0
             && $args_arr['oBestellung']->fGesamtsumme > 0
             && self::Plugin()->oPluginEinstellungAssoc_arr['onlyPaid'] === 'Y'
             && AbstractCheckout::isMollie((int)$args_arr['oBestellung']->kZahlungsart, true)) {

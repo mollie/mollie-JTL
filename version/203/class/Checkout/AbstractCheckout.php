@@ -163,6 +163,7 @@ abstract class AbstractCheckout
                             $checkout = new $checkoutClass($order, $api);
                         }
                         $checkout->setMollie($mollie);
+                        $checkout->updateOrderNumber();
                         $checkout->handleNotification($sessionHash);
                     }
                 } else {
@@ -179,7 +180,9 @@ abstract class AbstractCheckout
     }
 
     /**
-     * @param $id
+     * @param string $id
+     * @param bool $bFill
+     * @param Bestellung|null $order
      * @return OrderCheckout|PaymentCheckout
      * @throws RuntimeException
      */
@@ -192,8 +195,9 @@ abstract class AbstractCheckout
     }
 
     /**
-     * @param $model
+     * @param Order|\Mollie\Api\Resources\Payment $model
      * @param bool $bFill
+     * @param Bestellung|null $order
      * @return OrderCheckout|PaymentCheckout
      */
     public static function fromModel($model, $bFill = true, Bestellung $order = null)
@@ -241,7 +245,7 @@ abstract class AbstractCheckout
             return;
         }
 
-        $sql = "SELECT p.kId FROM xplugin_ws_mollie_payments p JOIN tbestellung b ON b.kBestellung = p.kBestellung "
+        $sql = "SELECT p.kID FROM xplugin_ws_mollie_payments p JOIN tbestellung b ON b.kBestellung = p.kBestellung "
             . "WHERE (p.dReminder IS NULL OR p.dReminder = '0000-00-00 00:00:00') "
             . "AND p.dCreatedAt < NOW() - INTERVAL :d MINUTE AND p.dCreatedAt > NOW() - INTERVAL 7 DAY "
             . "AND p.cStatus IN ('created','open', 'expired', 'failed', 'canceled') AND NOT b.cStatus = '-1'";
@@ -251,13 +255,17 @@ abstract class AbstractCheckout
         ], 2);
         foreach ($remindables as $remindable) {
             try {
-                self::sendReminder($remindable->kId);
+                self::sendReminder($remindable->kID);
             } catch (Exception $e) {
                 Jtllog::writeLog("AbstractCheckout::sendReminders: " . $e->getMessage());
             }
         }
     }
 
+    /**
+     * @param $kID
+     * @return bool
+     */
     public static function sendReminder($kID)
     {
 
@@ -584,7 +592,7 @@ abstract class AbstractCheckout
             }
             $log[] = sprintf("Cancel order '%s'.", $this->getBestellung()->cBestellNr);
 
-            if (Shop::DB()->executeQueryPrepared('UPDATE tbestellung SET cStatus = :cStatus WHERE kBestellung = :kBestellung', [':cStatus' => '-1', ':kBestellung' => $this->getBestellung()->kBestellung], 3)) {
+            if (Shop::DB()->executeQueryPrepared('UPDATE tbestellung SET cAbgeholt = "N", cStatus = :cStatus WHERE kBestellung = :kBestellung', [':cStatus' => '-1', ':kBestellung' => $this->getBestellung()->kBestellung], 3)) {
                 $this->Log(implode('\n', $log));
             }
         }
@@ -782,6 +790,7 @@ abstract class AbstractCheckout
 
     /**
      * @param null $hash
+     * @throws Exception
      */
     public function handleNotification($hash = null)
     {
@@ -899,6 +908,8 @@ abstract class AbstractCheckout
     {
         return Shop::getURL(true) . '/?m_pay=' . md5($this->getModel()->kID . '-' . $this->getBestellung()->kBestellung);
     }
+
+    abstract protected function updateOrderNumber();
 
     /**
      * @param Bestellung $oBestellung

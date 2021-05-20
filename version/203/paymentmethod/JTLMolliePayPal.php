@@ -13,6 +13,8 @@ class JTLMolliePayPal extends JTLMollie
 
     const ALLOW_PAYMENT_BEFORE_ORDER = true;
 
+    const ALLOW_AUTO_STORNO = true;
+
     /**
      * @throws ApiException
      * @throws IncompatiblePlatform

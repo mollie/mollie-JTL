@@ -91,31 +91,33 @@
                 </td>
                 <td>
                     {if $method->shop && $method->oClass}
-
-                        {if intval($method->shop->nWaehrendBestellung) === 1}
-                            <span style="color: red">Zahlung <b>VOR</b> Bestellabschluss nicht unterstützt!</span>
+                        {if intval($method->shop->nWaehrendBestellung) === 1 && !$method->allowPreOrder}
+                            <div style="color: red">Zahlung <b>VOR</b> Bestellabschluss nicht unterstützt!</div>
+                        {else}
+                            <div>
+                                <b>Bestellabschluss:</b>
+                                {if intval($method->shop->nWaehrendBestellung) === 1}
+                                    <span class="label label-info">VOR Zahlung</span>
+                                {else}
+                                    <span class="label label-info">NACH Zahlung</span>
+                                {/if}
+                            </div>
                         {/if}
 
-                        {*if $method->shop->nWaehrendBestellung}
-                            Zahlung
-                            <b>VOR</b>
-                            Bestellabschluss
-                            {if $method->warning}
-                                <br/>
-                                <b style="color: orange">
-                                    <i class="fa fa-exclamation-triangle"></i>
-                                    Gültigkeit ist länger als Session-Laufzeit ({$method->session}).
-                                </b>
-                            {/if}
-                        {else}
-                            Zahlung
-                            <b>NACH</b>
-                            Bestellabschluss
-                        {/if*}
-                        <br/>
-                        <b>Gültigkeit</b>
-                        : {$method->maxExpiryDays} Tage
-
+                        {if intval($settings.autoStorno) > 0}
+                            <div>
+                                <b>Unbez. Bestellung stornieren:</b>
+                                {if $method->allowAutoStorno}
+                                    <div class="label label-success">auto</div>
+                                {else}
+                                    <div class="label label-warning">manual</div>
+                                {/if}
+                            </div>
+                        {/if}
+                        <div>
+                            <b>Gültigkeit:</b>
+                            <span class="label label-info">{$method->maxExpiryDays} Tage</span>
+                        </div>
                     {else}
                         <b>Derzeit nicht unterstützt.</b>
                     {/if}
