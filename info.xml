@@ -12,30 +12,9 @@
             <SQL>100.sql</SQL>
             <CreateDate>2019-02-11</CreateDate>
         </Version>
-        <Version nr="101">
-            <CreateDate>2019-02-26</CreateDate>
-        </Version>
-        <Version nr="102">
-            <CreateDate>2019-04-23</CreateDate>
-        </Version>
-        <Version nr="103">
-            <CreateDate>2019-05-22</CreateDate>
-        </Version>
-        <Version nr="104">
-            <CreateDate>2019-07-12</CreateDate>
-        </Version>
-        <Version nr="105">
-            <CreateDate>2019-11-26</CreateDate>
-        </Version>
-        <Version nr="106">
-            <CreateDate>2019-12-18</CreateDate>
-        </Version>
         <Version nr="107">
             <SQL>107.sql</SQL>
             <CreateDate>2020-03-02</CreateDate>
-        </Version>
-        <Version nr="108">
-            <CreateDate>2020-04-24</CreateDate>
         </Version>
         <Version nr="109">
             <SQL>109.sql</SQL>
