@@ -10,6 +10,9 @@ class JTLMollieCreditCard extends JTLMollie
 {
     const METHOD = \Mollie\Api\Types\PaymentMethod::CREDITCARD;
 
+    const ALLOW_AUTO_STORNO = true;
+    const ALLOW_PAYMENT_BEFORE_ORDER = false;
+
     const CACHE_TOKEN = 'creditcard:token';
     const CACHE_TOKEN_TIMESTAMP = 'creditcard:token:timestamp';
 
