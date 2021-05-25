@@ -1,6 +1,4 @@
 <?php
-/** @noinspection PhpDeprecationInspection */
-/** @noinspection PhpConditionAlreadyCheckedInspection */
 
 /**
  * Created by PhpStorm.
@@ -25,22 +23,12 @@ abstract class Mollie
 {
 
     /**
-     * @return JTLMollie
-     * @throws Exception
-     * @deprecated
-     */
-    public static function JTLMollie()
-    {
-        throw new Exception("Deprecated");
-    }
-
-    /**
      *
      */
     public static function fixZahlungsarten()
     {
         $kPlugin = Helper::oPlugin()->kPlugin;
-        if ((int)$kPlugin) {
+        if ($kPlugin) {
             $test1 = 'kPlugin_%_mollie%';
             $test2 = 'kPlugin_' . $kPlugin . '_mollie%';
             $conflicted_arr = Shop::DB()->executeQueryPrepared("SELECT kZahlungsart, cName, cModulId FROM `tzahlungsart` WHERE cModulId LIKE :test1 AND cModulId NOT LIKE :test2", [
@@ -96,7 +84,7 @@ abstract class Mollie
                 $result[] = AbstractCheckout::getLocale($sS->cISO, $land);
             }
         }
-        return array_unique($result);
+        return array_intersect(array_unique($result), $locales);
     }
 
     public static function getCurrencies()

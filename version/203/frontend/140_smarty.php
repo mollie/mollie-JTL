@@ -32,21 +32,21 @@ try {
 		background-color: #eee;
 		color: black;
 	}
-	{$selector} label {
-		{$border}
+	$selector label {
+		$border
 	}
 	
-	{$selector} label::after {
+	$selector label::after {
 		clear: both;
 		content: ' ';
 		display: block;
 	}
 	
-	{$selector} label span small {
+	$selector label span small {
 		line-height: 48px;
 	}
 	
-	{$selector} label img {
+	$selector label img {
 		float: right;
 	}
 	</style>

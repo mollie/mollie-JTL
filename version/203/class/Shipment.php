@@ -62,6 +62,7 @@ class Shipment extends AbstractResource
      * Shipment constructor.
      * @param $kLieferschein
      * @param OrderCheckout|null $checkout
+     * @throws Exception
      */
     public function __construct($kLieferschein, OrderCheckout $checkout = null)
     {
@@ -116,17 +117,14 @@ class Shipment extends AbstractResource
                 throw new RuntimeException('Shipping deaktiviert');
             }
 
-            if (($shippingActive === 'K') && ((int)$checkout->getBestellung()->cStatus !== BESTELLUNG_STATUS_VERSANDT) && !$oKunde->nRegistriert) {
+            if ($shippingActive === 'K' && !$oKunde->nRegistriert && (int)$checkout->getBestellung()->cStatus !== BESTELLUNG_STATUS_VERSANDT) {
                 throw new RuntimeException('Shipping für Gast-Bestellungen und Teilversand deaktiviert');
             }
 
             /** @var Lieferschein $oLieferschein */
             foreach ($checkout->getBestellung()->oLieferschein_arr as $oLieferschein) {
-
                 try {
-
                     $shipment = new Shipment($oLieferschein->getLieferschein(), $checkout);
-
                     $mode = self::Plugin()->oPluginEinstellungAssoc_arr['shippingMode'];
                     switch ($mode) {
                         case 'A':
@@ -152,7 +150,7 @@ class Shipment extends AbstractResource
                     $shipments[] = $e->getMessage();
                 } catch (Exception $e) {
                     $shipments[] = $e->getMessage();
-                    $checkout->Log("mollie: Shipment::syncBestellung (BestellNr. {$checkout->getBestellung()->cBestellNr}, Lieferschein: {$shipment->getLieferschein()->getLieferscheinNr()}) - " . $e->getMessage(), LOGLEVEL_ERROR);
+                    $checkout->Log("mollie: Shipment::syncBestellung (BestellNr. {$checkout->getBestellung()->cBestellNr}, Lieferschein: {$oLieferschein->getLieferscheinNr()}) - " . $e->getMessage(), LOGLEVEL_ERROR);
                 }
             }
         }
@@ -160,7 +158,7 @@ class Shipment extends AbstractResource
     }
 
     /**
-     * @return mixed
+     * @return bool
      * @throws ApiException
      * @throws IncompatiblePlatform
      * @throws Exception

@@ -94,7 +94,7 @@ class OrderLine extends AbstractResource
     public static function factory($oPosition, $currency = null)
     {
         if (!$oPosition) {
-            throw new RuntimeException('$oPosition invalid:', print_r($oPosition));
+            throw new RuntimeException('$oPosition invalid:', print_r($oPosition,1));
         }
 
         $resource = new static();
@@ -167,8 +167,8 @@ class OrderLine extends AbstractResource
             /** @var WarenkorbPosEigenschaft $warenkorbPosEigenschaft */
             foreach ($oPosition->WarenkorbPosEigenschaftArr as $warenkorbPosEigenschaft) {
                 $metadata['properties'][] = [
-                    'kEigenschaft' => (int)$warenkorbPosEigenschaft->kEigenschaft,
-                    'kEigenschaftWert' => (int)$warenkorbPosEigenschaft->kEigenschaftWert,
+                    'kEigenschaft' => $warenkorbPosEigenschaft->kEigenschaft,
+                    'kEigenschaftWert' => $warenkorbPosEigenschaft->kEigenschaftWert,
                     'name' => utf8_encode($warenkorbPosEigenschaft->cEigenschaftName),
                     'value' => utf8_encode($warenkorbPosEigenschaft->cEigenschaftWertName),
                 ];

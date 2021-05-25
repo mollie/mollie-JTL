@@ -4,6 +4,7 @@
 namespace ws_mollie\Checkout\Payment;
 
 use Shop;
+use stdClass;
 use ws_mollie\Checkout\AbstractResource;
 use ws_mollie\Checkout\Exception\ResourceValidityException;
 
@@ -46,7 +47,7 @@ class Amount extends AbstractResource
     }
 
     /**
-     * @return \stdClass
+     * @return stdClass
      */
     public static function FallbackCurrency()
     {

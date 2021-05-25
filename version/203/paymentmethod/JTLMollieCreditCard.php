@@ -16,11 +16,6 @@ class JTLMollieCreditCard extends JTLMollie
     const CACHE_TOKEN = 'creditcard:token';
     const CACHE_TOKEN_TIMESTAMP = 'creditcard:token:timestamp';
 
-    public function handleNotification($order, $hash, $args)
-    {
-        parent::handleNotification($order, $hash, $args);
-    }
-
     public function preparePaymentProcess($order)
     {
         parent::preparePaymentProcess($order);
@@ -82,38 +77,6 @@ class JTLMollieCreditCard extends JTLMollie
             ->assign('mollieLang', self::Plugin()->oPluginSprachvariableAssoc_arr);
 
         return false;
-
-//        if (array_key_exists('skip', $aPost_arr) && (int)$aPost_arr['skip']) {
-//            unset($_SESSION['mollieCardToken'], $_SESSION['mollieCardTokenTS']);
-//            return true;
-//        }
-//
-//        $profileId = trim(Helper::getSetting('profileId'));
-//        if ($profileId === '' || strpos($profileId, 'pfl_') !== 0) {
-//            return true;
-//        }
-//        if (array_key_exists('mollieCardTokenTS', $_SESSION) && (int)$_SESSION['mollieCardTokenTS'] > time()
-//            && array_key_exists('mollieCardToken', $_SESSION) && trim($_SESSION['mollieCardToken']) !== '') {
-//            return true;
-//        }
-//
-//        unset($_SESSION['mollieCardToken'], $_SESSION['mollieCardTokenTS']);
-//
-//        if (array_key_exists('cardToken', $aPost_arr) && trim($aPost_arr['cardToken'])) {
-//            $_SESSION['mollieCardToken'] = trim($aPost_arr['cardToken']);
-//            $_SESSION['mollieCardTokenTS'] = time() + 3600;
-//            return true;
-//        }
-//
-//        Shop::Smarty()->assign('profileId', $profileId)
-//            ->assign('errorMessage', json_encode(utf8_encode(Helper::oPlugin()->oPluginSprachvariableAssoc_arr['mcErrorMessage'])))
-//            ->assign('locale', self::getLocale($_SESSION['cISOSprache'], $_SESSION['Kunde']->cLand))
-//            ->assign('skipComponents', Helper::getSetting('skipComponents'))
-//            ->assign('testmode', strpos(trim(Helper::getSetting('api_key')), 'test_') === 0)
-//            ->assign('mollieLang', Helper::oPlugin()->oPluginSprachvariableAssoc_arr)
-//            ->assign('trustBadge', Helper::getSetting('loadTrust') === 'Y' ? Helper::oPlugin()->cFrontendPfadURLSSL . 'img/trust_' . $_SESSION['cISOSprache'] . '.png' : false);
-//
-//        return false;
     }
 
     protected function setToken($token)

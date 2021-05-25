@@ -21,7 +21,7 @@ class JTLMollieBanktransfer extends JTLMollie
 
         $dueDays = $this->getExpiryDays();
         if ($dueDays > 3) {
-            $paymentOptions['dueDate'] = date('Y-m-d', strtotime("+{$dueDays} DAYS"));
+            $paymentOptions['dueDate'] = date('Y-m-d', strtotime("+$dueDays DAYS"));
         }
         return $paymentOptions;
     }

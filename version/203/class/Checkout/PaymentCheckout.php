@@ -7,9 +7,11 @@ namespace ws_mollie\Checkout;
 use Exception;
 use Mollie\Api\Exceptions\ApiException;
 use Mollie\Api\Exceptions\IncompatiblePlatform;
+use Mollie\Api\Resources\Order;
 use Mollie\Api\Resources\Payment;
 use Mollie\Api\Types\PaymentStatus;
 use RuntimeException;
+use Shop;
 use ws_mollie\Checkout\Payment\Address;
 use ws_mollie\Checkout\Payment\Amount;
 
@@ -38,6 +40,8 @@ class PaymentCheckout extends AbstractCheckout
     /**
      * @param PaymentCheckout $checkout
      * @return Payment
+     * @throws ApiException
+     * @throws IncompatiblePlatform
      */
     public static function cancel($checkout)
     {
@@ -109,7 +113,7 @@ class PaymentCheckout extends AbstractCheckout
 
     /**
      * @param array $paymentOptions
-     * @return \Mollie\Api\Resources\Order|Payment|\ws_mollie\Model\Payment
+     * @return Payment
      */
     public function create(array $paymentOptions = [])
     {
@@ -147,7 +151,7 @@ class PaymentCheckout extends AbstractCheckout
      * @param array $options
      * @return $this|PaymentCheckout
      */
-    public function loadRequest($options = [])
+    public function loadRequest(&$options = [])
     {
 
         parent::loadRequest($options);
@@ -199,11 +203,12 @@ class PaymentCheckout extends AbstractCheckout
     /**
      * @return $this
      */
-    protected function updateOrderNumber(){
+    protected function updateOrderNumber()
+    {
         try {
             if ($this->getMollie()) {
                 $this->getMollie()->description = 'Order ' . $this->getBestellung()->cBestellNr;
-                $this->getMollie()->webhookUrl = \Shop::getURL() . '/?mollie=1';
+                $this->getMollie()->webhookUrl = Shop::getURL() . '/?mollie=1';
                 $this->getMollie()->update();
             }
         } catch (Exception $e) {

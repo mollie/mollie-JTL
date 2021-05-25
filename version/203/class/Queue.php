@@ -23,7 +23,10 @@ class Queue
 
     use Plugin;
 
-
+    /**
+     * @param $delay
+     * @return bool
+     */
     public static function storno($delay)
     {
         if (!$delay) {
@@ -40,7 +43,7 @@ class Queue
                 $pm = $checkout->PaymentMethod();
                 if ($pm::ALLOW_AUTO_STORNO && $pm::METHOD === $checkout->getMollie()->method) {
                     if ($checkout->getBestellung()->cAbgeholt === 'Y' && (bool)$checkout->getModel()->bSynced === false) {
-                        if (!in_array($checkout->getMollie()->status, [OrderStatus::STATUS_PAID, OrderStatus::STATUS_PAID, OrderStatus::STATUS_COMPLETED, OrderStatus::STATUS_AUTHORIZED], true)) {
+                        if (!in_array($checkout->getMollie()->status, [OrderStatus::STATUS_PAID, OrderStatus::STATUS_COMPLETED, OrderStatus::STATUS_AUTHORIZED], true)) {
                             $checkout->storno();
                         } else {
                             $checkout->Log(sprintf('AutoStorno: Bestellung bezahlt? %s - Method: %s', $checkout->getMollie()->status, $checkout->getMollie()->method), LOGLEVEL_ERROR);
@@ -59,6 +62,9 @@ class Queue
         return true;
     }
 
+    /**
+     * @param int $limit
+     */
     public static function run($limit = 10)
     {
 
@@ -82,7 +88,7 @@ class Queue
                     }
 
                 } catch (Exception $e) {
-                    Jtllog::writeLog($e->getMessage() . " ({$type}, {$id})");
+                    Jtllog::writeLog($e->getMessage() . " ($type, $id)");
                     $todo->done("{$e->getMessage()}\n{$e->getFile()}:{$e->getLine()}\n{$e->getTraceAsString()}");
                 }
             }
@@ -95,10 +101,11 @@ class Queue
     /**
      * @param $limit
      * @return Generator|QueueModel[]
+     * @noinspection PhpReturnDocTypeMismatchInspection
+     * @noinspection SqlResolve
      */
     private static function getOpen($limit)
     {
-        /** @noinspection SqlResolve */
         $open = Shop::DB()->executeQueryPrepared(sprintf("SELECT * FROM %s WHERE dDone IS NULL AND `bLock` IS NULL ORDER BY dCreated DESC LIMIT 0, :LIMIT;", QueueModel::TABLE), [
             ':LIMIT' => $limit
         ], 2);
@@ -108,6 +115,11 @@ class Queue
         }
     }
 
+    /**
+     * @param $todo
+     * @return bool
+     * @noinspection SqlResolve
+     */
     protected static function lock($todo)
     {
         return $todo->kId && Shop::DB()->executeQueryPrepared(sprintf('UPDATE %s SET `bLock` = NOW() WHERE `bLock` IS NULL AND kId = :kId', QueueModel::TABLE), [
@@ -116,6 +128,12 @@ class Queue
 
     }
 
+    /**
+     * @param $id
+     * @param QueueModel $todo
+     * @return bool
+     * @throws Exception
+     */
     protected static function handleWebhook($id, QueueModel $todo)
     {
         $checkout = AbstractCheckout::fromID($id);
@@ -123,7 +141,7 @@ class Queue
             $checkout->handleNotification();
             return $todo->done('Status: ' . $checkout->getMollie()->status);
         }
-        throw new RuntimeException("Bestellung oder Zahlungsart konnte nicht geladen werden: {$id}");
+        throw new RuntimeException("Bestellung oder Zahlungsart konnte nicht geladen werden: $id");
     }
 
     /**
@@ -132,6 +150,7 @@ class Queue
      * @return bool
      * @throws ApiException
      * @throws IncompatiblePlatform
+     * @throws Exception
      */
     protected static function handleHook($hook, QueueModel $todo)
     {
@@ -150,8 +169,8 @@ class Queue
                         /** @var $method JTLMollie */
                         if ((int)$data['status']
                             && array_key_exists('status', $data)
-                            && $checkout->PaymentMethod()
                             && (strpos($checkout->getModel()->kID, 'tr_') === false)
+                            && $checkout->PaymentMethod()
                             && $checkout->getMollie()) {
                             /** @var OrderCheckout $checkout */
                             $checkout->handleNotification();
@@ -162,12 +181,12 @@ class Queue
                                     if ($shipments = Shipment::syncBestellung($checkout)) {
                                         foreach ($shipments as $shipment) {
                                             if (is_string($shipment)) {
-                                                $checkout->PaymentMethod()->Log("Shipping-Error: {$shipment}", $checkout->LogData());
-                                                $result .= "Shipping-Error: {$shipment};\n";
+                                                $checkout->PaymentMethod()->Log("Shipping-Error: $shipment", $checkout->LogData());
+                                                $result .= "Shipping-Error: $shipment;\n";
 
                                             } else {
                                                 $checkout->PaymentMethod()->Log("Order shipped: \n" . print_r($shipment, 1));
-                                                $result .= "Order shipped: {$shipment->id};\n";
+                                                $result .= "Order shipped: $shipment->id;\n";
                                             }
                                         }
                                     } else {
@@ -184,10 +203,10 @@ class Queue
                         } else {
                             $result = 'Nothing to do.';
                         }
+                        $checkout->PaymentMethod()->Log("Queue::handleHook: " . $result, $checkout->LogData());
                     } else {
                         $result = "kBestellung missing";
                     }
-                    $checkout->PaymentMethod()->Log("Queue::handleHook: " . $result, $checkout->LogData());
                     return $todo->done($result);
 
                 case HOOK_BESTELLUNGEN_XML_BEARBEITESTORNO:
@@ -202,13 +221,15 @@ class Queue
         return false;
     }
 
+    /**
+     * @param $todo
+     * @return bool
+     */
     protected static function unlock($todo)
     {
-        if ($todo->kId && Shop::DB()->executeQueryPrepared(sprintf('UPDATE %s SET `bLock` = NULL WHERE kId = :kId', QueueModel::TABLE), [
+        return $todo->kId && Shop::DB()->executeQueryPrepared(sprintf('UPDATE %s SET `bLock` = NULL WHERE kId = :kId', QueueModel::TABLE), [
                 'kId' => $todo->kId
-            ], 3) >= 1) {
-        }
-
+            ], 3) >= 1;
     }
 
 }

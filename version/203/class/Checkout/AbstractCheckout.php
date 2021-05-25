@@ -13,7 +13,9 @@ use Jtllog;
 use JTLMollie;
 use Kunde;
 use Mollie\Api\Exceptions\ApiException;
+use Mollie\Api\Resources\BaseResource;
 use Mollie\Api\Resources\Order;
+use Mollie\Api\Resources\Refund;
 use Mollie\Api\Types\OrderStatus;
 use Mollie\Api\Types\PaymentStatus;
 use PaymentMethod;
@@ -79,7 +81,7 @@ abstract class AbstractCheckout
 
     /**
      * AbstractCheckout constructor.
-     * @param $oBestellung
+     * @param Bestellung $oBestellung
      * @param null $api
      */
     public function __construct(Bestellung $oBestellung, $api = null)
@@ -100,7 +102,7 @@ abstract class AbstractCheckout
                 ':kZahlungsart' => $kBestellung,
                 ':cModulId' => 'kPlugin_' . self::Plugin()->kPlugin . '_%'
             ], 1);
-            return $res ? true : false;
+            return (bool)$res;
         }
 
         return ($res = Shop::DB()->executeQueryPrepared('SELECT kId FROM xplugin_ws_mollie_payments WHERE kBestellung = :kBestellung;', [
@@ -130,7 +132,7 @@ abstract class AbstractCheckout
                     Shop::DB()->update('tzahlungsession', 'cZahlungsID', $sessionHash, $paymentSession);
 
                     $api = new API($test);
-                    if (substr($id, 0, 3) === 'tr_') {
+                    if (strpos($id, 'tr_') === 0) {
                         $mollie = $api->Client()->payments->get($id);
                     } else {
                         $mollie = $api->Client()->orders->get($id);
@@ -149,13 +151,13 @@ abstract class AbstractCheckout
 
                     if ($order->kBestellung) {
 
-                        $paymentSession->kBestellung = (int)$order->kBestellung;
+                        $paymentSession->kBestellung = $order->kBestellung;
                         Shop::DB()->update('tzahlungsession', 'cZahlungsID', $sessionHash, $paymentSession);
 
                         try {
-                            $checkout = AbstractCheckout::fromID($id, false, $order);
+                            $checkout = self::fromID($id, false, $order);
                         } catch (Exception $e) {
-                            if (substr($id, 0, 3) === 'tr_') {
+                            if (strpos($id, 'tr_') === 0) {
                                 $checkoutClass = PaymentCheckout::class;
                             } else {
                                 $checkoutClass = OrderCheckout::class;
@@ -188,14 +190,14 @@ abstract class AbstractCheckout
      */
     public static function fromID($id, $bFill = true, Bestellung $order = null)
     {
-        if ($model = Payment::fromID($id)) {
+        if (($model = Payment::fromID($id))) {
             return static::fromModel($model, $bFill, $order);
         }
         throw new RuntimeException(sprintf('Error loading Order: %s', $id));
     }
 
     /**
-     * @param Order|\Mollie\Api\Resources\Payment $model
+     * @param Payment $model
      * @param bool $bFill
      * @param Bestellung|null $order
      * @return OrderCheckout|PaymentCheckout
@@ -232,7 +234,7 @@ abstract class AbstractCheckout
     public static function fromBestellung($kBestellung)
     {
         if ($model = Payment::fromID($kBestellung, 'kBestellung')) {
-            return self::fromModel($model);
+            return static::fromModel($model);
         }
         throw new RuntimeException(sprintf('Error loading Order for Bestellung: %s', $kBestellung));
     }
@@ -314,7 +316,7 @@ abstract class AbstractCheckout
 
     /**
      * @param AbstractCheckout $checkout
-     * @return \Mollie\Api\Resources\BaseResource|\Mollie\Api\Resources\Refund
+     * @return BaseResource|Refund
      * @throws ApiException
      */
     public static function refund(AbstractCheckout $checkout)
@@ -409,7 +411,6 @@ abstract class AbstractCheckout
                 $this->paymentMethod = PaymentMethod::create("kPlugin_{$this::Plugin()->kPlugin}_mollie");
             }
         }
-        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this->paymentMethod;
     }
 
@@ -444,7 +445,7 @@ abstract class AbstractCheckout
         throw new RuntimeException('AbstractCheckout::cancel: Invalid Checkout!');
     }
 
-    public function loadRequest($options = [])
+    public function loadRequest(&$options = [])
     {
         if ($this->getBestellung()) {
             if ($this->getBestellung()->oKunde->nRegistriert
@@ -609,7 +610,7 @@ abstract class AbstractCheckout
             ) {
                 foreach ($WarenkorbPosEigenschaftArr as $eWert) {
                     $EigenschaftWert = new EigenschaftWert($eWert->kEigenschaftWert);
-                    if ($EigenschaftWert->fPackeinheit == 0) {
+                    if ($EigenschaftWert->fPackeinheit === .0) {
                         $EigenschaftWert->fPackeinheit = 1;
                     }
                     Shop::DB()->query(
@@ -635,7 +636,7 @@ abstract class AbstractCheckout
                     }
                     // Stücklisten Komponente
                     if (ArtikelHelper::isStuecklisteKomponente($Artikel->kArtikel)) {
-                        self::aktualisiereKomponenteLagerbestand($Artikel->kArtikel, $artikelBestand, isset($Artikel->cLagerKleinerNull) && $Artikel->cLagerKleinerNull === 'Y' ? true : false);
+                        self::aktualisiereKomponenteLagerbestand($Artikel->kArtikel, $artikelBestand, isset($Artikel->cLagerKleinerNull) && $Artikel->cLagerKleinerNull === 'Y');
                     }
                 }
                 // Aktualisiere Merkmale in tartikelmerkmal vom Vaterartikel
@@ -663,7 +664,7 @@ abstract class AbstractCheckout
                 FROM tstueckliste
                 JOIN tartikel
                   ON tartikel.kArtikel = tstueckliste.kArtikel
-                WHERE tstueckliste.kStueckliste = {$kStueckListe}
+                WHERE tstueckliste.kStueckliste = $kStueckListe
                     AND tartikel.cLagerBeachten = 'Y'", 2
             );
 
@@ -724,7 +725,7 @@ abstract class AbstractCheckout
             FROM tstueckliste
             JOIN tartikel
                 ON tartikel.kStueckliste = tstueckliste.kStueckliste
-            WHERE tstueckliste.kArtikel = {$kKomponenteArtikel}
+            WHERE tstueckliste.kArtikel = $kKomponenteArtikel
                 AND tartikel.cLagerBeachten = 'Y'", 2
         );
 
@@ -895,7 +896,7 @@ abstract class AbstractCheckout
         if ($row = Shop::DB()->executeQueryPrepared("SELECT SUM(fBetrag) as fBetragSumme FROM tzahlungseingang WHERE kBestellung = :kBestellung", [
             ':kBestellung' => $this->getBestellung()->kBestellung
         ], 1)) {
-            return $row->fBetragSumme >= round($this->getBestellung()->fGesamtsumme * (float)$this->getBestellung()->fWaehrungsFaktor, 2);
+            return $row->fBetragSumme >= round($this->getBestellung()->fGesamtsumme * $this->getBestellung()->fWaehrungsFaktor, 2);
         }
         return false;
 

@@ -88,10 +88,12 @@ class JTLMollie extends PaymentMethod
             if ($api === 'payment') {
                 $checkout = new PaymentCheckout($order);
                 $payment = $checkout->create($paymentOptions);
+                /** @noinspection NullPointerExceptionInspection */
                 $url = $payment->getCheckoutUrl();
             } else {
                 $checkout = new OrderCheckout($order);
                 $mOrder = $checkout->create($paymentOptions);
+                /** @noinspection NullPointerExceptionInspection */
                 $url = $mOrder->getCheckoutUrl();
             }
 

@@ -18,7 +18,7 @@ class ExclusiveLock
         $this->key = $key;
         $this->path = rtrim(realpath($path), '/') . '/';
         if (!is_dir($path) || !is_writable($path)) {
-            throw new RuntimeException("Lock Path '{$path}' doesn't exist, or is not writable!");
+            throw new RuntimeException("Lock Path '$path' doesn't exist, or is not writable!");
         }
         //create a new resource or get exisitng with same key
         $this->file = fopen($this->path . "$key.lockfile", 'wb+');
@@ -32,6 +32,7 @@ class ExclusiveLock
         }
     }
 
+    /** @noinspection ForgottenDebugOutputInspection */
     public function unlock()
     {
         $key = $this->key;
@@ -40,8 +41,6 @@ class ExclusiveLock
                 error_log("ExclusiveLock::lock FAILED to release lock [$key]");
                 return false;
             }
-            //ftruncate($this->file, 0); // truncate file
-            //write something to just help debugging
             fwrite($this->file, "Unlocked - " . microtime(true) . "\n");
             fflush($this->file);
             $this->own = false;
@@ -54,13 +53,8 @@ class ExclusiveLock
     public function lock()
     {
         if (!flock($this->file, LOCK_EX | LOCK_NB)) { //failed
-            $key = $this->key;
-            error_log("ExclusiveLock::acquire_lock FAILED to acquire lock [$key]");
             return false;
         }
-        //ftruncate($this->file, 0); // truncate file
-        //write something to just help debugging
-        //fwrite( $this->file, "Locked\n");
         fwrite($this->file, "Locked - " . microtime(true) . "\n");
         fflush($this->file);
 

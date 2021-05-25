@@ -16,8 +16,7 @@ try {
     ifndef('MOLLIE_QUEUE_MAX', 3);
     Queue::run(MOLLIE_QUEUE_MAX);
 
-    if (strpos($_SERVER['PHP_SELF'], 'bestellabschluss.php') !== false
-        && array_key_exists('hash', $_REQUEST)) {
+    if (array_key_exists('hash', $_REQUEST) && strpos($_SERVER['PHP_SELF'], 'bestellabschluss.php') !== false) {
         $sessionHash = substr(StringHandler::htmlentities(StringHandler::filterXSS($_REQUEST['hash'])), 1);
         $paymentSession = Shop::DB()->select('tzahlungsession', 'cZahlungsID', $sessionHash);
         if ($paymentSession && $paymentSession->kBestellung) {
@@ -27,7 +26,7 @@ try {
                 $oZahlungsID = Shop::DB()->query("
                     SELECT cId 
                         FROM tbestellid 
-                        WHERE kBestellung = " . (int)$order->kBestellung, 1
+                        WHERE kBestellung = " . (int)$paymentSession->kBestellung, 1
                 );
                 if (is_object($oZahlungsID)) {
                     header('Location: ' . Shop::getURL() . '/bestellabschluss.php?i=' . $oZahlungsID->cId);

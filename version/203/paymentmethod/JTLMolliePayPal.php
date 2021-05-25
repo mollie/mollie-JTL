@@ -16,8 +16,9 @@ class JTLMolliePayPal extends JTLMollie
     const ALLOW_AUTO_STORNO = true;
 
     /**
-     * @throws ApiException
-     * @throws IncompatiblePlatform
+     * @param Bestellung $order
+     * @param $apiType
+     * @return array
      */
     public function getPaymentOptions(Bestellung $order, $apiType)
     {

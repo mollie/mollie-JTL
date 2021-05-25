@@ -46,7 +46,7 @@ try {
             Shop::Smarty()->assign('update', $latestRelease);
         }
 
-    } catch (\Exception $e) {
+    } catch (Exception $e) {
     }
 
     Shop::Smarty()->display(Helper::oPlugin()->cAdminmenuPfad . '/tpl/info.tpl');

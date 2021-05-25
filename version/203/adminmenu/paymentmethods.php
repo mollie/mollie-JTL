@@ -57,13 +57,13 @@ try {
     foreach ($_allMethods as $method) {
 
         $id = $method->id === 'creditcard' ? 'kreditkarte' : $method->id;
-        $key = "kPlugin_{$oPlugin->kPlugin}_mollie{$id}";
+        $key = "kPlugin_{$oPlugin->kPlugin}_mollie$id";
 
         $class = null;
         $shop = null;
         $oClass = null;
 
-        if (!in_array($id, ['voucher', 'giftcard', 'directdebit'], true) && array_key_exists($key, $oPlugin->oPluginZahlungsKlasseAssoc_arr)) {
+        if (array_key_exists($key, $oPlugin->oPluginZahlungsKlasseAssoc_arr) && !in_array($id, ['voucher', 'giftcard', 'directdebit'], true)) {
             $class = $oPlugin->oPluginZahlungsKlasseAssoc_arr[$key];
             include_once($oPlugin->cPluginPfad . 'paymentmethod/' . $class->cClassPfad);
             /** @var JTLMollie $oClass */

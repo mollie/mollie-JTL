@@ -10,12 +10,12 @@
             <td>{$profile->review->status}</td>
         {/if}
         {if $profile->_links->checkoutPreviewUrl->href}
-            <td width="15%" style="text-align: right;">
+            <td style="text-align: right; width: 15%;">
                 <a class="btn btn-success" href="{$profile->_links->checkoutPreviewUrl->href}" target="_blank">Checkout
                     Preview <i class="fa fa-external-link"></i></a>
             </td>
         {/if}
-        <td width="15%" style="text-align: right;">
+        <td style="text-align: right; width: 15%">
             <a class="btn btn-info" href="https://www.mollie.com/dashboard" target="_blank">Mollie Dashboard <i
                         class="fa fa-external-link"></i></a>
         </td>
