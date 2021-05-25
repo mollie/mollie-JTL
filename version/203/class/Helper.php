@@ -8,6 +8,7 @@ namespace ws_mollie {
     use PclZip;
     use Plugin;
     use Shop;
+    use SmartyException;
     use stdClass;
 
     if (!class_exists('ws_mollie\Helper')) {
@@ -42,7 +43,7 @@ namespace ws_mollie {
                         require_once __DIR__ . '/../../../vendor/autoload.php';
                     }
 
-                    self::$_autoload = spl_autoload_register(function ($class) {
+                    self::$_autoload = spl_autoload_register(static function ($class) {
                         $prefix = 'ws_mollie\\';
                         $baseDir = __DIR__ . DIRECTORY_SEPARATOR;
 
@@ -93,10 +94,8 @@ namespace ws_mollie {
                 if (!is_writable($pluginsDir . self::oPlugin()->cVerzeichnis)) {
                     throw new Exception("Plugin Verzeichnis_'" . $pluginsDir . self::oPlugin()->cVerzeichnis . "' ist nicht beschreibbar!");
                 }
-                if (file_exists($tmpDir . $filename)) {
-                    if (!unlink($tmpDir . $filename)) {
-                        throw new Exception("Temporäre Datei '" . $tmpDir . $filename . "' konnte nicht gelöscht werden!");
-                    }
+                if (file_exists($tmpDir . $filename) && !unlink($tmpDir . $filename)) {
+                    throw new Exception("Temporäre Datei '" . $tmpDir . $filename . "' konnte nicht gelöscht werden!");
                 }
 
                 // 2. DOWNLOAD
@@ -165,9 +164,8 @@ namespace ws_mollie {
                     self::setSetting(__NAMESPACE__ . '_upd', time());
                     file_put_contents(PFAD_ROOT . PFAD_COMPILEDIR . __NAMESPACE__ . '_upd', json_encode($json->data));
                     return $json->data;
-                } else {
-                    return json_decode($lastRelease);
                 }
+                return json_decode($lastRelease);
             }
 
             /**
@@ -211,7 +209,7 @@ namespace ws_mollie {
              *
              * @param $namespace
              * @return string
-             * @throws \SmartyException
+             * @throws SmartyException
              */
             public static function showAlerts($namespace)
             {
@@ -255,7 +253,7 @@ namespace ws_mollie {
             public static function oPlugin($force = false)
             {
                 if ($force === true) {
-                    self::$oPlugin = new Plugin(self::oPlugin(false)->kPlugin, true);
+                    self::$oPlugin = new Plugin(self::oPlugin()->kPlugin, true);
                 } else if (null === self::$oPlugin) {
                     self::$oPlugin = Plugin::getPluginById(__NAMESPACE__);
                 }
@@ -300,7 +298,7 @@ namespace ws_mollie {
                 if ($e === true && $mail != '') {
                     $mail = base64_encode($mail);
                     $eMail = "";
-                    foreach (str_split($mail, 1) as $c) {
+                    foreach (str_split($mail) as $c) {
                         $eMail .= chr(ord($c) ^ 0x00100110);
                     }
                     return base64_encode($eMail);

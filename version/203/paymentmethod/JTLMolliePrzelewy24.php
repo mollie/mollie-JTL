@@ -6,6 +6,9 @@ class JTLMolliePrzelewy24 extends JTLMollie
 {
     const METHOD = \Mollie\Api\Types\PaymentMethod::PRZELEWY24;
 
+    const ALLOW_PAYMENT_BEFORE_ORDER = true;
+
+    const ALLOW_AUTO_STORNO = true;
 
     public function getPaymentOptions(Bestellung $order, $apiType)
     {

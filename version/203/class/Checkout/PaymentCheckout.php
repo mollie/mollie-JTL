@@ -7,10 +7,10 @@ namespace ws_mollie\Checkout;
 use Exception;
 use Mollie\Api\Exceptions\ApiException;
 use Mollie\Api\Exceptions\IncompatiblePlatform;
+use Mollie\Api\Resources\Order;
 use Mollie\Api\Resources\Payment;
 use Mollie\Api\Types\PaymentStatus;
 use RuntimeException;
-use Session;
 use Shop;
 use ws_mollie\Checkout\Payment\Address;
 use ws_mollie\Checkout\Payment\Amount;
@@ -38,27 +38,19 @@ class PaymentCheckout extends AbstractCheckout
     protected $_payment;
 
     /**
-     * @return string
+     * @param PaymentCheckout $checkout
+     * @return Payment
      * @throws ApiException
      * @throws IncompatiblePlatform
      */
-    public function cancelOrRefund($force = false)
+    public static function cancel($checkout)
     {
-        if (!$this->getMollie()) {
-            throw new RuntimeException('Mollie-Order konnte nicht geladen werden: ' . $this->getModel()->kID);
+        if (!$checkout->getMollie()->isCancelable) {
+            throw new RuntimeException('Zahlung kann nicht abgebrochen werden.');
         }
-        if ($force || (int)$this->getBestellung()->cStatus === BESTELLUNG_STATUS_STORNO) {
-            if ($this->getMollie()->isCancelable) {
-                $res = $this->API()->Client()->payments->cancel($this->getMollie()->id);
-                $result = 'Payment cancelled, Status: ' . $res->status;
-            } else {
-                $res = $this->API()->Client()->payments->refund($this->getMollie(), ['amount' => $this->getMollie()->amount]);
-                $result = "Payment Refund initiiert, Status: " . $res->status;
-            }
-            $this->PaymentMethod()->Log("PaymentCheckout::cancelOrRefund: " . $result, $this->LogData());
-            return $result;
-        }
-        throw new RuntimeException('Bestellung ist derzeit nicht storniert, Status: ' . $this->getBestellung()->cStatus);
+        $payment = $checkout->API()->Client()->payments->cancel($checkout->getMollie()->id);
+        $checkout->Log('Zahlung wurde manuell abgebrochen.');
+        return $payment;
     }
 
     /**
@@ -96,8 +88,32 @@ class PaymentCheckout extends AbstractCheckout
     }
 
     /**
+     * @return string
+     * @throws ApiException
+     * @throws IncompatiblePlatform
+     */
+    public function cancelOrRefund($force = false)
+    {
+        if (!$this->getMollie()) {
+            throw new RuntimeException('Mollie-Order konnte nicht geladen werden: ' . $this->getModel()->kID);
+        }
+        if ($force || (int)$this->getBestellung()->cStatus === BESTELLUNG_STATUS_STORNO) {
+            if ($this->getMollie()->isCancelable) {
+                $res = $this->API()->Client()->payments->cancel($this->getMollie()->id);
+                $result = 'Payment cancelled, Status: ' . $res->status;
+            } else {
+                $res = $this->API()->Client()->payments->refund($this->getMollie(), ['amount' => $this->getMollie()->amount]);
+                $result = "Payment Refund initiiert, Status: " . $res->status;
+            }
+            $this->PaymentMethod()->Log("PaymentCheckout::cancelOrRefund: " . $result, $this->LogData());
+            return $result;
+        }
+        throw new RuntimeException('Bestellung ist derzeit nicht storniert, Status: ' . $this->getBestellung()->cStatus);
+    }
+
+    /**
      * @param array $paymentOptions
-     * @return \Mollie\Api\Resources\Order|Payment|\ws_mollie\Model\Payment
+     * @return Payment
      */
     public function create(array $paymentOptions = [])
     {
@@ -131,38 +147,17 @@ class PaymentCheckout extends AbstractCheckout
         }
     }
 
-
     /**
      * @param array $options
      * @return $this|PaymentCheckout
      */
-    public function loadRequest($options = [])
+    public function loadRequest(&$options = [])
     {
 
-        if ($this->getBestellung()->oKunde->nRegistriert
-            && ($customer = $this->getCustomer(
-                array_key_exists('mollie_create_customer', $_SESSION['cPost_arr'] ?: []) && $_SESSION['cPost_arr']['mollie_create_customer'] === 'Y')
-            )
-            && isset($customer)) {
-            $options['customerId'] = $customer->id;
-        }
+        parent::loadRequest($options);
 
-        $this->amount = Amount::factory($this->getBestellung()->fGesamtsummeKundenwaehrung, $this->getBestellung()->Waehrung->cISO, true);
         $this->description = 'Order ' . $this->getBestellung()->cBestellNr;
-        $this->redirectUrl = $this->PaymentMethod()->getReturnURL($this->getBestellung());
-        $this->webhookUrl = Shop::getURL(true) . '/?mollie=1';
-        $this->locale = self::getLocale($_SESSION['cISOSprache'], Session::getInstance()->Customer()->cLand);
-        $this->metadata = [
-            'kBestellung' => $this->getBestellung()->kBestellung,
-            'kKunde' => $this->getBestellung()->kKunde,
-            'kKundengruppe' => Session::getInstance()->CustomerGroup()->kKundengruppe,
-            'cHash' => $this->getHash(),
-        ];
-        $pm = $this->PaymentMethod();
-        $isPayAgain = strpos($_SERVER['PHP_SELF'], 'bestellab_again') !== false;
-        if ($pm::METHOD !== '' && (self::Plugin()->oPluginEinstellungAssoc_arr['resetMethod'] !== 'Y' || !$isPayAgain)) {
-            $this->method = $pm::METHOD;
-        }
+
         foreach ($options as $key => $value) {
             $this->$key = $value;
         }
@@ -194,16 +189,32 @@ class PaymentCheckout extends AbstractCheckout
     }
 
     /**
-     * @param PaymentCheckout $checkout
-     * @return Payment
+     * @param Payment $model
+     * @return $this|AbstractCheckout
      */
-    public static function cancel($checkout)
+    protected function setMollie($model)
     {
-        if(!$checkout->getMollie()->isCancelable){
-            throw new RuntimeException('Zahlung kann nicht abgebrochen werden.');
+        if ($model instanceof Payment) {
+            $this->setPayment($model);
         }
-        $payment = $checkout->API()->Client()->payments->cancel($checkout->getMollie()->id);
-        $checkout->Log('Zahlung wurde manuell abgebrochen.');
-        return $payment;
+        return $this;
     }
+
+    /**
+     * @return $this
+     */
+    protected function updateOrderNumber()
+    {
+        try {
+            if ($this->getMollie()) {
+                $this->getMollie()->description = 'Order ' . $this->getBestellung()->cBestellNr;
+                $this->getMollie()->webhookUrl = Shop::getURL() . '/?mollie=1';
+                $this->getMollie()->update();
+            }
+        } catch (Exception $e) {
+            $this->Log('OrderCheckout::updateOrderNumber:' . $e->getMessage(), LOGLEVEL_ERROR);
+        }
+        return $this;
+    }
+
 }

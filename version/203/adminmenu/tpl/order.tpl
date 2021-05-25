@@ -88,9 +88,9 @@
                 n/a
             {/if}
         </td>
-        <th>RePay-URL:</th>
+        <th><label for="repayUrl">RePay-URL:</label></th>
         <td>
-            <input type="text" readonly value="{$checkout->getRepayURL()}"/>
+            <input type="text" id="repayUrl" readonly value="{$checkout->getRepayURL()}"/>
         </td>
     </tr>
 </table>

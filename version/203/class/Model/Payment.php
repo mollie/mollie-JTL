@@ -32,7 +32,7 @@ class Payment extends AbstractModel
 {
     const TABLE = 'xplugin_ws_mollie_payments';
 
-    const PRIMARY = 'kBestellung';
+    const PRIMARY = 'kID';
 
     public function save()
     {

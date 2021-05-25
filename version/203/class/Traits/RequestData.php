@@ -40,7 +40,7 @@ trait RequestData
      * @param array $options
      * @return $this
      */
-    public function loadRequest($options = [])
+    public function loadRequest(&$options = [])
     {
         return $this;
     }

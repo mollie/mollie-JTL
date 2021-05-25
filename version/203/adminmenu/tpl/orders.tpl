@@ -132,7 +132,9 @@
             head.appendChild(link);
         }
         $(document).ready(function () {
-            $('.datatable').DataTable();
+            $('.datatable').dataTable({
+                stateSave: true,
+            });
         });
     </script>
     <div class="row form-inline">
@@ -141,10 +143,10 @@
         </div>
 
         <div class="col-xs-12 form-group">
-            <label>Von:</label>
-            <input class="form-control" type="date" id="exportFrom" placeholder="Export von ..."/>
-            <label>Bis:</label>
-            <input class="form-control" type="date" id="exportTo" placeholder="... bis"/>
+            <label for="export-from">Von:</label>
+            <input id="export-from" class="form-control" type="date" id="exportFrom" placeholder="Export von ..."/>
+            <label for="export-to">Bis:</label>
+            <input id="export-to" class="form-control" type="date" id="exportTo" placeholder="... bis"/>
             <button class="btn btn-primary" type="button" id="export">Export</button>
         </div>
     </div>

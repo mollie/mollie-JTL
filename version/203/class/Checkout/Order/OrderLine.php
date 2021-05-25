@@ -94,7 +94,7 @@ class OrderLine extends AbstractResource
     public static function factory($oPosition, $currency = null)
     {
         if (!$oPosition) {
-            throw new RuntimeException('$oPosition invalid:', print_r($oPosition));
+            throw new RuntimeException('$oPosition invalid:', print_r($oPosition,1));
         }
 
         $resource = new static();
@@ -138,7 +138,9 @@ class OrderLine extends AbstractResource
 
         // Fraction? include quantity and unit in name
         $this->name = $isFrac ? sprintf("%s (%.2f %s)", $oPosition->cName, (float)$oPosition->nAnzahl, $oPosition->cEinheit) : $oPosition->cName;
-
+        if(!$this->name){
+            $this->name = '(null)';
+        }
         $this->mapType($oPosition->nPosTyp);
 
         //$unitPriceNetto = round(($currency->fFaktor * $netto), 4);
@@ -165,8 +167,8 @@ class OrderLine extends AbstractResource
             /** @var WarenkorbPosEigenschaft $warenkorbPosEigenschaft */
             foreach ($oPosition->WarenkorbPosEigenschaftArr as $warenkorbPosEigenschaft) {
                 $metadata['properties'][] = [
-                    'kEigenschaft' => (int)$warenkorbPosEigenschaft->kEigenschaft,
-                    'kEigenschaftWert' => (int)$warenkorbPosEigenschaft->kEigenschaftWert,
+                    'kEigenschaft' => $warenkorbPosEigenschaft->kEigenschaft,
+                    'kEigenschaftWert' => $warenkorbPosEigenschaft->kEigenschaftWert,
                     'name' => utf8_encode($warenkorbPosEigenschaft->cEigenschaftName),
                     'value' => utf8_encode($warenkorbPosEigenschaft->cEigenschaftWertName),
                 ];

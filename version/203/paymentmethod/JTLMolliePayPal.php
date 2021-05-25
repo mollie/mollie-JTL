@@ -11,9 +11,14 @@ class JTLMolliePayPal extends JTLMollie
 {
     const METHOD = \Mollie\Api\Types\PaymentMethod::PAYPAL;
 
+    const ALLOW_PAYMENT_BEFORE_ORDER = true;
+
+    const ALLOW_AUTO_STORNO = true;
+
     /**
-     * @throws ApiException
-     * @throws IncompatiblePlatform
+     * @param Bestellung $order
+     * @param $apiType
+     * @return array
      */
     public function getPaymentOptions(Bestellung $order, $apiType)
     {

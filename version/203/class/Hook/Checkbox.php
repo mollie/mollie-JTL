@@ -16,7 +16,7 @@ class Checkbox extends AbstractHook
             return;
         }
 
-        if (array_key_exists('nAnzeigeOrt', $args_arr) && $args_arr['nAnzeigeOrt'] === CHECKBOX_ORT_BESTELLABSCHLUSS && (int)Session::getInstance()->Customer()->nRegistriert) {
+        if (array_key_exists('nAnzeigeOrt', $args_arr) && $args_arr['nAnzeigeOrt'] === CHECKBOX_ORT_BESTELLABSCHLUSS && Session::getInstance()->Customer()->nRegistriert) {
 
             $mCustomer = Customer::fromID(Session::getInstance()->Customer()->kKunde, 'kKunde');
 

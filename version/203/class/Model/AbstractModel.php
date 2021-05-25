@@ -30,9 +30,15 @@ abstract class AbstractModel implements JsonSerializable
         }
     }
 
+    /**
+     * @param $id
+     * @param string $col
+     * @param false $failIfNotExists
+     * @return static
+     */
     public static function fromID($id, $col = 'kID', $failIfNotExists = false)
     {
-        if ($payment = Shop::DB()->executeQueryPrepared("SELECT * FROM " . static::TABLE . " WHERE {$col} = :id",
+        if ($payment = Shop::DB()->executeQueryPrepared("SELECT * FROM " . static::TABLE . " WHERE `$col` = :id",
             [':id' => $id], 1)) {
             return new static($payment);
         }
@@ -81,11 +87,11 @@ abstract class AbstractModel implements JsonSerializable
         }
 
         if ($this->new) {
-            Shop::DB()->insert(static::TABLE, $this->data);
+            Shop::DB()->insertRow(static::TABLE, $this->data);
             $this->new = false;
             return true;
         }
-        Shop::DB()->update(static::TABLE, static::PRIMARY, $this->data->{static::PRIMARY}, $this->data);
+        Shop::DB()->updateRow(static::TABLE, static::PRIMARY, $this->data->{static::PRIMARY}, $this->data);
         return true;
     }
 

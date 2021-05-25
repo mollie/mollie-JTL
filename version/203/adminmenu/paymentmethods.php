@@ -57,13 +57,13 @@ try {
     foreach ($_allMethods as $method) {
 
         $id = $method->id === 'creditcard' ? 'kreditkarte' : $method->id;
-        $key = "kPlugin_{$oPlugin->kPlugin}_mollie{$id}";
+        $key = "kPlugin_{$oPlugin->kPlugin}_mollie$id";
 
         $class = null;
         $shop = null;
         $oClass = null;
 
-        if (!in_array($id, ['voucher', 'giftcard', 'directdebit'], true) && array_key_exists($key, $oPlugin->oPluginZahlungsKlasseAssoc_arr)) {
+        if (array_key_exists($key, $oPlugin->oPluginZahlungsKlasseAssoc_arr) && !in_array($id, ['voucher', 'giftcard', 'directdebit'], true)) {
             $class = $oPlugin->oPluginZahlungsKlasseAssoc_arr[$key];
             include_once($oPlugin->cPluginPfad . 'paymentmethod/' . $class->cClassPfad);
             /** @var JTLMollie $oClass */
@@ -73,11 +73,12 @@ try {
             $shop = $oPlugin->oPluginZahlungsmethodeAssoc_arr[$key];
         }
 
-
         $maxExpiryDays = $oClass ? $oClass->getExpiryDays() : null;
         $allMethods[$method->id] = (object)[
             'mollie' => $method,
             'class' => $class,
+            'allowPreOrder' => $oClass ? $oClass::ALLOW_PAYMENT_BEFORE_ORDER : false,
+            'allowAutoStorno' => $oClass ? $oClass::ALLOW_AUTO_STORNO : false,
             'oClass' => $oClass,
             'shop' => $shop,
             'maxExpiryDays' => $oClass ? $maxExpiryDays : null,
@@ -90,7 +91,8 @@ try {
     Shop::Smarty()->assign('profile', $profile)
         ->assign('currencies', Mollie::getCurrencies())
         ->assign('locales', Mollie::getLocales())
-        ->assign('allMethods', $allMethods);
+        ->assign('allMethods', $allMethods)
+        ->assign('settings', $oPlugin->oPluginEinstellungAssoc_arr);
     Shop::Smarty()->display($oPlugin->cAdminmenuPfad . '/tpl/paymentmethods.tpl');
 } catch (Exception $e) {
     echo "<div class='alert alert-danger'>{$e->getMessage()}</div>";

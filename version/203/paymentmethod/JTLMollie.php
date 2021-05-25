@@ -20,6 +20,8 @@ class JTLMollie extends PaymentMethod
 
     const MAX_EXPIRY_DAYS = 100;
 
+    const ALLOW_AUTO_STORNO = false;
+
     const ALLOW_PAYMENT_BEFORE_ORDER = false;
 
     /**
@@ -66,7 +68,7 @@ class JTLMollie extends PaymentMethod
 
         try {
 
-            if ($this->duringCheckout) {
+            if ($this->duringCheckout && !static::ALLOW_PAYMENT_BEFORE_ORDER) {
                 $this->Log(sprintf("Zahlung vor Bestellabschluss nicht unterstützt (%s)!", $order->cBestellNr), sprintf("#%s", $order->kBestellung), LOGLEVEL_ERROR);
                 return;
             }
@@ -86,10 +88,12 @@ class JTLMollie extends PaymentMethod
             if ($api === 'payment') {
                 $checkout = new PaymentCheckout($order);
                 $payment = $checkout->create($paymentOptions);
+                /** @noinspection NullPointerExceptionInspection */
                 $url = $payment->getCheckoutUrl();
             } else {
                 $checkout = new OrderCheckout($order);
                 $mOrder = $checkout->create($paymentOptions);
+                /** @noinspection NullPointerExceptionInspection */
                 $url = $mOrder->getCheckoutUrl();
             }
 
@@ -223,8 +227,8 @@ class JTLMollie extends PaymentMethod
                 'resource' => 'orders',
                 'includeWallets' => 'applepay',
             ]);
-            foreach($active as $a){
-                $_SESSION['mollie_possibleMethods'][$key][] = (object)['id' =>$a->id];
+            foreach ($active as $a) {
+                $_SESSION['mollie_possibleMethods'][$key][] = (object)['id' => $a->id];
             }
         }
 

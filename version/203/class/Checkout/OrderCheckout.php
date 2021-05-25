@@ -4,8 +4,11 @@
 namespace ws_mollie\Checkout;
 
 
+use DateTime;
+use DateTimeZone;
 use Exception;
 use Mollie\Api\Exceptions\ApiException;
+use Mollie\Api\Exceptions\IncompatiblePlatform;
 use Mollie\Api\Resources\Order;
 use Mollie\Api\Resources\Payment;
 use Mollie\Api\Types\OrderStatus;
@@ -54,7 +57,7 @@ class OrderCheckout extends AbstractCheckout
      * @param OrderCheckout $checkout
      * @return string
      * @throws ApiException
-     * @throws \Mollie\Api\Exceptions\IncompatiblePlatform
+     * @throws IncompatiblePlatform
      */
     public static function capture(OrderCheckout $checkout)
     {
@@ -89,7 +92,7 @@ class OrderCheckout extends AbstractCheckout
      */
     public static function cancel($checkout)
     {
-        if (!$checkout->getMollie()->isCancelable) {
+        if (!$checkout->getMollie() || !$checkout->getMollie()->isCancelable) {
             throw new RuntimeException('Bestellung kann nicht abgebrochen werden.');
         }
         $order = $checkout->getMollie()->cancel();
@@ -99,12 +102,13 @@ class OrderCheckout extends AbstractCheckout
 
     /**
      * @return array
+     * @throws Exception
      */
     public function getShipments()
     {
         $shipments = [];
         $lieferschien_arr = Shop::DB()->executeQueryPrepared("SELECT kLieferschein FROM tlieferschein WHERE kInetBestellung = :kBestellung", [
-            ':kBestellung' => (int)$this->getBestellung()->kBestellung
+            ':kBestellung' => $this->getBestellung()->kBestellung
         ], 2);
 
         foreach ($lieferschien_arr as $lieferschein) {
@@ -138,7 +142,7 @@ class OrderCheckout extends AbstractCheckout
 
     /**
      * @param array $paymentOptions
-     * @return Order|Payment
+     * @return Order
      */
     public function create(array $paymentOptions = [])
     {
@@ -189,7 +193,7 @@ class OrderCheckout extends AbstractCheckout
      */
     public function getPayment($search = false)
     {
-        if (!$this->_payment && $search) {
+        if (!$this->_payment && $search && $this->getMollie()) {
             foreach ($this->getMollie()->payments() as $payment) {
                 if (in_array($payment->status, [
                     PaymentStatus::STATUS_AUTHORIZED,
@@ -245,35 +249,12 @@ class OrderCheckout extends AbstractCheckout
      * @param array $options
      * @return $this|OrderCheckout
      */
-    public function loadRequest($options = [])
+    public function loadRequest(&$options = [])
     {
 
-        if ($this->getBestellung()->oKunde->nRegistriert
-            && ($customer = $this->getCustomer(
-                array_key_exists('mollie_create_customer', $_SESSION['cPost_arr'] ?: []) && $_SESSION['cPost_arr']['mollie_create_customer'] === 'Y')
-            )
-            && isset($customer)) {
-            $options['customerId'] = $customer->id;
-        }
+        parent::loadRequest($options);
 
-        $this->locale = self::getLocale($_SESSION['cISOSprache'], Session::getInstance()->Customer()->cLand);
-        $this->amount = Amount::factory($this->getBestellung()->fGesamtsummeKundenwaehrung, $this->getBestellung()->Waehrung->cISO, true);
         $this->orderNumber = $this->getBestellung()->cBestellNr;
-        $this->metadata = [
-            'kBestellung' => $this->getBestellung()->kBestellung,
-            'kKunde' => $this->getBestellung()->kKunde,
-            'kKundengruppe' => Session::getInstance()->CustomerGroup()->kKundengruppe,
-            'cHash' => $this->getHash(),
-        ];
-
-        $this->redirectUrl = $this->PaymentMethod()->getReturnURL($this->getBestellung());
-        $this->webhookUrl = Shop::getURL(true) . '/?mollie=1';
-
-        $pm = $this->PaymentMethod();
-        $isPayAgain = strpos($_SERVER['PHP_SELF'], 'bestellab_again') !== false;
-        if ($pm::METHOD !== '' && (self::Plugin()->oPluginEinstellungAssoc_arr['resetMethod'] !== 'Y' || !$isPayAgain)) {
-            $this->method = $pm::METHOD;
-        }
 
         $this->billingAddress = Address::factory($this->getBestellung()->oRechnungsadresse);
         if ($this->getBestellung()->Lieferadresse !== null) {
@@ -308,7 +289,7 @@ class OrderCheckout extends AbstractCheckout
         if ($dueDays = $this->PaymentMethod()->getExpiryDays()) {
             try {
                 $max = $this->method && strpos($this->method, 'klarna') !== false ? 28 : 100;
-                $date = new \DateTime(sprintf("+%d DAYS", min($dueDays, $max)), new \DateTimeZone('UTC'));
+                $date = new DateTime(sprintf("+%d DAYS", min($dueDays, $max)), new DateTimeZone('UTC'));
                 $this->expiresAt = $date->format('Y-m-d');
                 //date('Y-m-d', strtotime(sprintf("+%d DAYS", min($dueDays, $max))));
             } catch (Exception $e) {
@@ -326,21 +307,20 @@ class OrderCheckout extends AbstractCheckout
      */
     public function getIncomingPayment()
     {
-        if (!$this->getMollie()) {
+        if (!$this->getMollie(true)) {
             return null;
         }
 
+        $cHinweis = sprintf("%s / %s", $this->getMollie()->id, $this->getPayment(true)->id);
         if (Helper::getSetting('wawiPaymentID') === 'ord') {
             $cHinweis = $this->getMollie()->id;
-        } else {
-            if (Helper::getSetting('wawiPaymentID') === 'tr') {
-                $cHinweis = $this->getPayment(true)->id;
-            } else {
-                $cHinweis = sprintf("%s / %s", $this->getMollie()->id, $this->getPayment(true)->id);
-            }
+        } else if (Helper::getSetting('wawiPaymentID') === 'tr') {
+            $cHinweis = $this->getPayment(true)->id;
         }
 
+
         /** @var Payment $payment */
+        /** @noinspection NullPointerExceptionInspection */
         foreach ($this->getMollie()->payments() as $payment) {
             if (in_array($payment->status,
                 [PaymentStatus::STATUS_AUTHORIZED, PaymentStatus::STATUS_PAID], true)) {
@@ -358,5 +338,34 @@ class OrderCheckout extends AbstractCheckout
             }
         }
         return null;
+    }
+
+    /**
+     * @return $this
+     */
+    protected function updateOrderNumber()
+    {
+        try {
+            if ($this->getMollie()) {
+                $this->getMollie()->orderNumber = $this->getBestellung()->cBestellNr;
+                $this->getMollie()->webhookUrl = Shop::getURL() . '/?mollie=1';
+                $this->getMollie()->update();
+            }
+        } catch (Exception $e) {
+            $this->Log('OrderCheckout::updateOrderNumber:' . $e->getMessage(), LOGLEVEL_ERROR);
+        }
+        return $this;
+    }
+
+    /**
+     * @param Order $model
+     * @return $this|AbstractCheckout
+     */
+    protected function setMollie($model)
+    {
+        if ($model instanceof Order) {
+            $this->order = $model;
+        }
+        return $this;
     }
 }
