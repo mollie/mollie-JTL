@@ -246,11 +246,11 @@ class Shipment extends AbstractResource
         $oVersand = $this->getLieferschein()->oVersand_arr[0];
         if ($oVersand->getIdentCode() && $oVersand->getLogistik()) {
             $tracking = [
-                'carrier' => $oVersand->getLogistik(),
-                'code' => $oVersand->getIdentCode(),
+                'carrier' => utf8_encode($oVersand->getLogistik()),
+                'code' => utf8_encode($oVersand->getIdentCode()),
             ];
             if ($oVersand->getLogistikVarUrl()) {
-                $tracking['url'] = $oVersand->getLogistikURL();
+                $tracking['url'] = utf8_encode($oVersand->getLogistikURL());
             }
             $this->tracking = $tracking;
         }
