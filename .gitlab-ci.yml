@@ -91,4 +91,4 @@ upload:
   script:
     - aws configure set region eu-central-1
     - if [[ $SKIP_COMPILE = 1 ]]; then export SRC_PREFIX="-src"; fi
-    - aws s3 cp $CI_PROJECT_NAME-$CI_COMMIT_REF_NAME.zip s3://$S3_BUCKET/jtl-plugins/$CI_PROJECT_NAME/$CI_PROJECT_NAME-$CI_COMMIT_REF_NAME$SRC_PREFIX.zip
+    - if [[ $S3_BUCKET ]]; then aws s3 cp $CI_PROJECT_NAME-$CI_COMMIT_REF_NAME.zip s3://$S3_BUCKET/jtl-plugins/$CI_PROJECT_NAME/$CI_PROJECT_NAME-$CI_COMMIT_REF_NAME$SRC_PREFIX.zip; fi
