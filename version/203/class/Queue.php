@@ -33,7 +33,9 @@ class Queue
             return true;
         }
 
-        $open = Shop::DB()->executeQueryPrepared("SELECT p.kBestellung, b.cStatus FROM xplugin_ws_mollie_payments p JOIN tbestellung b ON b.kBestellung = p.kBestellung WHERE b.cStatus IN ('1', '2') AND p.dCreatedAt < NOW() - INTERVAL :d HOUR",
+        $open = Shop::DB()->executeQueryPrepared("SELECT p.kBestellung, b.cStatus FROM xplugin_ws_mollie_payments p "
+            . "JOIN tbestellung b ON b.kBestellung = p.kBestellung "
+            . "WHERE b.cAbgeholt = 'Y' AND NOT p.bSynced AND b.cStatus IN ('1', '2') AND p.dCreatedAt < NOW() - INTERVAL :d HOUR",
             [':d' => $delay], 2);
 
         foreach ($open as $o) {
@@ -51,8 +53,6 @@ class Queue
                     } else {
                         $checkout->Log('AutoStorno: bereits zur WAWI synchronisiert.', LOGLEVEL_ERROR);
                     }
-                } else {
-                    $checkout->Log(sprintf('AutoStorno aktiv: %d (%s) - Method: %s', (int)$pm::ALLOW_AUTO_STORNO, $pm::METHOD, $checkout->getMollie()->method), LOGLEVEL_ERROR);
                 }
 
             } catch (Exception $e) {
