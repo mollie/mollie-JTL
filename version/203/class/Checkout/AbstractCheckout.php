@@ -593,7 +593,7 @@ abstract class AbstractCheckout
             }
             $log[] = sprintf("Cancel order '%s'.", $this->getBestellung()->cBestellNr);
 
-            if (Shop::DB()->executeQueryPrepared('UPDATE tbestellung SET cAbgeholt = "N", cStatus = :cStatus WHERE kBestellung = :kBestellung', [':cStatus' => '-1', ':kBestellung' => $this->getBestellung()->kBestellung], 3)) {
+            if (Shop::DB()->executeQueryPrepared('UPDATE tbestellung SET cAbgeholt = "Y", cStatus = :cStatus WHERE kBestellung = :kBestellung', [':cStatus' => '-1', ':kBestellung' => $this->getBestellung()->kBestellung], 3)) {
                 $this->Log(implode('\n', $log));
             }
         }
