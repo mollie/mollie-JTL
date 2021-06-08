@@ -8,6 +8,8 @@ class JTLMolliePaysafecard extends JTLMollie
 
     const ALLOW_AUTO_STORNO = true;
 
+    const ALLOW_PAYMENT_BEFORE_ORDER = true;
+
     public function getPaymentOptions(Bestellung $order, $apiType)
     {
         return $apiType === 'payment' ? ['customerReference' => $order->oKunde->kKunde] : [];

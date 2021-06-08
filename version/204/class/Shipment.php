@@ -240,7 +240,7 @@ class Shipment extends AbstractResource
      * @return $this
      * @throws Exception
      */
-    public function loadRequest($options = [])
+    public function loadRequest(&$options = [])
     {
         /** @var Versand $oVersand */
         $oVersand = $this->getLieferschein()->oVersand_arr[0];

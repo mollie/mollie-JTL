@@ -7,13 +7,13 @@ namespace ws_mollie\Checkout;
 use Exception;
 use Mollie\Api\Exceptions\ApiException;
 use Mollie\Api\Exceptions\IncompatiblePlatform;
-use Mollie\Api\Resources\Order;
 use Mollie\Api\Resources\Payment;
 use Mollie\Api\Types\PaymentStatus;
 use RuntimeException;
 use Shop;
 use ws_mollie\Checkout\Payment\Address;
 use ws_mollie\Checkout\Payment\Amount;
+use ws_mollie\Helper;
 
 /**
  * Class PaymentCheckout
@@ -156,13 +156,34 @@ class PaymentCheckout extends AbstractCheckout
 
         parent::loadRequest($options);
 
-        $this->description = 'Order ' . $this->getBestellung()->cBestellNr;
-
         foreach ($options as $key => $value) {
             $this->$key = $value;
         }
 
+
+        $this->description = $this->getDescription();
+
         return $this;
+    }
+
+    public function getDescription()
+    {
+        $descTemplate = trim(Helper::getSetting('paymentDescTpl')) ?: "Order {orderNumber}";
+        $oKunde = $this->getBestellung()->oKunde ?: $_SESSION['Kunde'];
+        return str_replace([
+            '{orderNumber}',
+            '{storeName}',
+            '{customer.firstname}',
+            '{customer.lastname}',
+            '{customer.company}',
+        ], [
+            $this->getBestellung()->cBestellNr,
+            Shop::getSettings([CONF_GLOBAL])['global']['global_shopname'],
+            $oKunde->cVorname,
+            $oKunde->cNachname,
+            $oKunde->cFirma
+
+        ], $descTemplate);
     }
 
     /**
@@ -207,7 +228,7 @@ class PaymentCheckout extends AbstractCheckout
     {
         try {
             if ($this->getMollie()) {
-                $this->getMollie()->description = 'Order ' . $this->getBestellung()->cBestellNr;
+                $this->getMollie()->description = $this->getDescription();
                 $this->getMollie()->webhookUrl = Shop::getURL() . '/?mollie=1';
                 $this->getMollie()->update();
             }

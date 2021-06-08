@@ -31,7 +31,6 @@ class JTLMolliePayPal extends JTLMollie
                 }
                 $paymentOptions['shippingAddress'] = Address::factory($order->Lieferadresse);
             }
-            $paymentOptions['description'] = 'Order ' . $order->cBestellNr;
         }
 
 

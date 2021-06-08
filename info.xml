@@ -89,6 +89,13 @@
                         <Option value="Y" sort="2"><![CDATA[Ja]]></Option>
                     </SelectboxOptions>
                 </Setting>
+                <Setting type="text" initialValue="Order {orderNumber}" sort="13" conf="Y">
+                    <Name>Payment API Beschreibung</Name>
+                    <Description>Beschreibung der Zahlung in Mollie. Folgende Variablen stehen zur Verfügung:
+                        {orderNumber}, {storeName}, {customer.firstname}, {customer.lastname}, {customer.company}
+                    </Description>
+                    <ValueName>paymentDescTpl</ValueName>
+                </Setting>
                 <Setting type="zahl" initialValue="0" sort="70" conf="Y">
                     <Name>Zahlungserinnerung</Name>
                     <Description>Soll bei fehlgeschlagener Zahlung ein Zahlungslink verschickt werden? Angabe in Minuten

@@ -89,8 +89,8 @@ try {
     }
 
     Shop::Smarty()->assign('profile', $profile)
-        ->assign('currencies', Mollie::getCurrencies())
-        ->assign('locales', Mollie::getLocales())
+        ->assign('currencies', AbstractCheckout::getCurrencies())
+        ->assign('locales', AbstractCheckout::getLocales())
         ->assign('allMethods', $allMethods)
         ->assign('settings', $oPlugin->oPluginEinstellungAssoc_arr);
     Shop::Smarty()->display($oPlugin->cAdminmenuPfad . '/tpl/paymentmethods.tpl');

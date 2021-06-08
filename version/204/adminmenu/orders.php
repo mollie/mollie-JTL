@@ -210,7 +210,7 @@ try {
         }
     }
 
-    Mollie::fixZahlungsarten();
+    // Mollie::fixZahlungsarten();
 
     $checkouts = [];
     $payments = Shop::DB()->executeQueryPrepared("SELECT * FROM xplugin_ws_mollie_payments WHERE kBestellung IS NOT NULL ORDER BY dCreatedAt DESC LIMIT 1000;", [], 2);
