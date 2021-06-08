@@ -40,6 +40,10 @@
             <CreateDate>2021-06-08</CreateDate>
             <SQL>203.sql</SQL>
         </Version>
+        <Version nr="204">
+            <CreateDate>2021-06-08</CreateDate>
+            <SQL>204.sql</SQL>
+        </Version>
         <Hooks>
             <Hook id="75">75_bestellungInDb.php</Hook>
             <Hook id="131">131_globalinclude.php</Hook>
@@ -66,12 +70,12 @@
                 <Name>Einstellungen</Name>
                 <Setting type="text" initialValue="" sort="10" conf="Y">
                     <Name>Live API Key:</Name>
-                    <Description>Füge hier deinen mollie API Key ein</Description>
+                    <Description>Füge hier deinen Mollie API Key ein</Description>
                     <ValueName>api_key</ValueName>
                 </Setting>
                 <Setting type="text" initialValue="" sort="11" conf="Y">
                     <Name>Test API Key:</Name>
-                    <Description>Füge hier deinen mollie API Key ein</Description>
+                    <Description>Füge hier deinen Mollie API Key ein</Description>
                     <ValueName>test_api_key</ValueName>
                 </Setting>
                 <Setting type="selectbox" initialValue="N" sort="12" conf="Y">
@@ -112,7 +116,7 @@
                 </Setting>
                 <Setting type="text" initialValue="" sort="15" conf="Y">
                     <Name>Profile ID:</Name>
-                    <Description>Füge hier deinen mollie Profil ID (pfl_) ein. Wird benötigt um mollie Components zu
+                    <Description>Füge hier deinen Mollie Profil ID (pfl_) ein. Wird benötigt um Mollie Components zu
                         aktivieren
                     </Description>
                     <ValueName>profileId</ValueName>
@@ -224,8 +228,8 @@
                     </Description>
                     <ValueName>supportQ</ValueName>
                     <SelectboxOptions>
-                        <Option value="Y" sort="1"><![CDATA[Ja, mollie hier anbieten]]></Option>
-                        <Option value="N" sort="2"><![CDATA[Nein, mollie hier nicht anbieten]]></Option>
+                        <Option value="Y" sort="1"><![CDATA[Ja, Mollie hier anbieten]]></Option>
+                        <Option value="N" sort="2"><![CDATA[Nein, Mollie hier nicht anbieten]]></Option>
                     </SelectboxOptions>
                 </Setting>
                 <Setting type="selectbox" initialValue="ord_tr" sort="100" conf="Y">
@@ -714,7 +718,7 @@
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
                     <Name>EPS</Name>
-                    <ChargeName>mollie</ChargeName>
+                    <ChargeName>Mollie</ChargeName>
                     <InfoText>Bezahlen Sie bequem mit EPS.</InfoText>
                 </MethodLanguage>
                 <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
@@ -836,7 +840,7 @@
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
                     <Name>ING HomePay</Name>
-                    <ChargeName>mollie</ChargeName>
+                    <ChargeName>Mollie</ChargeName>
                     <InfoText>Bezahlen Sie bequem mit ING HomePay.</InfoText>
                 </MethodLanguage>
             </Method>
@@ -977,7 +981,7 @@
                 </Setting>
             </Method>
             <Method>
-                <Name>mollie Klarna Pay Later</Name>
+                <Name>Mollie Klarna Pay Later</Name>
                 <PictureURL>img/method/klarna@2x.png</PictureURL>
                 <Sort>16</Sort>
                 <SendMail>1</SendMail>
@@ -992,7 +996,7 @@
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
                     <Name>Klarna Pay Later</Name>
-                    <ChargeName>mollie</ChargeName>
+                    <ChargeName>Mollie</ChargeName>
                     <InfoText>Bezahlen Sie bequem mit Klarna Pay Later.</InfoText>
                 </MethodLanguage>
                 <Setting type="zahl" initialValue="28" sort="45" conf="Y">
@@ -1042,7 +1046,7 @@
                 <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
                 <MethodLanguage iso="GER">
                     <Name>Przelewy24</Name>
-                    <ChargeName>mollie</ChargeName>
+                    <ChargeName>Mollie</ChargeName>
                     <InfoText>Bezahlen Sie bequem mit Przelewy24.</InfoText>
                 </MethodLanguage>
                 <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
