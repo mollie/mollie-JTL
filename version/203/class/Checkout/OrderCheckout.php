@@ -177,7 +177,7 @@ class OrderCheckout extends AbstractCheckout
         }
 
         try {
-            $req = $this->loadRequest()->jsonSerialize();
+            $req = $this->loadRequest($paymentOptions)->jsonSerialize();
             $this->order = $this->API()->Client()->orders->create($req);
             $this->Log(sprintf("Order für '%s' wurde erfolgreich angelegt: %s", $this->getBestellung()->cBestellNr, $this->order->id));
             $this->updateModel()->saveModel();
