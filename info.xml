@@ -587,7 +587,7 @@
                 <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -655,7 +655,7 @@
                 <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -683,33 +683,13 @@
                 </Setting>
             </Method>
             <Method>
-                <Name>Mollie DirectDebit</Name>
-                <PictureURL>img/method/directdebit@2x.png</PictureURL>
-                <Sort>7</Sort>
-                <SendMail>1</SendMail>
-                <Provider>mollie.com</Provider>
-                <TSCode>DIRECT_DEBIT</TSCode>
-                <PreOrder>0</PreOrder>
-                <Soap>0</Soap>
-                <Curl>1</Curl>
-                <Sockets>0</Sockets>
-                <ClassFile>JTLMollieDirectDebit.php</ClassFile>
-                <ClassName>JTLMollieDirectDebit</ClassName>
-                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-                <MethodLanguage iso="GER">
-                    <Name>SEPA Lastschrift</Name>
-                    <ChargeName>Mollie</ChargeName>
-                    <InfoText>Bezahlen Sie bequem mit SEPA Lastschrift.</InfoText>
-                </MethodLanguage>
-            </Method>
-            <Method>
                 <Name>Mollie EPS</Name>
                 <PictureURL>img/method/eps@2x.png</PictureURL>
                 <Sort>2</Sort>
                 <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -763,7 +743,7 @@
                 <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>GIROPAY</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -797,7 +777,7 @@
                 <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -825,33 +805,13 @@
                 </Setting>
             </Method>
             <Method>
-                <Name>Mollie ING HomePay</Name>
-                <PictureURL>img/method/inghomepay@2x.png</PictureURL>
-                <Sort>11</Sort>
-                <SendMail>1</SendMail>
-                <Provider>mollie.com</Provider>
-                <TSCode>OTHER</TSCode>
-                <PreOrder>0</PreOrder>
-                <Soap>0</Soap>
-                <Curl>1</Curl>
-                <Sockets>0</Sockets>
-                <ClassFile>JTLMollieINGHomePay.php</ClassFile>
-                <ClassName>JTLMollieINGHomePay</ClassName>
-                <TemplateFile>tpl/bestellabschluss.tpl</TemplateFile>
-                <MethodLanguage iso="GER">
-                    <Name>ING HomePay</Name>
-                    <ChargeName>Mollie</ChargeName>
-                    <InfoText>Bezahlen Sie bequem mit ING HomePay.</InfoText>
-                </MethodLanguage>
-            </Method>
-            <Method>
                 <Name>Mollie KBC</Name>
                 <PictureURL>img/method/kbc@2x.png</PictureURL>
                 <Sort>12</Sort>
                 <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -885,7 +845,7 @@
                 <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>PAYPAL</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -919,7 +879,7 @@
                 <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -953,7 +913,7 @@
                 <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>DIRECT_E_BANKING</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -987,7 +947,7 @@
                 <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>INVOICE</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -1012,7 +972,7 @@
                 <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>FINANCING</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -1037,7 +997,7 @@
                 <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
@@ -1071,7 +1031,7 @@
                 <SendMail>1</SendMail>
                 <Provider>mollie.com</Provider>
                 <TSCode>OTHER</TSCode>
-                <PreOrder>0</PreOrder>
+                <PreOrder>1</PreOrder>
                 <Soap>0</Soap>
                 <Curl>1</Curl>
                 <Sockets>0</Sockets>
