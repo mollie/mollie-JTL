@@ -484,7 +484,7 @@
                 </MethodLanguage>
                 <Setting type="selectbox" initialValue="order" sort="10" conf="Y">
                     <Name>API</Name>
-                    <Description>Welche API soll verwendet werden?</Description>
+                    <Description><![CDATA[Welche API soll verwendet werden? Klicke <a href="https://docs.mollie.com/orders/why-use-orders" target="_blank">hier</a> für mehr Informationen.]]></Description>
                     <ValueName>api</ValueName>
                     <SelectboxOptions>
                         <Option value="order" sort="1"><![CDATA[Order API]]></Option>
@@ -519,9 +519,8 @@
                 </MethodLanguage>
                 <Setting type="selectbox" initialValue="S" sort="30" conf="Y">
                     <Name>Mollie Components</Name>
-                    <Description>Wenn diese Einstellung aktiviert ist, werden die Kreditkarten ggf. bereits im Shop
-                        abgefragt.
-                    </Description>
+                    <Description><![CDATA[Wenn diese Einstellung aktiviert ist, werden die Kreditkarten ggf. bereits im Shop
+                        abgefragt. Klicke <a href="https://www.mollie.com/en/news/post/better-checkout-flows-with-mollie-components" target="_blank">hier</a> für weitere Informationen]]></Description>
                     <ValueName>components</ValueName>
                     <SelectboxOptions>
                         <Option value="S" sort="1"><![CDATA[Ja, optional]]></Option>
@@ -540,7 +539,7 @@
                 </Setting>
                 <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
                     <Name>API</Name>
-                    <Description>Welche API soll verwendet werden?</Description>
+                    <Description><![CDATA[Welche API soll verwendet werden? Klicke <a href="https://docs.mollie.com/orders/why-use-orders" target="_blank">hier</a> für mehr Informationen.]]></Description>
                     <ValueName>api</ValueName>
                     <SelectboxOptions>
                         <Option value="order" sort="1"><![CDATA[Order API]]></Option>
@@ -574,7 +573,7 @@
                 </MethodLanguage>
                 <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
                     <Name>API</Name>
-                    <Description>Welche API soll verwendet werden?</Description>
+                    <Description><![CDATA[Welche API soll verwendet werden? Klicke <a href="https://docs.mollie.com/orders/why-use-orders" target="_blank">hier</a> für mehr Informationen.]]></Description>
                     <ValueName>api</ValueName>
                     <SelectboxOptions>
                         <Option value="order" sort="1"><![CDATA[Order API]]></Option>
@@ -608,7 +607,7 @@
                 </MethodLanguage>
                 <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
                     <Name>API</Name>
-                    <Description>Welche API soll verwendet werden?</Description>
+                    <Description><![CDATA[Welche API soll verwendet werden? Klicke <a href="https://docs.mollie.com/orders/why-use-orders" target="_blank">hier</a> für mehr Informationen.]]></Description>
                     <ValueName>api</ValueName>
                     <SelectboxOptions>
                         <Option value="order" sort="1"><![CDATA[Order API]]></Option>
@@ -642,7 +641,7 @@
                 </MethodLanguage>
                 <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
                     <Name>API</Name>
-                    <Description>Welche API soll verwendet werden?</Description>
+                    <Description><![CDATA[Welche API soll verwendet werden? Klicke <a href="https://docs.mollie.com/orders/why-use-orders" target="_blank">hier</a> für mehr Informationen.]]></Description>
                     <ValueName>api</ValueName>
                     <SelectboxOptions>
                         <Option value="order" sort="1"><![CDATA[Order API]]></Option>
@@ -676,7 +675,7 @@
                 </MethodLanguage>
                 <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
                     <Name>API</Name>
-                    <Description>Welche API soll verwendet werden?</Description>
+                    <Description><![CDATA[Welche API soll verwendet werden? Klicke <a href="https://docs.mollie.com/orders/why-use-orders" target="_blank">hier</a> für mehr Informationen.]]></Description>
                     <ValueName>api</ValueName>
                     <SelectboxOptions>
                         <Option value="order" sort="1"><![CDATA[Order API]]></Option>
@@ -710,7 +709,7 @@
                 </MethodLanguage>
                 <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
                     <Name>API</Name>
-                    <Description>Welche API soll verwendet werden?</Description>
+                    <Description><![CDATA[Welche API soll verwendet werden? Klicke <a href="https://docs.mollie.com/orders/why-use-orders" target="_blank">hier</a> für mehr Informationen.]]></Description>
                     <ValueName>api</ValueName>
                     <SelectboxOptions>
                         <Option value="order" sort="1"><![CDATA[Order API]]></Option>
@@ -764,7 +763,7 @@
                 </MethodLanguage>
                 <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
                     <Name>API</Name>
-                    <Description>Welche API soll verwendet werden?</Description>
+                    <Description><![CDATA[Welche API soll verwendet werden? Klicke <a href="https://docs.mollie.com/orders/why-use-orders" target="_blank">hier</a> für mehr Informationen.]]></Description>
                     <ValueName>api</ValueName>
                     <SelectboxOptions>
                         <Option value="order" sort="1"><![CDATA[Order API]]></Option>
@@ -798,7 +797,7 @@
                 </MethodLanguage>
                 <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
                     <Name>API</Name>
-                    <Description>Welche API soll verwendet werden?</Description>
+                    <Description><![CDATA[Welche API soll verwendet werden? Klicke <a href="https://docs.mollie.com/orders/why-use-orders" target="_blank">hier</a> für mehr Informationen.]]></Description>
                     <ValueName>api</ValueName>
                     <SelectboxOptions>
                         <Option value="order" sort="1"><![CDATA[Order API]]></Option>
@@ -832,7 +831,7 @@
                 </MethodLanguage>
                 <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
                     <Name>API</Name>
-                    <Description>Welche API soll verwendet werden?</Description>
+                    <Description><![CDATA[Welche API soll verwendet werden? Klicke <a href="https://docs.mollie.com/orders/why-use-orders" target="_blank">hier</a> für mehr Informationen.]]></Description>
                     <ValueName>api</ValueName>
                     <SelectboxOptions>
                         <Option value="order" sort="1"><![CDATA[Order API]]></Option>
@@ -866,7 +865,7 @@
                 </MethodLanguage>
                 <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
                     <Name>API</Name>
-                    <Description>Welche API soll verwendet werden?</Description>
+                    <Description><![CDATA[Welche API soll verwendet werden? Klicke <a href="https://docs.mollie.com/orders/why-use-orders" target="_blank">hier</a> für mehr Informationen.]]></Description>
                     <ValueName>api</ValueName>
                     <SelectboxOptions>
                         <Option value="order" sort="1"><![CDATA[Order API]]></Option>
@@ -900,7 +899,7 @@
                 </MethodLanguage>
                 <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
                     <Name>API</Name>
-                    <Description>Welche API soll verwendet werden?</Description>
+                    <Description><![CDATA[Welche API soll verwendet werden? Klicke <a href="https://docs.mollie.com/orders/why-use-orders" target="_blank">hier</a> für mehr Informationen.]]></Description>
                     <ValueName>api</ValueName>
                     <SelectboxOptions>
                         <Option value="order" sort="1"><![CDATA[Order API]]></Option>
@@ -934,7 +933,7 @@
                 </MethodLanguage>
                 <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
                     <Name>API</Name>
-                    <Description>Welche API soll verwendet werden?</Description>
+                    <Description><![CDATA[Welche API soll verwendet werden? Klicke <a href="https://docs.mollie.com/orders/why-use-orders" target="_blank">hier</a> für mehr Informationen.]]></Description>
                     <ValueName>api</ValueName>
                     <SelectboxOptions>
                         <Option value="order" sort="1"><![CDATA[Order API]]></Option>
@@ -1018,7 +1017,7 @@
                 </MethodLanguage>
                 <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
                     <Name>API</Name>
-                    <Description>Welche API soll verwendet werden?</Description>
+                    <Description><![CDATA[Welche API soll verwendet werden? Klicke <a href="https://docs.mollie.com/orders/why-use-orders" target="_blank">hier</a> für mehr Informationen.]]></Description>
                     <ValueName>api</ValueName>
                     <SelectboxOptions>
                         <Option value="order" sort="1"><![CDATA[Order API]]></Option>
@@ -1052,7 +1051,7 @@
                 </MethodLanguage>
                 <Setting type="selectbox" initialValue="order" sort="40" conf="Y">
                     <Name>API</Name>
-                    <Description>Welche API soll verwendet werden?</Description>
+                    <Description><![CDATA[Welche API soll verwendet werden? Klicke <a href="https://docs.mollie.com/orders/why-use-orders" target="_blank">hier</a> für mehr Informationen.]]></Description>
                     <ValueName>api</ValueName>
                     <SelectboxOptions>
                         <Option value="order" sort="1"><![CDATA[Order API]]></Option>
