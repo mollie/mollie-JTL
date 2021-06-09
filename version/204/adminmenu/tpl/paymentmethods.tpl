@@ -97,9 +97,9 @@
                             <div>
                                 <b>Bestellabschluss:</b>
                                 {if intval($method->shop->nWaehrendBestellung) === 1}
-                                    <span class="label label-info">VOR Zahlung</span>
-                                {else}
                                     <span class="label label-info">NACH Zahlung</span>
+                                {else}
+                                    <span class="label label-info">VOR Zahlung</span>
                                 {/if}
                             </div>
                         {/if}
