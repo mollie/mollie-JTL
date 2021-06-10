@@ -182,7 +182,6 @@ class Queue
                                             if (is_string($shipment)) {
                                                 $checkout->PaymentMethod()->Log("Shipping-Error: $shipment", $checkout->LogData());
                                                 $result .= "Shipping-Error: $shipment;\n";
-
                                             } else {
                                                 $checkout->PaymentMethod()->Log("Order shipped: \n" . print_r($shipment, 1));
                                                 $result .= "Order shipped: $shipment->id;\n";

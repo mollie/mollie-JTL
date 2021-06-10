@@ -1,6 +1,6 @@
 <h3>{$mollieLang.cctitle}</h3>
 
-<div class="form-horizontal">
+<div class="form-horizontal" id="mollie-cc-form">
 
     <div id="mollieError"></div>
 
@@ -86,8 +86,9 @@
 
 <script src="https://js.mollie.com/v1/mollie.js"></script>
 
-<script>
+<script defer>
     // <!--
+
     const skipLink = document.getElementById('skipMollieComponents');
     const cardToken = document.getElementById('cardToken');
     const form = document.getElementById("form_payment_extra");

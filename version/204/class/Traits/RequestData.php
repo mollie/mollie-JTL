@@ -14,6 +14,9 @@ trait RequestData
 
     public function jsonSerialize()
     {
+        if (json_encode($this->requestData) === false) {
+            throw new \RuntimeException(sprintf("JSON Encode Error: %s\n%s", json_last_error_msg(), print_r($this->requestData, 1)));
+        }
         return $this->requestData;
     }
 
