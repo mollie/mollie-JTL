@@ -184,7 +184,7 @@ class Queue
                                                 $result .= "Shipping-Error: $shipment;\n";
 
                                             } else {
-                                                $checkout->PaymentMethod()->Log("Order shipped: \n" . print_r($shipment, 1));
+                                                $checkout->PaymentMethod()->Log("Order shipped: $shipment->id");
                                                 $result .= "Order shipped: $shipment->id;\n";
                                             }
                                         }
