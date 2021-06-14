@@ -106,7 +106,7 @@ class Queue
      */
     private static function getOpen($limit)
     {
-        $open = Shop::DB()->executeQueryPrepared(sprintf("SELECT * FROM %s WHERE dDone IS NULL AND `bLock` IS NULL ORDER BY dCreated DESC LIMIT 0, :LIMIT;", QueueModel::TABLE), [
+        $open = Shop::DB()->executeQueryPrepared(sprintf("SELECT * FROM %s WHERE dDone IS NULL AND `bLock` IS NULL AND (cType LIKE 'webhook:%%' OR (cType LIKE 'hook:%%') AND dCreated < DATE_SUB(NOW(), INTERVAL 3 MINUTE)) ORDER BY dCreated DESC LIMIT 0, :LIMIT;", QueueModel::TABLE), [
             ':LIMIT' => $limit
         ], 2);
 
