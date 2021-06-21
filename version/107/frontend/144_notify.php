@@ -32,12 +32,6 @@ try {
     $logData = '$' . $orderId;
 
     if ($oZahlungSession = JTLMollie::getZahlungSession(md5(trim($sh, '_')))) {
-
-        if(trim($oZahlungSession->cNotifyID) === ''){
-            $oZahlungSession->cNotifyID = $orderId;
-            Shop::DB()->update('tzahlungsession', 'cZahlungsID', $oZahlungSession->cZahlungsID, $oZahlungSession);
-        }
-
         if ((int)$oZahlungSession->kBestellung <= 0) {
             // Bestellung noch nicht abgeschlossen, weiter mit standard
             Mollie::JTLMollie()->doLog("Hook 144: orderId open, finalize with shop standard: {$orderId} / {$oZahlungSession->cZahlungsID}", $logData, LOGLEVEL_NOTICE);

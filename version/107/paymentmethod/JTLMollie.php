@@ -1,6 +1,5 @@
 <?php
 
-use GuzzleHttp\Client;
 use Mollie\Api\Exceptions\ApiException;
 use Mollie\Api\Exceptions\IncompatiblePlatform;
 use Mollie\Api\MollieApiClient;
@@ -170,6 +169,7 @@ class JTLMollie extends PaymentMethod
 
         try {
 
+
             if (!$payable) {
                 $bestellung = finalisiereBestellung();
                 if ($bestellung && (int)$bestellung->kBestellung > 0) {
@@ -194,23 +194,16 @@ class JTLMollie extends PaymentMethod
             $this->doLog('Mollie Create Payment Redirect: ' . $oMolliePayment->getCheckoutUrl() . "<br/><pre>" . print_r($oMolliePayment, 1) . "</pre>", $logData, LOGLEVEL_DEBUG);
             Payment::updateFromPayment($oMolliePayment, $order->kBestellung, md5(trim($hash, '_')));
             Shop::Smarty()->assign('oMolliePayment', $oMolliePayment);
-
             if (!$this->duringCheckout) {
                 Session::getInstance()->cleanUp();
             }
-
-            if (!$oMolliePayment->getCheckoutUrl() && ($oMolliePayment->isAuthorized() || $oMolliePayment->isPaid())) {
-                header('Location: ' . $oMolliePayment->redirectUrl);
-                echo "<a href='{$oMolliePayment->redirectUrl}'>redirect to order ...</a>";
-            } else {
-                header('Location: ' . $oMolliePayment->getCheckoutUrl());
-                echo "<a href='{$oMolliePayment->getCheckoutUrl()}'>redirect to payment ...</a>";
-            }
+            header('Location: ' . $oMolliePayment->getCheckoutUrl());
             unset($_SESSION['oMolliePayment']);
+            echo "<a href='{$oMolliePayment->getCheckoutUrl()}'>redirect to payment ...</a>";
             exit();
         } catch (ApiException $e) {
             $this->doLog("Create Payment Error: " . $e->getMessage() . '<br/><pre>' . print_r($orderData, 1) . '</pre>', $logData, LOGLEVEL_ERROR);
-            //header('Location: ' . Shop::getURL() . '/bestellvorgang.php?editZahlungsart=1&mollieStatus=failed');
+            header('Location: ' . Shop::getURL() . '/bestellvorgang.php?editZahlungsart=1&mollieStatus=failed');
             echo "<a href='" . Shop::getURL() . '/bestellvorgang.php?editZahlungsart=1&mollieStatus=failed' . "'>redirect...</a>";
             exit();
         }
@@ -271,10 +264,7 @@ class JTLMollie extends PaymentMethod
     {
         Helper::init();
         if (self::$_mollie === null) {
-            self::$_mollie = new MollieApiClient(new Client([
-                \GuzzleHttp\RequestOptions::VERIFY => \Composer\CaBundle\CaBundle::getBundledCaBundlePath(),
-                \GuzzleHttp\RequestOptions::TIMEOUT => 60,
-            ]));
+            self::$_mollie = new MollieApiClient();
             self::$_mollie->setApiKey(Helper::getSetting('api_key'));
             self::$_mollie->addVersionString("JTL-Shop/" . JTL_VERSION . '.' . JTL_MINOR_VERSION);
             self::$_mollie->addVersionString("ws_mollie/" . Helper::oPlugin()->nVersion);
@@ -384,7 +374,7 @@ class JTLMollie extends PaymentMethod
         $data['billingAddress']->country = $order->oRechnungsadresse->cLand;
 
         if (array_key_exists('Kunde', $_SESSION)) {
-            if (isset($_SESSION['Kunde']->dGeburtstag) && preg_match('/^\d{4}-\d{2}-\d{2}$/', trim($_SESSION['Kunde']->dGeburtstag)) && trim($_SESSION['Kunde']->dGeburtstag) !== '0000-00-00') {
+            if (isset($_SESSION['Kunde']->dGeburtstag) && preg_match('/^\d{4}-\d{2}-\d{2}/$', trim($_SESSION['Kunde']->dGeburtstag))) {
                 $data['consumerDateOfBirth'] = trim($_SESSION['Kunde']->dGeburtstag);
             }
             if (isset($_SESSION['Kunde']->cAdressZusatz) && trim($_SESSION['Kunde']->cAdressZusatz) !== '') {
