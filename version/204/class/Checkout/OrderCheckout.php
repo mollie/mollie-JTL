@@ -288,8 +288,9 @@ class OrderCheckout extends AbstractCheckout
 
         if ($dueDays = $this->PaymentMethod()->getExpiryDays()) {
             try {
-                $max = $this->method && strpos($this->method, 'klarna') !== false ? 28 : 100;
-                $date = new DateTime(sprintf("+%d DAYS", min($dueDays, $max)), new DateTimeZone('UTC'));
+                // #145
+                //$max = $this->method && strpos($this->method, 'klarna') !== false ? 28 : 100;
+                $date = new DateTime(sprintf("+%d DAYS", $dueDays), new DateTimeZone('UTC'));
                 $this->expiresAt = $date->format('Y-m-d');
             } catch (Exception $e) {
                 $this->Log($e->getMessage(), LOGLEVEL_ERROR);
