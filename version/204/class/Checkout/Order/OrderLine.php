@@ -94,7 +94,7 @@ class OrderLine extends AbstractResource
     public static function factory($oPosition, $currency = null)
     {
         if (!$oPosition) {
-            throw new RuntimeException('$oPosition invalid:', print_r($oPosition,1));
+            throw new RuntimeException('$oPosition invalid:', print_r($oPosition, 1));
         }
 
         $resource = new static();
@@ -138,10 +138,10 @@ class OrderLine extends AbstractResource
 
         // Fraction? include quantity and unit in name
         $this->name = $isFrac ? sprintf("%s (%.2f %s)", $oPosition->cName, (float)$oPosition->nAnzahl, $oPosition->cEinheit) : $oPosition->cName;
-        if(!$this->name){
+        if (!$this->name) {
             $this->name = '(null)';
         }
-        $this->mapType($oPosition->nPosTyp);
+        $this->mapType($oPosition->nPosTyp, $netto > 0);
 
         //$unitPriceNetto = round(($currency->fFaktor * $netto), 4);
 
@@ -192,7 +192,7 @@ class OrderLine extends AbstractResource
      * @param $nPosTyp
      * @return OrderLine
      */
-    protected function mapType($nPosTyp)
+    protected function mapType($nPosTyp, $positive)
     {
         switch ($nPosTyp) {
             case C_WARENKORBPOS_TYP_ARTIKEL:
@@ -205,6 +205,12 @@ class OrderLine extends AbstractResource
                 $this->type = OrderLineType::TYPE_SHIPPING_FEE;
                 return $this;
 
+            case C_WARENKORBPOS_TYP_GUTSCHEIN:
+            case C_WARENKORBPOS_TYP_KUPON:
+            case C_WARENKORBPOS_TYP_NEUKUNDENKUPON:
+                $this->type = OrderLineType::TYPE_DISCOUNT;
+                return $this;
+
             case C_WARENKORBPOS_TYP_VERPACKUNG:
             case C_WARENKORBPOS_TYP_VERSANDZUSCHLAG:
             case C_WARENKORBPOS_TYP_ZAHLUNGSART:
@@ -213,15 +219,11 @@ class OrderLine extends AbstractResource
                 $this->type = OrderLineType::TYPE_SURCHARGE;
                 return $this;
 
-            case C_WARENKORBPOS_TYP_GUTSCHEIN:
-            case C_WARENKORBPOS_TYP_KUPON:
-            case C_WARENKORBPOS_TYP_NEUKUNDENKUPON:
-                $this->type = OrderLineType::TYPE_DISCOUNT;
-                return $this;
+            default:
+                $this->type = $positive ? OrderLineType::TYPE_SURCHARGE : OrderLineType::TYPE_DISCOUNT;
 
         }
 
-        throw new RuntimeException('Unknown PosTyp.', (int)$nPosTyp);
     }
 
 }
