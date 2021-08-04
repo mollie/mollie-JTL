@@ -351,6 +351,12 @@ class OrderCheckout extends AbstractCheckout
                 $this->getMollie()->webhookUrl = Shop::getURL() . '/?mollie=1';
                 $this->getMollie()->update();
             }
+            if ($this->getModel()->cTransactionId) {
+                $this->API()->Client()->payments->update($this->getModel()->cTransactionId, [
+                    'description' => $this->getDescription()
+                ]);
+            }
+
         } catch (Exception $e) {
             $this->Log('OrderCheckout::updateOrderNumber:' . $e->getMessage(), LOGLEVEL_ERROR);
         }

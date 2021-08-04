@@ -134,7 +134,7 @@ abstract class AbstractCheckout
                     if (strpos($id, 'tr_') === 0) {
                         $mollie = $api->Client()->payments->get($id);
                     } else {
-                        $mollie = $api->Client()->orders->get($id);
+                        $mollie = $api->Client()->orders->get($id, ['embed' => 'payments']);
                     }
 
                     if (in_array($mollie->status, [OrderStatus::STATUS_PENDING, OrderStatus::STATUS_AUTHORIZED, OrderStatus::STATUS_PAID], true)) {
@@ -163,7 +163,7 @@ abstract class AbstractCheckout
                             }
                             $checkout = new $checkoutClass($order, $api);
                         }
-                        $checkout->setMollie($mollie);
+                        $checkout->setMollie($mollie)->updateModel()->saveModel();
                         $checkout->updateOrderNumber();
                         $checkout->handleNotification($sessionHash);
                     }
@@ -226,6 +226,39 @@ abstract class AbstractCheckout
     }
 
     /**
+     * @return bool
+     */
+    public function saveModel()
+    {
+        return $this->getModel()->save();
+    }
+
+    /**
+     * @return Payment
+     */
+    public function getModel()
+    {
+        if (!$this->model) {
+            $this->model = Payment::fromID($this->oBestellung->kBestellung, 'kBestellung');
+        }
+        return $this->model;
+    }
+
+    /**
+     * @param $model
+     * @return $this
+     */
+    protected function setModel($model)
+    {
+        if (!$this->model) {
+            $this->model = $model;
+        } else {
+            throw new RuntimeException('Model already set.');
+        }
+        return $this;
+    }
+
+    /**
      * @param null $hash
      * @throws Exception
      */
@@ -272,31 +305,6 @@ abstract class AbstractCheckout
     }
 
     /**
-     * @return Payment
-     */
-    public function getModel()
-    {
-        if (!$this->model) {
-            $this->model = Payment::fromID($this->oBestellung->kBestellung, 'kBestellung');
-        }
-        return $this->model;
-    }
-
-    /**
-     * @param $model
-     * @return $this
-     */
-    protected function setModel($model)
-    {
-        if (!$this->model) {
-            $this->model = $model;
-        } else {
-            throw new RuntimeException('Model already set.');
-        }
-        return $this;
-    }
-
-    /**
      * @return JTLMollie
      */
     public function PaymentMethod()
@@ -325,14 +333,6 @@ abstract class AbstractCheckout
             $this->oBestellung = new Bestellung($this->getModel()->kBestellung, true);
         }
         return $this->oBestellung;
-    }
-
-    /**
-     * @return bool
-     */
-    public function saveModel()
-    {
-        return $this->getModel()->save();
     }
 
     /**
@@ -1142,6 +1142,26 @@ abstract class AbstractCheckout
         return Shop::getURL(true) . '/?m_pay=' . md5($this->getModel()->kID . '-' . $this->getBestellung()->kBestellung);
     }
 
+    public function getDescription()
+    {
+        $descTemplate = trim(Helper::getSetting('paymentDescTpl')) ?: "Order {orderNumber}";
+        $oKunde = $this->getBestellung()->oKunde ?: $_SESSION['Kunde'];
+        return str_replace([
+            '{orderNumber}',
+            '{storeName}',
+            '{customer.firstname}',
+            '{customer.lastname}',
+            '{customer.company}',
+        ], [
+            $this->getBestellung()->cBestellNr,
+            Shop::getSettings([CONF_GLOBAL])['global']['global_shopname'],
+            $oKunde->cVorname,
+            $oKunde->cNachname,
+            $oKunde->cFirma
+
+        ], $descTemplate);
+    }
+
     abstract protected function updateOrderNumber();
 
     /**
@@ -1159,6 +1179,4 @@ abstract class AbstractCheckout
      * @return self
      */
     abstract protected function setMollie($model);
-
-
 }

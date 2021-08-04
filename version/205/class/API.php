@@ -4,9 +4,6 @@
 namespace ws_mollie;
 
 
-use Composer\CaBundle\CaBundle;
-use GuzzleHttp\Client;
-use GuzzleHttp\RequestOptions;
 use Mollie\Api\Exceptions\ApiException;
 use Mollie\Api\Exceptions\IncompatiblePlatform;
 use Mollie\Api\MollieApiClient;
@@ -55,10 +52,10 @@ class API
     public function Client()
     {
         if (!$this->client) {
-            $this->client = new MollieApiClient(new Client([
+            $this->client = new MollieApiClient(/*new Client([
                 RequestOptions::VERIFY => CaBundle::getBundledCaBundlePath(),
                 RequestOptions::TIMEOUT => 60
-            ]));
+            ])*/);
             $this->client->setApiKey($this->isTest() ? self::Plugin()->oPluginEinstellungAssoc_arr['test_api_key'] : self::Plugin()->oPluginEinstellungAssoc_arr['api_key'])
                 ->addVersionString('JTL-Shop/' . JTL_VERSION . JTL_MINOR_VERSION)
                 ->addVersionString('ws_mollie/' . self::Plugin()->nVersion);
