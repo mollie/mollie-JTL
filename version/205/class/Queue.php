@@ -170,6 +170,11 @@ class Queue
                         if (!$status || $status < BESTELLUNG_STATUS_VERSANDT) {
                             return $todo->done("Bestellung noch nicht versendet: {$checkout->getBestellung()->cStatus}");
                         }
+                        if (!count($checkout->getBestellung()->oLieferschein_arr)){
+                            $todo->dCreated = date('Y-m-d H:i:s', strtotime('+3 MINUTES'));
+                            $todo->cResult = 'Noch keine Lieferscheine, delay...';
+                            return $todo->save();
+                        }
 
                         /** @var $method JTLMollie */
                         if ((strpos($checkout->getModel()->kID, 'tr_') === false)
@@ -229,7 +234,7 @@ class Queue
      */
     protected static function unlock($todo)
     {
-        return $todo->kId && Shop::DB()->executeQueryPrepared(sprintf('UPDATE %s SET `bLock` = NULL WHERE kId = :kId', QueueModel::TABLE), [
+        return $todo->kId && Shop::DB()->executeQueryPrepared(sprintf('UPDATE %s SET `bLock` = NULL WHERE kId = :kId OR bLock < DATE_SUB(NOW(), INTERVAL 15 MINUTE)', QueueModel::TABLE), [
                 'kId' => $todo->kId
             ], 3) >= 1;
     }
