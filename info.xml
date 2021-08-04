@@ -46,6 +46,7 @@
         </Version>
         <Version nr="205">
             <CreateDate>2021-08-04</CreateDate>
+            <SQL>205.sql</SQL>
         </Version>
         <Hooks>
             <Hook id="75">75_bestellungInDb.php</Hook>

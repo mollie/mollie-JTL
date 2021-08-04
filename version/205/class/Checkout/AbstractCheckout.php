@@ -478,6 +478,12 @@ abstract class AbstractCheckout
 
         $checkout = self::fromID($kID);
         $return = true;
+
+        if (!$checkout->getBestellung()->kBestellung || (int)$checkout->getBestellung()->cStatus > BESTELLUNG_STATUS_IN_BEARBEITUNG || (int)$checkout->getBestellung()->cStatus < 0) {
+            return $return;
+        }
+
+
         try {
             $repayURL = Shop::getURL() . '/?m_pay=' . md5($checkout->getModel()->kID . '-' . $checkout->getBestellung()->kBestellung);
 
