@@ -174,7 +174,7 @@ abstract class AbstractCheckout
                     Queue::saveToQueue($id, $id, 'webhook');
                 }
             } else {
-                Jtllog::writeLog(sprintf('PaymentSession nicht gefunden: %s - ID: %s => Queue', $sessionHash, $id), JTLLOG_LEVEL_ERROR);
+                Jtllog::writeLog(sprintf('PaymentSession nicht gefunden: %s - ID: %s => Queue', $sessionHash, $id), JTLLOG_LEVEL_NOTICE);
                 Queue::saveToQueue($id, $id, 'webhook');
             }
         } catch (Exception $e) {
