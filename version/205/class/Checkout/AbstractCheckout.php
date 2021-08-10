@@ -1,7 +1,10 @@
 <?php
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 namespace ws_mollie\Checkout;
-
 
 use Artikel;
 use ArtikelHelper;
@@ -34,8 +37,8 @@ use ZahlungsLog;
 
 abstract class AbstractCheckout
 {
-
-    use RequestData, Plugin;
+    use RequestData;
+    use Plugin;
 
     protected static $localeLangs = [
         'ger' => ['lang' => 'de', 'country' => ['DE', 'AT', 'CH']],
@@ -54,7 +57,7 @@ abstract class AbstractCheckout
         'eng' => ['lang' => 'en', 'country' => ['GB', 'US']],
     ];
     /**
-     * @var \Mollie\Api\Resources\Customer|null
+     * @var null|\Mollie\Api\Resources\Customer
      */
     protected $customer;
     /**
@@ -81,16 +84,16 @@ abstract class AbstractCheckout
     /**
      * AbstractCheckout constructor.
      * @param Bestellung $oBestellung
-     * @param null $api
+     * @param null       $api
      */
     public function __construct(Bestellung $oBestellung, $api = null)
     {
-        $this->api = $api;
+        $this->api         = $api;
         $this->oBestellung = $oBestellung;
     }
 
     /**
-     * @param int $kBestellung
+     * @param int  $kBestellung
      * @param bool $checkZA
      * @return bool
      */
@@ -99,8 +102,9 @@ abstract class AbstractCheckout
         if ($checkZA) {
             $res = Shop::DB()->executeQueryPrepared('SELECT * FROM tzahlungsart WHERE cModulId LIKE :cModulId AND kZahlungsart = :kZahlungsart', [
                 ':kZahlungsart' => $kBestellung,
-                ':cModulId' => 'kPlugin_' . self::Plugin()->kPlugin . '_%'
+                ':cModulId'     => 'kPlugin_' . self::Plugin()->kPlugin . '_%'
             ], 1);
+
             return (bool)$res;
         }
 
@@ -125,9 +129,8 @@ abstract class AbstractCheckout
                     && (!isset($paymentSession->kBestellung) || !$paymentSession->kBestellung)
                     && isset($_SESSION['Warenkorb']->PositionenArr)
                     && count($_SESSION['Warenkorb']->PositionenArr)) {
-
                     $paymentSession->cNotifyID = $id;
-                    $paymentSession->dNotify = 'now()';
+                    $paymentSession->dNotify   = 'now()';
                     Shop::DB()->update('tzahlungsession', 'cZahlungsID', $sessionHash, $paymentSession);
 
                     $api = new API($test);
@@ -142,14 +145,13 @@ abstract class AbstractCheckout
                         require_once PFAD_ROOT . PFAD_INCLUDES . 'mailTools.php';
                         $order = finalisiereBestellung();
                         $session->cleanUp();
-                        $paymentSession->nBezahlt = 1;
+                        $paymentSession->nBezahlt     = 1;
                         $paymentSession->dZeitBezahlt = 'now()';
                     } else {
                         throw new Exception('Mollie Status invalid: ' . $mollie->status . '\n' . print_r([$sessionHash, $id], 1));
                     }
 
                     if ($order->kBestellung) {
-
                         $paymentSession->kBestellung = $order->kBestellung;
                         Shop::DB()->update('tzahlungsession', 'cZahlungsID', $sessionHash, $paymentSession);
 
@@ -181,24 +183,25 @@ abstract class AbstractCheckout
     }
 
     /**
-     * @param string $id
-     * @param bool $bFill
-     * @param Bestellung|null $order
-     * @return OrderCheckout|PaymentCheckout
+     * @param string          $id
+     * @param bool            $bFill
+     * @param null|Bestellung $order
      * @throws RuntimeException
+     * @return OrderCheckout|PaymentCheckout
      */
     public static function fromID($id, $bFill = true, Bestellung $order = null)
     {
         if (($model = Payment::fromID($id))) {
             return static::fromModel($model, $bFill, $order);
         }
+
         throw new RuntimeException(sprintf('Error loading Order: %s', $id));
     }
 
     /**
-     * @param Payment $model
-     * @param bool $bFill
-     * @param Bestellung|null $order
+     * @param Payment         $model
+     * @param bool            $bFill
+     * @param null|Bestellung $order
      * @return OrderCheckout|PaymentCheckout
      */
     public static function fromModel($model, $bFill = true, Bestellung $order = null)
@@ -222,6 +225,7 @@ abstract class AbstractCheckout
         }
 
         $self->setModel($model);
+
         return $self;
     }
 
@@ -241,6 +245,7 @@ abstract class AbstractCheckout
         if (!$this->model) {
             $this->model = Payment::fromID($this->oBestellung->kBestellung, 'kBestellung');
         }
+
         return $this->model;
     }
 
@@ -255,6 +260,7 @@ abstract class AbstractCheckout
         } else {
             throw new RuntimeException('Model already set.');
         }
+
         return $this;
     }
 
@@ -301,6 +307,7 @@ abstract class AbstractCheckout
         if (!$this->hash) {
             $this->hash = $this->PaymentMethod()->generateHash($this->oBestellung);
         }
+
         return $this->hash;
     }
 
@@ -310,7 +317,7 @@ abstract class AbstractCheckout
     public function PaymentMethod()
     {
         if (!$this->paymentMethod) {
-            include_once(PFAD_ROOT . PFAD_INCLUDES . 'modules/PaymentMethod.class.php');
+            include_once PFAD_ROOT . PFAD_INCLUDES . 'modules/PaymentMethod.class.php';
             if ($this->getBestellung()->Zahlungsart && strpos($this->getBestellung()->Zahlungsart->cModulId, "kPlugin_{$this::Plugin()->kPlugin}_") !== false) {
                 try {
                     $this->paymentMethod = PaymentMethod::create($this->getBestellung()->Zahlungsart->cModulId);
@@ -321,6 +328,7 @@ abstract class AbstractCheckout
                 $this->paymentMethod = PaymentMethod::create("kPlugin_{$this::Plugin()->kPlugin}_mollie");
             }
         }
+
         return $this->paymentMethod;
     }
 
@@ -332,6 +340,7 @@ abstract class AbstractCheckout
         if (!$this->oBestellung && $this->getModel()->kBestellung) {
             $this->oBestellung = new Bestellung($this->getModel()->kBestellung, true);
         }
+
         return $this->oBestellung;
     }
 
@@ -340,37 +349,37 @@ abstract class AbstractCheckout
      */
     public function updateModel()
     {
-
         if ($this->getMollie()) {
-            $this->getModel()->kID = $this->getMollie()->id;
-            $this->getModel()->cLocale = $this->getMollie()->locale;
-            $this->getModel()->fAmount = (float)$this->getMollie()->amount->value;
-            $this->getModel()->cMethod = $this->getMollie()->method;
+            $this->getModel()->kID       = $this->getMollie()->id;
+            $this->getModel()->cLocale   = $this->getMollie()->locale;
+            $this->getModel()->fAmount   = (float)$this->getMollie()->amount->value;
+            $this->getModel()->cMethod   = $this->getMollie()->method;
             $this->getModel()->cCurrency = $this->getMollie()->amount->currency;
-            $this->getModel()->cStatus = $this->getMollie()->status;
+            $this->getModel()->cStatus   = $this->getMollie()->status;
             if ($this->getMollie()->amountRefunded) {
                 $this->getModel()->fAmountRefunded = $this->getMollie()->amountRefunded->value;
             }
             if ($this->getMollie()->amountCaptured) {
                 $this->getModel()->fAmountCaptured = $this->getMollie()->amountCaptured->value;
             }
-            $this->getModel()->cMode = $this->getMollie()->mode ?: null;
+            $this->getModel()->cMode        = $this->getMollie()->mode ?: null;
             $this->getModel()->cRedirectURL = $this->getMollie()->redirectUrl;
-            $this->getModel()->cWebhookURL = $this->getMollie()->webhookUrl;
+            $this->getModel()->cWebhookURL  = $this->getMollie()->webhookUrl;
             $this->getModel()->cCheckoutURL = $this->getMollie()->getCheckoutUrl();
         }
 
-        $this->getModel()->kBestellung = $this->getBestellung()->kBestellung;
+        $this->getModel()->kBestellung  = $this->getBestellung()->kBestellung;
         $this->getModel()->cOrderNumber = $this->getBestellung()->cBestellNr;
-        $this->getModel()->cHash = trim($this->getHash(), '_');
+        $this->getModel()->cHash        = trim($this->getHash(), '_');
 
         $this->getModel()->bSynced = $this->getModel()->bSynced !== null ? $this->getModel()->bSynced : Helper::getSetting('onlyPaid') !== 'Y';
+
         return $this;
     }
 
     /**
      * @param false $force
-     * @return Order|\Mollie\Api\Resources\Payment|null
+     * @return null|\Mollie\Api\Resources\Payment|Order
      */
     abstract public function getMollie($force = false);
 
@@ -381,7 +390,7 @@ abstract class AbstractCheckout
 
     /**
      * @param Bestellung $oBestellung
-     * @param Payment $model
+     * @param Payment    $model
      * @return bool
      */
     public static function makeFetchable(Bestellung $oBestellung, Payment $model)
@@ -391,11 +400,13 @@ abstract class AbstractCheckout
             Shop::DB()->update('tbestellung', 'kBestellung', $oBestellung->kBestellung, (object)['cAbgeholt' => 'N']);
         }
         $model->bSynced = true;
+
         try {
             return $model->save();
         } catch (Exception $e) {
-            Jtllog::writeLog(sprintf("Fehler beim speichern des Models: %s / Bestellung: %s", $model->kID, $oBestellung->cBestellNr));
+            Jtllog::writeLog(sprintf('Fehler beim speichern des Models: %s / Bestellung: %s', $model->kID, $oBestellung->cBestellNr));
         }
+
         return false;
     }
 
@@ -409,10 +420,11 @@ abstract class AbstractCheckout
             if ($this->getMollie()) {
                 $data .= '$' . $this->getMollie()->id;
             }
-            ZahlungsLog::add($this->PaymentMethod()->moduleID, "[" . microtime(true) . " - " . $_SERVER['PHP_SELF'] . "] " . $msg, $data, $level);
+            ZahlungsLog::add($this->PaymentMethod()->moduleID, '[' . microtime(true) . ' - ' . $_SERVER['PHP_SELF'] . '] ' . $msg, $data, $level);
         } catch (Exception $e) {
             Jtllog::writeLog('Mollie Log failed: ' . $e->getMessage() . '; Previous Log: ' . print_r([$msg, $level, $data], 1));
         }
+
         return $this;
     }
 
@@ -421,26 +433,26 @@ abstract class AbstractCheckout
      */
     public function completlyPaid()
     {
-
-        if ($row = Shop::DB()->executeQueryPrepared("SELECT SUM(fBetrag) as fBetragSumme FROM tzahlungseingang WHERE kBestellung = :kBestellung", [
+        if ($row = Shop::DB()->executeQueryPrepared('SELECT SUM(fBetrag) as fBetragSumme FROM tzahlungseingang WHERE kBestellung = :kBestellung', [
             ':kBestellung' => $this->getBestellung()->kBestellung
         ], 1)) {
             return $row->fBetragSumme >= round($this->getBestellung()->fGesamtsumme * $this->getBestellung()->fWaehrungsFaktor, 2);
         }
-        return false;
 
+        return false;
     }
 
     /**
      * @param $kBestellung
-     * @return OrderCheckout|PaymentCheckout
      * * @throws RuntimeException
+     * @return OrderCheckout|PaymentCheckout
      */
     public static function fromBestellung($kBestellung)
     {
         if ($model = Payment::fromID($kBestellung, 'kBestellung')) {
             return static::fromModel($model);
         }
+
         throw new RuntimeException(sprintf('Error loading Order for Bestellung: %s', $kBestellung));
     }
 
@@ -452,9 +464,9 @@ abstract class AbstractCheckout
             return;
         }
 
-        $sql = "SELECT p.kID FROM xplugin_ws_mollie_payments p JOIN tbestellung b ON b.kBestellung = p.kBestellung "
+        $sql = 'SELECT p.kID FROM xplugin_ws_mollie_payments p JOIN tbestellung b ON b.kBestellung = p.kBestellung '
             . "WHERE (p.dReminder IS NULL OR p.dReminder = '0000-00-00 00:00:00') "
-            . "AND p.dCreatedAt < NOW() - INTERVAL :d MINUTE AND p.dCreatedAt > NOW() - INTERVAL 7 DAY "
+            . 'AND p.dCreatedAt < NOW() - INTERVAL :d MINUTE AND p.dCreatedAt > NOW() - INTERVAL 7 DAY '
             . "AND p.cStatus IN ('created','open', 'expired', 'failed', 'canceled') AND NOT b.cStatus = '-1'";
 
         $remindables = Shop::DB()->executeQueryPrepared($sql, [
@@ -464,7 +476,7 @@ abstract class AbstractCheckout
             try {
                 self::sendReminder($remindable->kID);
             } catch (Exception $e) {
-                Jtllog::writeLog("AbstractCheckout::sendReminders: " . $e->getMessage());
+                Jtllog::writeLog('AbstractCheckout::sendReminders: ' . $e->getMessage());
             }
         }
     }
@@ -475,9 +487,8 @@ abstract class AbstractCheckout
      */
     public static function sendReminder($kID)
     {
-
         $checkout = self::fromID($kID);
-        $return = true;
+        $return   = true;
 
         if (!$checkout->getBestellung()->kBestellung || (int)$checkout->getBestellung()->cStatus > BESTELLUNG_STATUS_IN_BEARBEITUNG || (int)$checkout->getBestellung()->cStatus < 0) {
             return $return;
@@ -487,50 +498,50 @@ abstract class AbstractCheckout
         try {
             $repayURL = Shop::getURL() . '/?m_pay=' . md5($checkout->getModel()->kID . '-' . $checkout->getBestellung()->kBestellung);
 
-            $data = new stdClass();
+            $data         = new stdClass();
             $data->tkunde = new Kunde($checkout->getBestellung()->oKunde->kKunde);
             if ($data->tkunde->kKunde) {
-
                 $data->Bestellung = $checkout->getBestellung();
-                $data->PayURL = $repayURL;
-                $data->Amount = gibPreisStringLocalized($checkout->getModel()->fAmount, $checkout->getBestellung()->Waehrung); //Preise::getLocalizedPriceString($order->getAmount(), Currency::fromISO($order->getCurrency()), false);
+                $data->PayURL     = $repayURL;
+                $data->Amount     = gibPreisStringLocalized($checkout->getModel()->fAmount, $checkout->getBestellung()->Waehrung); //Preise::getLocalizedPriceString($order->getAmount(), Currency::fromISO($order->getCurrency()), false);
 
                 require_once PFAD_ROOT . PFAD_INCLUDES . 'mailTools.php';
 
-                $mail = new stdClass();
+                $mail          = new stdClass();
                 $mail->toEmail = $data->tkunde->cMail;
-                $mail->toName = trim((isset($data->tKunde->cVorname)
+                $mail->toName  = trim((isset($data->tKunde->cVorname)
                         ? $data->tKunde->cVorname
                         : '') . ' ' . (
-                    isset($data->tKunde->cNachname)
+                            isset($data->tKunde->cNachname)
                         ? $data->tKunde->cNachname
                         : ''
-                    )) ?: $mail->toEmail;
+                        )) ?: $mail->toEmail;
                 $data->mail = $mail;
                 if (!($sentMail = sendeMail('kPlugin_' . self::Plugin()->kPlugin . '_zahlungserinnerung', $data))) {
                     $checkout->Log(sprintf("Zahlungserinnerung konnte nicht versand werden: %s\n%s", isset($sentMail->cFehler) ?: print_r($sentMail, 1), print_r($data, 1)), LOGLEVEL_ERROR);
                     $return = false;
                 } else {
-                    $checkout->Log(sprintf("Zahlungserinnerung für %s verschickt.", $checkout->getBestellung()->cBestellNr));
+                    $checkout->Log(sprintf('Zahlungserinnerung für %s verschickt.', $checkout->getBestellung()->cBestellNr));
                 }
             } else {
                 $checkout->Log("Kunde '{$checkout->getBestellung()->oKunde->kKunde}' nicht gefunden.", LOGLEVEL_ERROR);
             }
         } catch (Exception $e) {
-            $checkout->Log(sprintf("AbstractCheckout::sendReminder: Zahlungserinnerung für %s fehlgeschlagen: %s", $checkout->getBestellung()->cBestellNr, $e->getMessage()));
+            $checkout->Log(sprintf('AbstractCheckout::sendReminder: Zahlungserinnerung für %s fehlgeschlagen: %s', $checkout->getBestellung()->cBestellNr, $e->getMessage()));
             $return = false;
         }
         $checkout->getModel()->dReminder = date('Y-m-d H:i:s');
         $checkout->getModel()->save();
+
         return $return;
     }
 
     /**
      * @param AbstractCheckout $checkout
-     * @return BaseResource|Refund
      * @throws ApiException
+     * @return BaseResource|Refund
      */
-    public static function refund(AbstractCheckout $checkout)
+    public static function refund(self $checkout)
     {
         if ($checkout->getMollie()->resource === 'order') {
             /** @var Order $order */
@@ -540,6 +551,7 @@ abstract class AbstractCheckout
             }
             $refund = $order->refundAll();
             $checkout->Log(sprintf('Bestellung wurde manuell zurückerstattet: %s', $refund->id));
+
             return $refund;
         }
         if ($checkout->getMollie()->resource === 'payment') {
@@ -550,8 +562,10 @@ abstract class AbstractCheckout
             }
             $refund = $checkout->API()->Client()->payments->refund($checkout->getMollie(), ['amount' => $checkout->getMollie()->amount]);
             $checkout->Log(sprintf('Zahlung wurde manuell zurückerstattet: %s', $refund->id));
+
             return $refund;
         }
+
         throw new RuntimeException(sprintf('Unbekannte Resource: %s', $checkout->getMollie()->resource));
     }
 
@@ -567,13 +581,14 @@ abstract class AbstractCheckout
                 $this->api = new API(API::getMode());
             }
         }
+
         return $this->api;
     }
 
     /**
      * @param $checkout
-     * @return Order|\Mollie\Api\Resources\Payment
      * @throws ApiException
+     * @return \Mollie\Api\Resources\Payment|Order
      */
     public static function cancel($checkout)
     {
@@ -583,6 +598,7 @@ abstract class AbstractCheckout
         if ($checkout instanceof PaymentCheckout) {
             return PaymentCheckout::cancel($checkout);
         }
+
         throw new RuntimeException('AbstractCheckout::cancel: Invalid Checkout!');
     }
 
@@ -611,26 +627,26 @@ abstract class AbstractCheckout
             'lv_LV',
             'lt_LT',];
 
-        $laender = [];
-        $shopLaender = Shop::DB()->executeQuery("SELECT cLaender FROM tversandart", 2);
+        $laender     = [];
+        $shopLaender = Shop::DB()->executeQuery('SELECT cLaender FROM tversandart', 2);
         foreach ($shopLaender as $sL) {
             $laender = array_merge(explode(' ', $sL->cLaender));
         }
         $laender = array_unique($laender);
 
-        $result = [];
-        $shopSprachen = Shop::DB()->executeQuery("SELECT * FROM tsprache", 2);
+        $result       = [];
+        $shopSprachen = Shop::DB()->executeQuery('SELECT * FROM tsprache', 2);
         foreach ($shopSprachen as $sS) {
             foreach ($laender as $land) {
                 $result[] = static::getLocale($sS->cISO, $land);
             }
         }
+
         return array_intersect(array_unique($result), $locales);
     }
 
     public static function getLocale($cISOSprache = null, $country = null)
     {
-
         if ($cISOSprache === null) {
             $cISOSprache = gibStandardsprache()->cISO;
         }
@@ -641,6 +657,7 @@ abstract class AbstractCheckout
             } else {
                 $locale .= '_' . self::$localeLangs[$cISOSprache]['country'][0];
             }
+
             return $locale;
         }
 
@@ -650,164 +667,164 @@ abstract class AbstractCheckout
     public static function getCurrencies()
     {
         $currencies = ['AED' => 'AED - United Arab Emirates dirham',
-            'AFN' => 'AFN - Afghan afghani',
-            'ALL' => 'ALL - Albanian lek',
-            'AMD' => 'AMD - Armenian dram',
-            'ANG' => 'ANG - Netherlands Antillean guilder',
-            'AOA' => 'AOA - Angolan kwanza',
-            'ARS' => 'ARS - Argentine peso',
-            'AUD' => 'AUD - Australian dollar',
-            'AWG' => 'AWG - Aruban florin',
-            'AZN' => 'AZN - Azerbaijani manat',
-            'BAM' => 'BAM - Bosnia and Herzegovina convertible mark',
-            'BBD' => 'BBD - Barbados dollar',
-            'BDT' => 'BDT - Bangladeshi taka',
-            'BGN' => 'BGN - Bulgarian lev',
-            'BHD' => 'BHD - Bahraini dinar',
-            'BIF' => 'BIF - Burundian franc',
-            'BMD' => 'BMD - Bermudian dollar',
-            'BND' => 'BND - Brunei dollar',
-            'BOB' => 'BOB - Boliviano',
-            'BRL' => 'BRL - Brazilian real',
-            'BSD' => 'BSD - Bahamian dollar',
-            'BTN' => 'BTN - Bhutanese ngultrum',
-            'BWP' => 'BWP - Botswana pula',
-            'BYN' => 'BYN - Belarusian ruble',
-            'BZD' => 'BZD - Belize dollar',
-            'CAD' => 'CAD - Canadian dollar',
-            'CDF' => 'CDF - Congolese franc',
-            'CHF' => 'CHF - Swiss franc',
-            'CLP' => 'CLP - Chilean peso',
-            'CNY' => 'CNY - Renminbi (Chinese) yuan',
-            'COP' => 'COP - Colombian peso',
-            'COU' => 'COU - Unidad de Valor Real (UVR)',
-            'CRC' => 'CRC - Costa Rican colon',
-            'CUC' => 'CUC - Cuban convertible peso',
-            'CUP' => 'CUP - Cuban peso',
-            'CVE' => 'CVE - Cape Verde escudo',
-            'CZK' => 'CZK - Czech koruna',
-            'DJF' => 'DJF - Djiboutian franc',
-            'DKK' => 'DKK - Danish krone',
-            'DOP' => 'DOP - Dominican peso',
-            'DZD' => 'DZD - Algerian dinar',
-            'EGP' => 'EGP - Egyptian pound',
-            'ERN' => 'ERN - Eritrean nakfa',
-            'ETB' => 'ETB - Ethiopian birr',
-            'EUR' => 'EUR - Euro',
-            'FJD' => 'FJD - Fiji dollar',
-            'FKP' => 'FKP - Falkland Islands pound',
-            'GBP' => 'GBP - Pound sterling',
-            'GEL' => 'GEL - Georgian lari',
-            'GHS' => 'GHS - Ghanaian cedi',
-            'GIP' => 'GIP - Gibraltar pound',
-            'GMD' => 'GMD - Gambian dalasi',
-            'GNF' => 'GNF - Guinean franc',
-            'GTQ' => 'GTQ - Guatemalan quetzal',
-            'GYD' => 'GYD - Guyanese dollar',
-            'HKD' => 'HKD - Hong Kong dollar',
-            'HNL' => 'HNL - Honduran lempira',
-            'HRK' => 'HRK - Croatian kuna',
-            'HTG' => 'HTG - Haitian gourde',
-            'HUF' => 'HUF - Hungarian forint',
-            'IDR' => 'IDR - Indonesian rupiah',
-            'ILS' => 'ILS - Israeli new shekel',
-            'INR' => 'INR - Indian rupee',
-            'IQD' => 'IQD - Iraqi dinar',
-            'IRR' => 'IRR - Iranian rial',
-            'ISK' => 'ISK - Icelandic krÛna',
-            'JMD' => 'JMD - Jamaican dollar',
-            'JOD' => 'JOD - Jordanian dinar',
-            'JPY' => 'JPY - Japanese yen',
-            'KES' => 'KES - Kenyan shilling',
-            'KGS' => 'KGS - Kyrgyzstani som',
-            'KHR' => 'KHR - Cambodian riel',
-            'KMF' => 'KMF - Comoro franc',
-            'KPW' => 'KPW - North Korean won',
-            'KRW' => 'KRW - South Korean won',
-            'KWD' => 'KWD - Kuwaiti dinar',
-            'KYD' => 'KYD - Cayman Islands dollar',
-            'KZT' => 'KZT - Kazakhstani tenge',
-            'LAK' => 'LAK - Lao kip',
-            'LBP' => 'LBP - Lebanese pound',
-            'LKR' => 'LKR - Sri Lankan rupee',
-            'LRD' => 'LRD - Liberian dollar',
-            'LSL' => 'LSL - Lesotho loti',
-            'LYD' => 'LYD - Libyan dinar',
-            'MAD' => 'MAD - Moroccan dirham',
-            'MDL' => 'MDL - Moldovan leu',
-            'MGA' => 'MGA - Malagasy ariary',
-            'MKD' => 'MKD - Macedonian denar',
-            'MMK' => 'MMK - Myanmar kyat',
-            'MNT' => 'MNT - Mongolian t?gr?g',
-            'MOP' => 'MOP - Macanese pataca',
-            'MRU' => 'MRU - Mauritanian ouguiya',
-            'MUR' => 'MUR - Mauritian rupee',
-            'MVR' => 'MVR - Maldivian rufiyaa',
-            'MWK' => 'MWK - Malawian kwacha',
-            'MXN' => 'MXN - Mexican peso',
-            'MXV' => 'MXV - Mexican Unidad de Inversion (UDI)',
-            'MYR' => 'MYR - Malaysian ringgit',
-            'MZN' => 'MZN - Mozambican metical',
-            'NAD' => 'NAD - Namibian dollar',
-            'NGN' => 'NGN - Nigerian naira',
-            'NIO' => 'NIO - Nicaraguan cÛrdoba',
-            'NOK' => 'NOK - Norwegian krone',
-            'NPR' => 'NPR - Nepalese rupee',
-            'NZD' => 'NZD - New Zealand dollar',
-            'OMR' => 'OMR - Omani rial',
-            'PAB' => 'PAB - Panamanian balboa',
-            'PEN' => 'PEN - Peruvian sol',
-            'PGK' => 'PGK - Papua New Guinean kina',
-            'PHP' => 'PHP - Philippine peso',
-            'PKR' => 'PKR - Pakistani rupee',
-            'PLN' => 'PLN - Polish z?oty',
-            'PYG' => 'PYG - Paraguayan guaranÌ',
-            'QAR' => 'QAR - Qatari riyal',
-            'RON' => 'RON - Romanian leu',
-            'RSD' => 'RSD - Serbian dinar',
-            'RUB' => 'RUB - Russian ruble',
-            'RWF' => 'RWF - Rwandan franc',
-            'SAR' => 'SAR - Saudi riyal',
-            'SBD' => 'SBD - Solomon Islands dollar',
-            'SCR' => 'SCR - Seychelles rupee',
-            'SDG' => 'SDG - Sudanese pound',
-            'SEK' => 'SEK - Swedish krona/kronor',
-            'SGD' => 'SGD - Singapore dollar',
-            'SHP' => 'SHP - Saint Helena pound',
-            'SLL' => 'SLL - Sierra Leonean leone',
-            'SOS' => 'SOS - Somali shilling',
-            'SRD' => 'SRD - Surinamese dollar',
-            'SSP' => 'SSP - South Sudanese pound',
-            'STN' => 'STN - S?o TomÈ and PrÌncipe dobra',
-            'SVC' => 'SVC - Salvadoran colÛn',
-            'SYP' => 'SYP - Syrian pound',
-            'SZL' => 'SZL - Swazi lilangeni',
-            'THB' => 'THB - Thai baht',
-            'TJS' => 'TJS - Tajikistani somoni',
-            'TMT' => 'TMT - Turkmenistan manat',
-            'TND' => 'TND - Tunisian dinar',
-            'TOP' => 'TOP - Tongan pa?anga',
-            'TRY' => 'TRY - Turkish lira',
-            'TTD' => 'TTD - Trinidad and Tobago dollar',
-            'TWD' => 'TWD - New Taiwan dollar',
-            'TZS' => 'TZS - Tanzanian shilling',
-            'UAH' => 'UAH - Ukrainian hryvnia',
-            'UGX' => 'UGX - Ugandan shilling',
-            'USD' => 'USD - United States dollar',
-            'UYI' => 'UYI - Uruguay Peso en Unidades Indexadas',
-            'UYU' => 'UYU - Uruguayan peso',
-            'UYW' => 'UYW - Unidad previsional',
-            'UZS' => 'UZS - Uzbekistan som',
-            'VES' => 'VES - Venezuelan bolÌvar soberano',
-            'VND' => 'VND - Vietnamese ??ng',
-            'VUV' => 'VUV - Vanuatu vatu',
-            'WST' => 'WST - Samoan tala',
-            'YER' => 'YER - Yemeni rial',
-            'ZAR' => 'ZAR - South African rand',
-            'ZMW' => 'ZMW - Zambian kwacha',
-            'ZWL' => 'ZWL - Zimbabwean dollar'];
+            'AFN'            => 'AFN - Afghan afghani',
+            'ALL'            => 'ALL - Albanian lek',
+            'AMD'            => 'AMD - Armenian dram',
+            'ANG'            => 'ANG - Netherlands Antillean guilder',
+            'AOA'            => 'AOA - Angolan kwanza',
+            'ARS'            => 'ARS - Argentine peso',
+            'AUD'            => 'AUD - Australian dollar',
+            'AWG'            => 'AWG - Aruban florin',
+            'AZN'            => 'AZN - Azerbaijani manat',
+            'BAM'            => 'BAM - Bosnia and Herzegovina convertible mark',
+            'BBD'            => 'BBD - Barbados dollar',
+            'BDT'            => 'BDT - Bangladeshi taka',
+            'BGN'            => 'BGN - Bulgarian lev',
+            'BHD'            => 'BHD - Bahraini dinar',
+            'BIF'            => 'BIF - Burundian franc',
+            'BMD'            => 'BMD - Bermudian dollar',
+            'BND'            => 'BND - Brunei dollar',
+            'BOB'            => 'BOB - Boliviano',
+            'BRL'            => 'BRL - Brazilian real',
+            'BSD'            => 'BSD - Bahamian dollar',
+            'BTN'            => 'BTN - Bhutanese ngultrum',
+            'BWP'            => 'BWP - Botswana pula',
+            'BYN'            => 'BYN - Belarusian ruble',
+            'BZD'            => 'BZD - Belize dollar',
+            'CAD'            => 'CAD - Canadian dollar',
+            'CDF'            => 'CDF - Congolese franc',
+            'CHF'            => 'CHF - Swiss franc',
+            'CLP'            => 'CLP - Chilean peso',
+            'CNY'            => 'CNY - Renminbi (Chinese) yuan',
+            'COP'            => 'COP - Colombian peso',
+            'COU'            => 'COU - Unidad de Valor Real (UVR)',
+            'CRC'            => 'CRC - Costa Rican colon',
+            'CUC'            => 'CUC - Cuban convertible peso',
+            'CUP'            => 'CUP - Cuban peso',
+            'CVE'            => 'CVE - Cape Verde escudo',
+            'CZK'            => 'CZK - Czech koruna',
+            'DJF'            => 'DJF - Djiboutian franc',
+            'DKK'            => 'DKK - Danish krone',
+            'DOP'            => 'DOP - Dominican peso',
+            'DZD'            => 'DZD - Algerian dinar',
+            'EGP'            => 'EGP - Egyptian pound',
+            'ERN'            => 'ERN - Eritrean nakfa',
+            'ETB'            => 'ETB - Ethiopian birr',
+            'EUR'            => 'EUR - Euro',
+            'FJD'            => 'FJD - Fiji dollar',
+            'FKP'            => 'FKP - Falkland Islands pound',
+            'GBP'            => 'GBP - Pound sterling',
+            'GEL'            => 'GEL - Georgian lari',
+            'GHS'            => 'GHS - Ghanaian cedi',
+            'GIP'            => 'GIP - Gibraltar pound',
+            'GMD'            => 'GMD - Gambian dalasi',
+            'GNF'            => 'GNF - Guinean franc',
+            'GTQ'            => 'GTQ - Guatemalan quetzal',
+            'GYD'            => 'GYD - Guyanese dollar',
+            'HKD'            => 'HKD - Hong Kong dollar',
+            'HNL'            => 'HNL - Honduran lempira',
+            'HRK'            => 'HRK - Croatian kuna',
+            'HTG'            => 'HTG - Haitian gourde',
+            'HUF'            => 'HUF - Hungarian forint',
+            'IDR'            => 'IDR - Indonesian rupiah',
+            'ILS'            => 'ILS - Israeli new shekel',
+            'INR'            => 'INR - Indian rupee',
+            'IQD'            => 'IQD - Iraqi dinar',
+            'IRR'            => 'IRR - Iranian rial',
+            'ISK'            => 'ISK - Icelandic krÛna',
+            'JMD'            => 'JMD - Jamaican dollar',
+            'JOD'            => 'JOD - Jordanian dinar',
+            'JPY'            => 'JPY - Japanese yen',
+            'KES'            => 'KES - Kenyan shilling',
+            'KGS'            => 'KGS - Kyrgyzstani som',
+            'KHR'            => 'KHR - Cambodian riel',
+            'KMF'            => 'KMF - Comoro franc',
+            'KPW'            => 'KPW - North Korean won',
+            'KRW'            => 'KRW - South Korean won',
+            'KWD'            => 'KWD - Kuwaiti dinar',
+            'KYD'            => 'KYD - Cayman Islands dollar',
+            'KZT'            => 'KZT - Kazakhstani tenge',
+            'LAK'            => 'LAK - Lao kip',
+            'LBP'            => 'LBP - Lebanese pound',
+            'LKR'            => 'LKR - Sri Lankan rupee',
+            'LRD'            => 'LRD - Liberian dollar',
+            'LSL'            => 'LSL - Lesotho loti',
+            'LYD'            => 'LYD - Libyan dinar',
+            'MAD'            => 'MAD - Moroccan dirham',
+            'MDL'            => 'MDL - Moldovan leu',
+            'MGA'            => 'MGA - Malagasy ariary',
+            'MKD'            => 'MKD - Macedonian denar',
+            'MMK'            => 'MMK - Myanmar kyat',
+            'MNT'            => 'MNT - Mongolian t?gr?g',
+            'MOP'            => 'MOP - Macanese pataca',
+            'MRU'            => 'MRU - Mauritanian ouguiya',
+            'MUR'            => 'MUR - Mauritian rupee',
+            'MVR'            => 'MVR - Maldivian rufiyaa',
+            'MWK'            => 'MWK - Malawian kwacha',
+            'MXN'            => 'MXN - Mexican peso',
+            'MXV'            => 'MXV - Mexican Unidad de Inversion (UDI)',
+            'MYR'            => 'MYR - Malaysian ringgit',
+            'MZN'            => 'MZN - Mozambican metical',
+            'NAD'            => 'NAD - Namibian dollar',
+            'NGN'            => 'NGN - Nigerian naira',
+            'NIO'            => 'NIO - Nicaraguan cÛrdoba',
+            'NOK'            => 'NOK - Norwegian krone',
+            'NPR'            => 'NPR - Nepalese rupee',
+            'NZD'            => 'NZD - New Zealand dollar',
+            'OMR'            => 'OMR - Omani rial',
+            'PAB'            => 'PAB - Panamanian balboa',
+            'PEN'            => 'PEN - Peruvian sol',
+            'PGK'            => 'PGK - Papua New Guinean kina',
+            'PHP'            => 'PHP - Philippine peso',
+            'PKR'            => 'PKR - Pakistani rupee',
+            'PLN'            => 'PLN - Polish z?oty',
+            'PYG'            => 'PYG - Paraguayan guaranÌ',
+            'QAR'            => 'QAR - Qatari riyal',
+            'RON'            => 'RON - Romanian leu',
+            'RSD'            => 'RSD - Serbian dinar',
+            'RUB'            => 'RUB - Russian ruble',
+            'RWF'            => 'RWF - Rwandan franc',
+            'SAR'            => 'SAR - Saudi riyal',
+            'SBD'            => 'SBD - Solomon Islands dollar',
+            'SCR'            => 'SCR - Seychelles rupee',
+            'SDG'            => 'SDG - Sudanese pound',
+            'SEK'            => 'SEK - Swedish krona/kronor',
+            'SGD'            => 'SGD - Singapore dollar',
+            'SHP'            => 'SHP - Saint Helena pound',
+            'SLL'            => 'SLL - Sierra Leonean leone',
+            'SOS'            => 'SOS - Somali shilling',
+            'SRD'            => 'SRD - Surinamese dollar',
+            'SSP'            => 'SSP - South Sudanese pound',
+            'STN'            => 'STN - S?o TomÈ and PrÌncipe dobra',
+            'SVC'            => 'SVC - Salvadoran colÛn',
+            'SYP'            => 'SYP - Syrian pound',
+            'SZL'            => 'SZL - Swazi lilangeni',
+            'THB'            => 'THB - Thai baht',
+            'TJS'            => 'TJS - Tajikistani somoni',
+            'TMT'            => 'TMT - Turkmenistan manat',
+            'TND'            => 'TND - Tunisian dinar',
+            'TOP'            => 'TOP - Tongan pa?anga',
+            'TRY'            => 'TRY - Turkish lira',
+            'TTD'            => 'TTD - Trinidad and Tobago dollar',
+            'TWD'            => 'TWD - New Taiwan dollar',
+            'TZS'            => 'TZS - Tanzanian shilling',
+            'UAH'            => 'UAH - Ukrainian hryvnia',
+            'UGX'            => 'UGX - Ugandan shilling',
+            'USD'            => 'USD - United States dollar',
+            'UYI'            => 'UYI - Uruguay Peso en Unidades Indexadas',
+            'UYU'            => 'UYU - Uruguayan peso',
+            'UYW'            => 'UYW - Unidad previsional',
+            'UZS'            => 'UZS - Uzbekistan som',
+            'VES'            => 'VES - Venezuelan bolÌvar soberano',
+            'VND'            => 'VND - Vietnamese ??ng',
+            'VUV'            => 'VUV - Vanuatu vatu',
+            'WST'            => 'WST - Samoan tala',
+            'YER'            => 'YER - Yemeni rial',
+            'ZAR'            => 'ZAR - South African rand',
+            'ZMW'            => 'ZMW - Zambian kwacha',
+            'ZWL'            => 'ZWL - Zimbabwean dollar'];
 
-        $shopCurrencies = Shop::DB()->executeQuery("SELECT * FROM twaehrung", 2);
+        $shopCurrencies = Shop::DB()->executeQuery('SELECT * FROM twaehrung', 2);
 
         $result = [];
 
@@ -822,51 +839,53 @@ abstract class AbstractCheckout
 
     public function loadRequest(&$options = [])
     {
-
         $oKunde = !$this->getBestellung()->oKunde && $this->PaymentMethod()->duringCheckout ? $_SESSION['Kunde'] : $this->getBestellung()->oKunde;
         if ($this->getBestellung()) {
             if ($oKunde->nRegistriert
-                && ($customer = $this->getCustomer(
+                && (
+                    $customer = $this->getCustomer(
                     array_key_exists(
                         'mollie_create_customer',
-                        $_SESSION['cPost_arr'] ?: []) && $_SESSION['cPost_arr']['mollie_create_customer'] === 'Y',
-                    $oKunde)
+                        $_SESSION['cPost_arr'] ?: []
+                    ) && $_SESSION['cPost_arr']['mollie_create_customer'] === 'Y',
+                    $oKunde
+                )
                 )
                 && isset($customer)) {
                 $options['customerId'] = $customer->id;
             }
-            $this->amount = Amount::factory($this->getBestellung()->fGesamtsummeKundenwaehrung, $this->getBestellung()->Waehrung->cISO, true);
+            $this->amount      = Amount::factory($this->getBestellung()->fGesamtsummeKundenwaehrung, $this->getBestellung()->Waehrung->cISO, true);
             $this->redirectUrl = $this->PaymentMethod()->duringCheckout ? Shop::getURL() . '/bestellabschluss.php?' . http_build_query(['hash' => $this->getHash()]) : $this->PaymentMethod()->getReturnURL($this->getBestellung());
-            $this->metadata = [
-                'kBestellung' => $this->getBestellung()->kBestellung ?: $this->getBestellung()->cBestellNr,
-                'kKunde' => $this->getBestellung()->kKunde,
+            $this->metadata    = [
+                'kBestellung'   => $this->getBestellung()->kBestellung ?: $this->getBestellung()->cBestellNr,
+                'kKunde'        => $this->getBestellung()->kKunde,
                 'kKundengruppe' => Session::getInstance()->CustomerGroup()->kKundengruppe,
-                'cHash' => $this->getHash(),
+                'cHash'         => $this->getHash(),
             ];
         }
 
-        $this->locale = self::getLocale($_SESSION['cISOSprache'], Session::getInstance()->Customer()->cLand);
+        $this->locale     = self::getLocale($_SESSION['cISOSprache'], Session::getInstance()->Customer()->cLand);
         $this->webhookUrl = Shop::getURL(true) . '/?' . http_build_query([
                 'mollie' => 1,
-                'hash' => $this->getHash(),
-                'test' => $this->API()->isTest() ?: null,
+                'hash'   => $this->getHash(),
+                'test'   => $this->API()->isTest() ?: null,
             ]);
 
-        $pm = $this->PaymentMethod();
+        $pm         = $this->PaymentMethod();
         $isPayAgain = strpos($_SERVER['PHP_SELF'], 'bestellab_again') !== false;
         if ($pm::METHOD !== '' && (self::Plugin()->oPluginEinstellungAssoc_arr['resetMethod'] !== 'Y' || !$isPayAgain)) {
             $this->method = $pm::METHOD;
         }
-
     }
 
     /**
-     * @return \Mollie\Api\Resources\Customer|null
      * @todo: Kunde wieder löschbar machen ?!
+     * @param mixed      $createOrUpdate
+     * @param null|mixed $oKunde
+     * @return null|\Mollie\Api\Resources\Customer
      */
     public function getCustomer($createOrUpdate = false, $oKunde = null)
     {
-
         if (!$oKunde) {
             $oKunde = $this->getBestellung()->oKunde;
         }
@@ -877,27 +896,27 @@ abstract class AbstractCheckout
                 try {
                     $this->customer = $this->API()->Client()->customers->get($customerModel->customerId);
                 } catch (ApiException $e) {
-                    $this->Log(sprintf("Fehler beim laden des Mollie Customers %s (kKunde: %d): %s", $customerModel->customerId, $customerModel->kKunde, $e->getMessage()), LOGLEVEL_ERROR);
+                    $this->Log(sprintf('Fehler beim laden des Mollie Customers %s (kKunde: %d): %s', $customerModel->customerId, $customerModel->kKunde, $e->getMessage()), LOGLEVEL_ERROR);
                 }
             }
 
             if ($createOrUpdate) {
                 $customer = [
-                    'name' => utf8_encode(trim($oKunde->cVorname . ' ' . $oKunde->cNachname)),
-                    'email' => utf8_encode($oKunde->cMail),
-                    'locale' => self::getLocale($_SESSION['cISOSprache'], $oKunde->cLand),
+                    'name'     => utf8_encode(trim($oKunde->cVorname . ' ' . $oKunde->cNachname)),
+                    'email'    => utf8_encode($oKunde->cMail),
+                    'locale'   => self::getLocale($_SESSION['cISOSprache'], $oKunde->cLand),
                     'metadata' => (object)[
-                        'kKunde' => $oKunde->kKunde,
+                        'kKunde'        => $oKunde->kKunde,
                         'kKundengruppe' => $oKunde->kKundengruppe,
-                        'cKundenNr' => utf8_encode($oKunde->cKundenNr),
+                        'cKundenNr'     => utf8_encode($oKunde->cKundenNr),
                     ],
                 ];
 
                 if ($this->customer) { // UPDATE
 
-                    $this->customer->name = $customer['name'];
-                    $this->customer->email = $customer['email'];
-                    $this->customer->locale = $customer['locale'];
+                    $this->customer->name     = $customer['name'];
+                    $this->customer->email    = $customer['email'];
+                    $this->customer->locale   = $customer['locale'];
                     $this->customer->metadata = $customer['metadata'];
 
                     try {
@@ -905,13 +924,11 @@ abstract class AbstractCheckout
                     } catch (Exception $e) {
                         $this->Log(sprintf("Fehler beim aktualisieren des Mollie Customers %s: %s\n%s", $this->customer->id, $e->getMessage(), print_r($customer, 1)), LOGLEVEL_ERROR);
                     }
-
-
                 } else { // create
 
                     try {
-                        $this->customer = $this->API()->Client()->customers->create($customer);
-                        $customerModel->kKunde = $oKunde->kKunde;
+                        $this->customer            = $this->API()->Client()->customers->create($customer);
+                        $customerModel->kKunde     = $oKunde->kKunde;
                         $customerModel->customerId = $this->customer->id;
                         $customerModel->save();
                         $this->Log(sprintf("Customer '%s' für Kunde %s (%d) bei Mollie angelegt.", $this->customer->id, $this->customer->name, $this->getBestellung()->kKunde));
@@ -921,6 +938,7 @@ abstract class AbstractCheckout
                 }
             }
         }
+
         return $this->customer;
     }
 
@@ -930,10 +948,9 @@ abstract class AbstractCheckout
     public function storno()
     {
         if (in_array((int)$this->getBestellung()->cStatus, [BESTELLUNG_STATUS_OFFEN, BESTELLUNG_STATUS_IN_BEARBEITUNG], true)) {
-
             $log = [];
 
-            $conf = Shop::getSettings([CONF_GLOBAL, CONF_TRUSTEDSHOPS]);
+            $conf                  = Shop::getSettings([CONF_GLOBAL, CONF_TRUSTEDSHOPS]);
             $nArtikelAnzeigefilter = (int)$conf['global']['artikel_artikelanzeigefilter'];
 
             foreach ($this->getBestellung()->Positionen as $pos) {
@@ -955,9 +972,7 @@ abstract class AbstractCheckout
         $artikelBestand = (float)$Artikel->fLagerbestand;
 
         if (isset($Artikel->cLagerBeachten) && $Artikel->cLagerBeachten === 'Y') {
-            if ($Artikel->cLagerVariation === 'Y' &&
-                is_array($WarenkorbPosEigenschaftArr) &&
-                count($WarenkorbPosEigenschaftArr) > 0
+            if ($Artikel->cLagerVariation === 'Y' && is_array($WarenkorbPosEigenschaftArr) && count($WarenkorbPosEigenschaftArr) > 0
             ) {
                 foreach ($WarenkorbPosEigenschaftArr as $eWert) {
                     $EigenschaftWert = new EigenschaftWert($eWert->kEigenschaftWert);
@@ -965,9 +980,10 @@ abstract class AbstractCheckout
                         $EigenschaftWert->fPackeinheit = 1;
                     }
                     Shop::DB()->query(
-                        "UPDATE teigenschaftwert
-                        SET fLagerbestand = fLagerbestand - " . ($nAnzahl * $EigenschaftWert->fPackeinheit) . "
-                        WHERE kEigenschaftWert = " . (int)$eWert->kEigenschaftWert, 4
+                        'UPDATE teigenschaftwert
+                        SET fLagerbestand = fLagerbestand - ' . ($nAnzahl * $EigenschaftWert->fPackeinheit) . '
+                        WHERE kEigenschaftWert = ' . (int)$eWert->kEigenschaftWert,
+                        4
                     );
                 }
             } elseif ($Artikel->fPackeinheit > 0) {
@@ -976,10 +992,11 @@ abstract class AbstractCheckout
                     $artikelBestand = self::aktualisiereStuecklistenLagerbestand($Artikel, $nAnzahl);
                 } else {
                     Shop::DB()->query(
-                        "UPDATE tartikel
-                        SET fLagerbestand = IF (fLagerbestand >= " . ($nAnzahl * $Artikel->fPackeinheit) . ", 
-                        (fLagerbestand - " . ($nAnzahl * $Artikel->fPackeinheit) . "), fLagerbestand)
-                        WHERE kArtikel = " . (int)$Artikel->kArtikel, 4
+                        'UPDATE tartikel
+                        SET fLagerbestand = IF (fLagerbestand >= ' . ($nAnzahl * $Artikel->fPackeinheit) . ', 
+                        (fLagerbestand - ' . ($nAnzahl * $Artikel->fPackeinheit) . '), fLagerbestand)
+                        WHERE kArtikel = ' . (int)$Artikel->kArtikel,
+                        4
                     );
                     $tmpArtikel = Shop::DB()->select('tartikel', 'kArtikel', (int)$Artikel->kArtikel, null, null, null, null, false, 'fLagerbestand');
                     if ($tmpArtikel !== null) {
@@ -1002,10 +1019,10 @@ abstract class AbstractCheckout
 
     protected static function aktualisiereStuecklistenLagerbestand($oStueckListeArtikel, $nAnzahl)
     {
-        $nAnzahl = (float)$nAnzahl;
-        $kStueckListe = (int)$oStueckListeArtikel->kStueckliste;
-        $bestandAlt = (float)$oStueckListeArtikel->fLagerbestand;
-        $bestandNeu = $bestandAlt;
+        $nAnzahl             = (float)$nAnzahl;
+        $kStueckListe        = (int)$oStueckListeArtikel->kStueckliste;
+        $bestandAlt          = (float)$oStueckListeArtikel->fLagerbestand;
+        $bestandNeu          = $bestandAlt;
         $bestandUeberverkauf = $bestandAlt;
 
         if ($nAnzahl > 0) {
@@ -1016,7 +1033,8 @@ abstract class AbstractCheckout
                 JOIN tartikel
                   ON tartikel.kArtikel = tstueckliste.kArtikel
                 WHERE tstueckliste.kStueckliste = $kStueckListe
-                    AND tartikel.cLagerBeachten = 'Y'", 2
+                    AND tartikel.cLagerBeachten = 'Y'",
+                2
             );
 
             if (is_array($oKomponente_arr) && count($oKomponente_arr) > 0) {
@@ -1068,7 +1086,7 @@ abstract class AbstractCheckout
     protected static function aktualisiereKomponenteLagerbestand($kKomponenteArtikel, $fLagerbestand, $bLagerKleinerNull)
     {
         $kKomponenteArtikel = (int)$kKomponenteArtikel;
-        $fLagerbestand = (float)$fLagerbestand;
+        $fLagerbestand      = (float)$fLagerbestand;
 
         $oStueckliste_arr = Shop::DB()->query(
             "SELECT tstueckliste.kStueckliste, tstueckliste.fAnzahl,
@@ -1077,7 +1095,8 @@ abstract class AbstractCheckout
             JOIN tartikel
                 ON tartikel.kStueckliste = tstueckliste.kStueckliste
             WHERE tstueckliste.kArtikel = $kKomponenteArtikel
-                AND tartikel.cLagerBeachten = 'Y'", 2
+                AND tartikel.cLagerBeachten = 'Y'",
+            2
         );
 
         if (is_array($oStueckliste_arr) && count($oStueckliste_arr) > 0) {
@@ -1096,14 +1115,14 @@ abstract class AbstractCheckout
     }
 
     /**
-     * @return array|bool|int|object|null
+     * @return null|array|bool|int|object
      */
     public function getLogs()
     {
-        return Shop::DB()->executeQueryPrepared("SELECT * FROM tzahlungslog WHERE cLogData LIKE :kBestellung OR cLogData LIKE :cBestellNr OR cLogData LIKE :MollieID ORDER BY dDatum DESC, cLog DESC", [
+        return Shop::DB()->executeQueryPrepared('SELECT * FROM tzahlungslog WHERE cLogData LIKE :kBestellung OR cLogData LIKE :cBestellNr OR cLogData LIKE :MollieID ORDER BY dDatum DESC, cLog DESC', [
             ':kBestellung' => '%#' . ($this->getBestellung()->kBestellung ?: '##') . '%',
-            ':cBestellNr' => '%§' . ($this->getBestellung()->cBestellNr ?: '§§') . '%',
-            ':MollieID' => '%$' . ($this->getMollie()->id ?: '$$') . '%',
+            ':cBestellNr'  => '%§' . ($this->getBestellung()->cBestellNr ?: '§§') . '%',
+            ':MollieID'    => '%$' . ($this->getMollie()->id ?: '$$') . '%',
         ], 2);
     }
 
@@ -1120,7 +1139,6 @@ abstract class AbstractCheckout
      */
     public function LogData()
     {
-
         $data = '';
         if ($this->getBestellung()->kBestellung) {
             $data .= '#' . $this->getBestellung()->kBestellung;
@@ -1136,7 +1154,7 @@ abstract class AbstractCheckout
 
     /**
      * @param array $paymentOptions
-     * @return Payment|Order
+     * @return Order|Payment
      */
     abstract public function create(array $paymentOptions = []);
 
@@ -1150,8 +1168,9 @@ abstract class AbstractCheckout
 
     public function getDescription()
     {
-        $descTemplate = trim(Helper::getSetting('paymentDescTpl')) ?: "Order {orderNumber}";
-        $oKunde = $this->getBestellung()->oKunde ?: $_SESSION['Kunde'];
+        $descTemplate = trim(Helper::getSetting('paymentDescTpl')) ?: 'Order {orderNumber}';
+        $oKunde       = $this->getBestellung()->oKunde ?: $_SESSION['Kunde'];
+
         return str_replace([
             '{orderNumber}',
             '{storeName}',
@@ -1177,11 +1196,12 @@ abstract class AbstractCheckout
     protected function setBestellung(Bestellung $oBestellung)
     {
         $this->oBestellung = $oBestellung;
+
         return $this;
     }
 
     /**
-     * @param Order|\Mollie\Api\Resources\Payment $model
+     * @param \Mollie\Api\Resources\Payment|Order $model
      * @return self
      */
     abstract protected function setMollie($model);

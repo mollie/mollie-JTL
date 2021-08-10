@@ -1,8 +1,10 @@
 <?php
-
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 namespace ws_mollie\Checkout;
-
 
 use Exception;
 use Mollie\Api\Exceptions\ApiException;
@@ -13,7 +15,6 @@ use RuntimeException;
 use Shop;
 use ws_mollie\Checkout\Payment\Address;
 use ws_mollie\Checkout\Payment\Amount;
-use ws_mollie\Helper;
 
 /**
  * Class PaymentCheckout
@@ -22,26 +23,25 @@ use ws_mollie\Helper;
  * @property string $locale
  * @property Amount $amount
  * @property string $description
- * @property array|null $metadata
+ * @property null|array $metadata
  * @property string $redirectUrl
  * @property string $webhookUrl
- * @property string|null $method
+ * @property null|string $method
  * @property Address $billingAddress
- * @property string|null $expiresAt
+ * @property null|string $expiresAt
  */
 class PaymentCheckout extends AbstractCheckout
 {
-
     /**
-     * @var Payment|null
+     * @var null|Payment
      */
     protected $_payment;
 
     /**
      * @param PaymentCheckout $checkout
-     * @return Payment
      * @throws ApiException
      * @throws IncompatiblePlatform
+     * @return Payment
      */
     public static function cancel($checkout)
     {
@@ -50,12 +50,13 @@ class PaymentCheckout extends AbstractCheckout
         }
         $payment = $checkout->API()->Client()->payments->cancel($checkout->getMollie()->id);
         $checkout->Log('Zahlung wurde manuell abgebrochen.');
+
         return $payment;
     }
 
     /**
      * @param false $force
-     * @return Payment|null
+     * @return null|Payment
      */
     public function getMollie($force = false)
     {
@@ -66,11 +67,12 @@ class PaymentCheckout extends AbstractCheckout
                 throw new RuntimeException('Mollie-Payment konnte nicht geladen werden: ' . $e->getMessage());
             }
         }
+
         return $this->getPayment();
     }
 
     /**
-     * @return Payment|null
+     * @return null|Payment
      */
     public function getPayment()
     {
@@ -84,13 +86,15 @@ class PaymentCheckout extends AbstractCheckout
     public function setPayment($payment)
     {
         $this->_payment = $payment;
+
         return $this;
     }
 
     /**
-     * @return string
+     * @param mixed $force
      * @throws ApiException
      * @throws IncompatiblePlatform
+     * @return string
      */
     public function cancelOrRefund($force = false)
     {
@@ -99,15 +103,17 @@ class PaymentCheckout extends AbstractCheckout
         }
         if ($force || (int)$this->getBestellung()->cStatus === BESTELLUNG_STATUS_STORNO) {
             if ($this->getMollie()->isCancelable) {
-                $res = $this->API()->Client()->payments->cancel($this->getMollie()->id);
+                $res    = $this->API()->Client()->payments->cancel($this->getMollie()->id);
                 $result = 'Payment cancelled, Status: ' . $res->status;
             } else {
-                $res = $this->API()->Client()->payments->refund($this->getMollie(), ['amount' => $this->getMollie()->amount]);
-                $result = "Payment Refund initiiert, Status: " . $res->status;
+                $res    = $this->API()->Client()->payments->refund($this->getMollie(), ['amount' => $this->getMollie()->amount]);
+                $result = 'Payment Refund initiiert, Status: ' . $res->status;
             }
-            $this->PaymentMethod()->Log("PaymentCheckout::cancelOrRefund: " . $result, $this->LogData());
+            $this->PaymentMethod()->Log('PaymentCheckout::cancelOrRefund: ' . $result, $this->LogData());
+
             return $result;
         }
+
         throw new RuntimeException('Bestellung ist derzeit nicht storniert, Status: ' . $this->getBestellung()->cStatus);
     }
 
@@ -125,6 +131,7 @@ class PaymentCheckout extends AbstractCheckout
                 }
                 if ($this->getPayment()->status === PaymentStatus::STATUS_OPEN) {
                     $this->updateModel()->saveModel();
+
                     return $this->getPayment();
                 }
             } catch (RuntimeException $e) {
@@ -140,9 +147,11 @@ class PaymentCheckout extends AbstractCheckout
             $this->setPayment($this->API()->Client()->payments->create($req));
             $this->Log(sprintf("Payment für '%s' wurde erfolgreich angelegt: %s", $this->getBestellung()->cBestellNr, $this->getPayment()->id));
             $this->updateModel()->saveModel();
+
             return $this->getPayment();
         } catch (Exception $e) {
             $this->Log(sprintf("PaymentCheckout::create: Neue Transaktion für '%s' konnte nicht erstellt werden: %s.", $this->getBestellung()->cBestellNr, $e->getMessage()), LOGLEVEL_ERROR);
+
             throw new RuntimeException(sprintf('Mollie-Payment \'%s\' konnte nicht geladen werden: %s', $this->getBestellung()->cBestellNr, $e->getMessage()));
         }
     }
@@ -153,7 +162,6 @@ class PaymentCheckout extends AbstractCheckout
      */
     public function loadRequest(&$options = [])
     {
-
         parent::loadRequest($options);
 
         foreach ($options as $key => $value) {
@@ -169,7 +177,7 @@ class PaymentCheckout extends AbstractCheckout
 
 
     /**
-     * @return object|null
+     * @return null|object
      */
     public function getIncomingPayment()
     {
@@ -178,16 +186,18 @@ class PaymentCheckout extends AbstractCheckout
         }
 
         if (in_array($this->getMollie()->status, [PaymentStatus::STATUS_AUTHORIZED, PaymentStatus::STATUS_PAID], true)) {
-            $data = [];
-            $data['fBetrag'] = (float)$this->getMollie()->amount->value;
-            $data['cISO'] = $this->getMollie()->amount->currency;
-            $data['cZahler'] = $this->getMollie()->details->paypalPayerId ?: $this->getMollie()->customerId;
+            $data             = [];
+            $data['fBetrag']  = (float)$this->getMollie()->amount->value;
+            $data['cISO']     = $this->getMollie()->amount->currency;
+            $data['cZahler']  = $this->getMollie()->details->paypalPayerId ?: $this->getMollie()->customerId;
             $data['cHinweis'] = $this->getMollie()->details->paypalReference ?: $this->getMollie()->id;
             if (isset($this->getMollie()->details, $this->getMollie()->details->paypalFee)) {
                 $data['fZahlungsgebuehr'] = $this->getMollie()->details->paypalFee->value;
             }
+
             return (object)$data;
         }
+
         return null;
     }
 
@@ -200,6 +210,7 @@ class PaymentCheckout extends AbstractCheckout
         if ($model instanceof Payment) {
             $this->setPayment($model);
         }
+
         return $this;
     }
 
@@ -211,13 +222,13 @@ class PaymentCheckout extends AbstractCheckout
         try {
             if ($this->getMollie()) {
                 $this->getMollie()->description = $this->getDescription();
-                $this->getMollie()->webhookUrl = Shop::getURL() . '/?mollie=1';
+                $this->getMollie()->webhookUrl  = Shop::getURL() . '/?mollie=1';
                 $this->getMollie()->update();
             }
         } catch (Exception $e) {
             $this->Log('OrderCheckout::updateOrderNumber:' . $e->getMessage(), LOGLEVEL_ERROR);
         }
+
         return $this;
     }
-
 }

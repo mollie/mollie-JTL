@@ -1,4 +1,8 @@
 <?php
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 use ws_mollie\Checkout\AbstractCheckout;
 use ws_mollie\Helper;
@@ -17,16 +21,18 @@ try {
     Queue::run(MOLLIE_QUEUE_MAX);
 
     if (array_key_exists('hash', $_REQUEST) && strpos($_SERVER['PHP_SELF'], 'bestellabschluss.php') !== false) {
-        $sessionHash = substr(StringHandler::htmlentities(StringHandler::filterXSS($_REQUEST['hash'])), 1);
+        $sessionHash    = substr(StringHandler::htmlentities(StringHandler::filterXSS($_REQUEST['hash'])), 1);
         $paymentSession = Shop::DB()->select('tzahlungsession', 'cZahlungsID', $sessionHash);
         if ($paymentSession && $paymentSession->kBestellung) {
             $oBestellung = new Bestellung($paymentSession->kBestellung);
 
             if (Shopsetting::getInstance()->getValue('kaufabwicklung', 'bestellabschluss_abschlussseite') === 'A') {
-                $oZahlungsID = Shop::DB()->query("
+                $oZahlungsID = Shop::DB()->query(
+                    '
                     SELECT cId 
                         FROM tbestellid 
-                        WHERE kBestellung = " . (int)$paymentSession->kBestellung, 1
+                        WHERE kBestellung = ' . (int)$paymentSession->kBestellung,
+                    1
                 );
                 if (is_object($oZahlungsID)) {
                     header('Location: ' . Shop::getURL() . '/bestellabschluss.php?i=' . $oZahlungsID->cId);
@@ -51,10 +57,6 @@ try {
             $lock->unlock();
         }
     }
-
-
 } catch (Exception $e) {
     Helper::logExc($e);
 }
-
-

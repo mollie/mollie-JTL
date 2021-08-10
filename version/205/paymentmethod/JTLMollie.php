@@ -1,4 +1,8 @@
 <?php
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 use Mollie\Api\Exceptions\ApiException;
 use ws_mollie\API;
@@ -15,7 +19,6 @@ Helper::init();
 
 class JTLMollie extends PaymentMethod
 {
-
     use \ws_mollie\Traits\Plugin;
 
     const MAX_EXPIRY_DAYS = 100;
@@ -27,7 +30,7 @@ class JTLMollie extends PaymentMethod
     /**
      * PaymentMethod identifier
      */
-    const METHOD = "";
+    const METHOD = '';
 
     /**
      * @var string
@@ -38,7 +41,7 @@ class JTLMollie extends PaymentMethod
     public function __construct($moduleID, $nAgainCheckout = 0)
     {
         parent::__construct($moduleID, $nAgainCheckout);
-        $this->cModulId = "kPlugin_" . self::Plugin()->kPlugin . "_mollie" . $moduleID;
+        $this->cModulId = 'kPlugin_' . self::Plugin()->kPlugin . '_mollie' . $moduleID;
     }
 
     /**
@@ -51,6 +54,7 @@ class JTLMollie extends PaymentMethod
         if ((int)$order->cStatus >= BESTELLUNG_STATUS_BEZAHLT) {
             return $this;
         }
+
         return parent::setOrderStatusToPaid($order);
     }
 
@@ -63,19 +67,19 @@ class JTLMollie extends PaymentMethod
      */
     public function preparePaymentProcess($order)
     {
-
         parent::preparePaymentProcess($order);
 
         try {
-
             if ($this->duringCheckout && !static::ALLOW_PAYMENT_BEFORE_ORDER) {
-                $this->Log(sprintf("Zahlung vor Bestellabschluss nicht unterstützt (%s)!", $order->cBestellNr), sprintf("#%s", $order->kBestellung), LOGLEVEL_ERROR);
+                $this->Log(sprintf('Zahlung vor Bestellabschluss nicht unterstützt (%s)!', $order->cBestellNr), sprintf('#%s', $order->kBestellung), LOGLEVEL_ERROR);
+
                 return;
             }
 
             $payable = (float)$order->fGesamtsumme > 0;
             if (!$payable) {
-                $this->Log(sprintf("Bestellung '%s': Gesamtsumme %.2f, keine Zahlung notwendig!", $order->cBestellNr, $order->fGesamtsumme), sprintf("#%s", $order->kBestellung));
+                $this->Log(sprintf("Bestellung '%s': Gesamtsumme %.2f, keine Zahlung notwendig!", $order->cBestellNr, $order->fGesamtsumme), sprintf('#%s', $order->kBestellung));
+
                 return;
             }
 
@@ -87,12 +91,12 @@ class JTLMollie extends PaymentMethod
 
             if ($api === 'payment') {
                 $checkout = new PaymentCheckout($order);
-                $payment = $checkout->create($paymentOptions);
+                $payment  = $checkout->create($paymentOptions);
                 /** @noinspection NullPointerExceptionInspection */
                 $url = $payment->getCheckoutUrl();
             } else {
                 $checkout = new OrderCheckout($order);
-                $mOrder = $checkout->create($paymentOptions);
+                $mOrder   = $checkout->create($paymentOptions);
                 /** @noinspection NullPointerExceptionInspection */
                 $url = $mOrder->getCheckoutUrl();
             }
@@ -113,7 +117,8 @@ class JTLMollie extends PaymentMethod
 
     public function Log($msg, $data = null, $level = LOGLEVEL_NOTICE)
     {
-        ZahlungsLog::add($this->moduleID, "[" . microtime(true) . " - " . $_SERVER['PHP_SELF'] . "] " . $msg, $data, $level);
+        ZahlungsLog::add($this->moduleID, '[' . microtime(true) . ' - ' . $_SERVER['PHP_SELF'] . '] ' . $msg, $data, $level);
+
         return $this;
     }
 
@@ -124,14 +129,15 @@ class JTLMollie extends PaymentMethod
 
     /**
      * @param Bestellung $order
-     * @param string $hash
-     * @param array $args
+     * @param string     $hash
+     * @param array      $args
      */
     public function handleNotification($order, $hash, $args)
     {
         parent::handleNotification($order, $hash, $args);
+
         try {
-            $orderId = $args['id'];
+            $orderId  = $args['id'];
             $checkout = null;
             if (strpos($orderId, 'tr_') === 0) {
                 $checkout = new PaymentCheckout($order);
@@ -139,7 +145,6 @@ class JTLMollie extends PaymentMethod
                 $checkout = new OrderCheckout($order);
             }
             $checkout->handleNotification($hash);
-
         } catch (Exception $e) {
             $checkout->Log(sprintf("mollie::handleNotification: Fehler bei Bestellung '%s': %s\n%s", $order->cBestellNr, $e->getMessage(), print_r($args, 1)), LOGLEVEL_ERROR);
         }
@@ -158,16 +163,14 @@ class JTLMollie extends PaymentMethod
      *
      * @return bool
      */
-
     public function isSelectable()
     {
-
         if (API::getMode()) {
             $selectable = trim(self::Plugin()->oPluginEinstellungAssoc_arr['test_api_key']) !== '';
         } else {
             $selectable = trim(self::Plugin()->oPluginEinstellungAssoc_arr['api_key']) !== '';
             if (!$selectable) {
-                Jtllog::writeLog("Live API Key missing!");
+                Jtllog::writeLog('Live API Key missing!');
             }
         }
         if ($selectable) {
@@ -194,6 +197,7 @@ class JTLMollie extends PaymentMethod
                 $selectable = false;
             }
         }
+
         return $selectable && parent::isSelectable();
     }
 
@@ -203,12 +207,11 @@ class JTLMollie extends PaymentMethod
      * @param $billingCountry
      * @param $currency
      * @param $amount
-     * @return bool
      * @throws ApiException
+     * @return bool
      */
     protected static function isMethodPossible($method, $locale, $billingCountry, $currency, $amount)
     {
-
         $api = new API(API::getMode());
 
         if (!array_key_exists('mollie_possibleMethods', $_SESSION)) {
@@ -221,10 +224,10 @@ class JTLMollie extends PaymentMethod
                 'locale' => $locale,
                 'amount' => [
                     'currency' => $currency,
-                    'value' => number_format($amount, 2, ".", "")
+                    'value'    => number_format($amount, 2, '.', '')
                 ],
                 'billingCountry' => $billingCountry,
-                'resource' => 'orders',
+                'resource'       => 'orders',
                 'includeWallets' => 'applepay',
             ]);
             foreach ($active as $a) {
@@ -243,7 +246,6 @@ class JTLMollie extends PaymentMethod
         }
 
         return false;
-
     }
 
     /**
@@ -264,5 +266,4 @@ class JTLMollie extends PaymentMethod
     {
         return (int)min(abs((int)Helper::oPlugin()->oPluginEinstellungAssoc_arr[$this->cModulId . '_dueDays']), static::MAX_EXPIRY_DAYS) ?: static::MAX_EXPIRY_DAYS;
     }
-
 }

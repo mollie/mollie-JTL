@@ -1,4 +1,8 @@
 <?php
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 use Mollie\Api\Types\PaymentStatus;
 use ws_mollie\Checkout\AbstractCheckout;
@@ -8,9 +12,11 @@ use ws_mollie\Model\Payment;
 use ws_mollie\Mollie;
 
 require_once __DIR__ . '/../class/Helper.php';
+
 try {
     if (!Helper::init()) {
-        echo "Kein gültige Lizenz?";
+        echo 'Kein gültige Lizenz?';
+
         return;
     }
     require_once __DIR__ . '/../paymentmethod/JTLMollie.php';
@@ -34,7 +40,7 @@ try {
 
                 break;
 
-            case "fetchable":
+            case 'fetchable':
 
                 if (array_key_exists('kBestellung', $_REQUEST) && ($checkout = AbstractCheckout::fromBestellung((int)$_REQUEST['kBestellung']))) {
                     if (AbstractCheckout::makeFetchable($checkout->getBestellung(), $checkout->getModel())) {
@@ -51,15 +57,14 @@ try {
             case 'export':
 
                 try {
-
                     $export = [];
 
                     $from = new DateTime($_REQUEST['from']);
-                    $to = new DateTime($_REQUEST['to']);
+                    $to   = new DateTime($_REQUEST['to']);
 
                     $orders = Shop::DB()->executeQueryPrepared('SELECT * FROM xplugin_ws_mollie_payments WHERE kBestellung > 0 AND dCreatedAt >= :From AND dCreatedAt <= :To ORDER BY dCreatedAt', [
                         ':From' => $from->format('Y-m-d'),
-                        ':To' => $to->format('Y-m-d'),
+                        ':To'   => $to->format('Y-m-d'),
                     ], 2);
 
 
@@ -87,22 +92,22 @@ try {
 
 
                     foreach ($orders as $order) {
-                        $order = new ws_mollie\Model\Payment($order);
+                        $order    = new ws_mollie\Model\Payment($order);
                         $checkout = AbstractCheckout::fromModel($order);
 
                         $tmp = [
-                            'kBestellung' => $order->kBestellung,
-                            'cOrderId' => $order->kID,
-                            'cStatus' => $checkout->getMollie() ? $checkout->getMollie()->status : $order->cStatus,
-                            'cBestellNr' => $checkout->getBestellung() ? $checkout->getBestellung()->cBestellNr : $order->cOrderNumber,
-                            'nStatus' => $checkout->getBestellung() ? $checkout->getBestellung()->cStatus : 0,
-                            'cMode' => $order->cMode,
+                            'kBestellung'          => $order->kBestellung,
+                            'cOrderId'             => $order->kID,
+                            'cStatus'              => $checkout->getMollie() ? $checkout->getMollie()->status : $order->cStatus,
+                            'cBestellNr'           => $checkout->getBestellung() ? $checkout->getBestellung()->cBestellNr : $order->cOrderNumber,
+                            'nStatus'              => $checkout->getBestellung() ? $checkout->getBestellung()->cStatus : 0,
+                            'cMode'                => $order->cMode,
                             'cOriginalOrderNumber' => $checkout->getMollie() && isset($checkout->getMollie()->metadata->originalOrderNumber) ? $checkout->getMollie()->metadata->originalOrderNumber : '',
-                            'cCurrency' => $order->cCurrency,
-                            'fAmount' => $order->fAmount,
-                            'cMethod' => $order->cMethod,
-                            'cPaymentId' => $order->cTransactionId,
-                            'dCreated' => $order->dCreatedAt,
+                            'cCurrency'            => $order->cCurrency,
+                            'fAmount'              => $order->fAmount,
+                            'cMethod'              => $order->cMethod,
+                            'cPaymentId'           => $order->cTransactionId,
+                            'dCreated'             => $order->dCreatedAt,
                         ];
 
                         try {
@@ -122,10 +127,10 @@ try {
 
                     fclose($out);
                     exit();
-
                 } catch (Exception $e) {
                     Helper::addAlert('Fehler:' . $e->getMessage(), 'danger', 'orders');
                 }
+
                 break;
 
             case 'refund':
@@ -144,6 +149,7 @@ try {
                     Helper::addAlert('Fehler: ' . $e->getMessage(), 'danger', 'orders');
                     goto order;
                 }
+
                 break;
 
             case 'cancel':
@@ -162,6 +168,7 @@ try {
                     Helper::addAlert('Fehler: ' . $e->getMessage(), 'danger', 'orders');
                     goto order;
                 }
+
                 break;
 
             case 'capture':
@@ -180,12 +187,12 @@ try {
                     Helper::addAlert('Fehler: ' . $e->getMessage(), 'danger', 'orders');
                     goto order;
                 }
+
                 break;
 
             case 'order':
-                order:
+                order :
                 try {
-
                     if (!array_key_exists('id', $_REQUEST)) {
                         throw new InvalidArgumentException('Keine ID angeben!');
                     }
@@ -202,10 +209,12 @@ try {
                         ->assign('checkout', $checkout)
                         ->assign('logs', $checkout->getLogs());
                     Shop::Smarty()->display($oPlugin->cAdminmenuPfad . '/tpl/order.tpl');
+
                     return;
                 } catch (Exception $e) {
                     Helper::addAlert('Fehler: ' . $e->getMessage(), 'danger', 'orders');
                 }
+
                 break;
         }
     }
@@ -213,9 +222,10 @@ try {
     // Mollie::fixZahlungsarten();
 
     $checkouts = [];
-    $payments = Shop::DB()->executeQueryPrepared("SELECT * FROM xplugin_ws_mollie_payments WHERE kBestellung IS NOT NULL ORDER BY dCreatedAt DESC LIMIT 1000;", [], 2);
+    $payments  = Shop::DB()->executeQueryPrepared('SELECT * FROM xplugin_ws_mollie_payments WHERE kBestellung IS NOT NULL ORDER BY dCreatedAt DESC LIMIT 1000;', [], 2);
     foreach ($payments as $i => $payment) {
         $payment = new Payment($payment);
+
         try {
             $checkouts[$payment->kBestellung] = AbstractCheckout::fromModel($payment, false);
         } catch (Exception $e) {
@@ -226,13 +236,13 @@ try {
     Shop::Smarty()->assign('payments', $payments)
         ->assign('checkouts', $checkouts)
         ->assign('admRoot', str_replace('http:', '', $oPlugin->cAdminmenuPfadURL))
-        ->assign('hasAPIKey', trim(Helper::getSetting("api_key")) !== '');
+        ->assign('hasAPIKey', trim(Helper::getSetting('api_key')) !== '');
 
     Shop::Smarty()->display($oPlugin->cAdminmenuPfad . '/tpl/orders.tpl');
 } catch (Exception $e) {
     echo "<div class='alert alert-danger'>" .
         "{$e->getMessage()}<br/>" .
         "<blockquote>{$e->getFile()}:{$e->getLine()}<br/><pre>{$e->getTraceAsString()}</pre></blockquote>" .
-        "</div>";
+        '</div>';
     Helper::logExc($e);
 }
