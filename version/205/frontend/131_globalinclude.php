@@ -26,7 +26,7 @@ try {
         if ($paymentSession && $paymentSession->kBestellung) {
             $oBestellung = new Bestellung($paymentSession->kBestellung);
 
-            if (Shopsetting::getInstance()->getValue('kaufabwicklung', 'bestellabschluss_abschlussseite') === 'A') {
+            if (Shop::getConfig([CONF_KAUFABWICKLUNG])['kaufabwicklung']['bestellabschluss_abschlussseite'] === 'A') {
                 $oZahlungsID = Shop::DB()->query(
                     '
                     SELECT cId 
