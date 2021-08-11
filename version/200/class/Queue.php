@@ -1,8 +1,10 @@
 <?php
-
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 namespace ws_mollie;
-
 
 use Exception;
 use Generator;
@@ -20,26 +22,24 @@ use ws_mollie\Traits\Plugin;
 
 class Queue
 {
-
     use Plugin;
 
     public static function run($limit = 10)
     {
-
         foreach (self::getOpen($limit) as $todo) {
-
             if ((list($type, $id) = explode(':', $todo->cType))) {
                 try {
                     switch ($type) {
                         case 'webhook':
                             self::handleWebhook($id, $todo);
+
                             break;
 
                         case 'hook':
                             self::handleHook((int)$id, $todo);
+
                             break;
                     }
-
                 } catch (Exception $e) {
                     Jtllog::writeLog($e->getMessage() . " ({$type}, {$id})");
                     $todo->done("{$e->getMessage()}\n{$e->getFile()}:{$e->getLine()}\n{$e->getTraceAsString()}");
@@ -55,7 +55,7 @@ class Queue
     private static function getOpen($limit)
     {
         /** @noinspection SqlResolve */
-        $open = Shop::DB()->executeQueryPrepared(sprintf("SELECT * FROM %s WHERE dDone IS NULL ORDER BY dCreated DESC LIMIT 0, :LIMIT;", QueueModel::TABLE), [
+        $open = Shop::DB()->executeQueryPrepared(sprintf('SELECT * FROM %s WHERE dDone IS NULL ORDER BY dCreated DESC LIMIT 0, :LIMIT;', QueueModel::TABLE), [
             ':LIMIT' => $limit
         ], 2);
 
@@ -69,17 +69,19 @@ class Queue
         $checkout = AbstractCheckout::fromID($id);
         if ($checkout->getBestellung()->kBestellung && $checkout->PaymentMethod()) {
             $checkout->handleNotification();
+
             return $todo->done('Status: ' . $checkout->getMollie()->status);
         }
+
         throw new RuntimeException("Bestellung oder Zahlungsart konnte nicht geladen werden: {$id}");
     }
 
     /**
      * @param $hook
      * @param QueueModel $todo
-     * @return bool
      * @throws ApiException
      * @throws IncompatiblePlatform
+     * @return bool
      */
     protected static function handleHook($hook, QueueModel $todo)
     {
@@ -90,29 +92,30 @@ class Queue
                     if ((int)$data['kBestellung']) {
                         $checkout = AbstractCheckout::fromBestellung($data['kBestellung']);
 
-                        $result = "";
+                        $result = '';
                         if ((int)$checkout->getBestellung()->cStatus < BESTELLUNG_STATUS_VERSANDT) {
                             return $todo->done("Bestellung noch nicht versendet: {$checkout->getBestellung()->cStatus}");
                         }
 
                         /** @var $method JTLMollie */
-                        if ((int)$data['status']
+                        if (
+                            (int)$data['status']
                             && array_key_exists('status', $data)
                             && $checkout->PaymentMethod()
                             && (strpos($checkout->getModel()->kID, 'tr_') === false)
-                            && $checkout->getMollie()) {
+                            && $checkout->getMollie()
+                        ) {
                             /** @var OrderCheckout $checkout */
                             $checkout->handleNotification();
                             if ($checkout->getMollie()->status === OrderStatus::STATUS_COMPLETED) {
                                 $result = 'Mollie Status already ' . $checkout->getMollie()->status;
-                            } else if ($checkout->getMollie()->isCreated() || $checkout->getMollie()->isPaid() || $checkout->getMollie()->isAuthorized() || $checkout->getMollie()->isShipping() || $checkout->getMollie()->isPending()) {
+                            } elseif ($checkout->getMollie()->isCreated() || $checkout->getMollie()->isPaid() || $checkout->getMollie()->isAuthorized() || $checkout->getMollie()->isShipping() || $checkout->getMollie()->isPending()) {
                                 try {
                                     if ($shipments = Shipment::syncBestellung($checkout)) {
                                         foreach ($shipments as $shipment) {
                                             if (is_string($shipment)) {
                                                 $checkout->PaymentMethod()->Log("Shipping-Error: {$shipment}", $checkout->LogData());
                                                 $result .= "Shipping-Error: {$shipment};\n";
-
                                             } else {
                                                 $checkout->PaymentMethod()->Log("Order shipped: \n" . print_r($shipment, 1));
                                                 $result .= "Order shipped: {$shipment->id};\n";
@@ -124,7 +127,7 @@ class Queue
                                 } catch (RuntimeException $e) {
                                     $result = $e->getMessage();
                                 } catch (Exception $e) {
-                                    $result = $e->getMessage() . "\n" . $e->getFile() . ":" . $e->getLine() . "\n" . $e->getTraceAsString();
+                                    $result = $e->getMessage() . "\n" . $e->getFile() . ':' . $e->getLine() . "\n" . $e->getTraceAsString();
                                 }
                             } else {
                                 $result = sprintf('Unerwarteter Mollie Status "%s" für %s', $checkout->getMollie()->status, $checkout->getBestellung()->cBestellNr);
@@ -133,9 +136,10 @@ class Queue
                             $result = 'Nothing to do.';
                         }
                     } else {
-                        $result = "kBestellung missing";
+                        $result = 'kBestellung missing';
                     }
-                    $checkout->PaymentMethod()->Log("Queue::handleHook: " . $result, $checkout->LogData());
+                    $checkout->PaymentMethod()->Log('Queue::handleHook: ' . $result, $checkout->LogData());
+
                     return $todo->done($result);
 
                 case HOOK_BESTELLUNGEN_XML_BEARBEITESTORNO:
@@ -144,10 +148,11 @@ class Queue
                     }
 
                     $checkout = AbstractCheckout::fromBestellung((int)$data['kBestellung']);
+
                     return $todo->done($checkout->cancelOrRefund());
             }
         }
+
         return false;
     }
-
 }

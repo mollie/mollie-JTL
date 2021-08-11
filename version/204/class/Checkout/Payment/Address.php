@@ -1,11 +1,13 @@
 <?php
-
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 namespace ws_mollie\Checkout\Payment;
 
-
-use ws_mollie\Checkout\Exception\ResourceValidityException;
 use ws_mollie\Checkout\AbstractResource;
+use ws_mollie\Checkout\Exception\ResourceValidityException;
 
 /**
  * Class Address
@@ -19,19 +21,17 @@ use ws_mollie\Checkout\AbstractResource;
  */
 class Address extends AbstractResource
 {
-
     /**
      * @param $address
      * @return static
      */
     public static function factory($address)
     {
-
-        $resource = new static();
+        $resource                  = new static();
         $resource->streetAndNumber = $address->cStrasse . ' ' . $address->cHausnummer;
-        $resource->postalCode = $address->cPLZ;
-        $resource->city = $address->cOrt;
-        $resource->country = $address->cLand;
+        $resource->postalCode      = $address->cPLZ;
+        $resource->city            = $address->cOrt;
+        $resource->country         = $address->cLand;
 
         if (
             isset($address->cAdressZusatz)
@@ -49,6 +49,4 @@ class Address extends AbstractResource
 
         return $resource;
     }
-
-
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2021 WebStollen GmbH
  * @link https://www.webstollen.de
@@ -56,7 +57,8 @@ class API
             $this->client = new MollieApiClient(/*new Client([
                 RequestOptions::VERIFY => CaBundle::getBundledCaBundlePath(),
                 RequestOptions::TIMEOUT => 60
-            ])*/);
+            ])*/
+            );
             $this->client->setApiKey($this->isTest() ? self::Plugin()->oPluginEinstellungAssoc_arr['test_api_key'] : self::Plugin()->oPluginEinstellungAssoc_arr['api_key'])
                 ->addVersionString('JTL-Shop/' . JTL_VERSION . JTL_MINOR_VERSION)
                 ->addVersionString('ws_mollie/' . self::Plugin()->nVersion);

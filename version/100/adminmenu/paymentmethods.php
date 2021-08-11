@@ -1,12 +1,18 @@
 <?php
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 use Mollie\Api\MollieApiClient;
 use ws_mollie\Helper;
 
 require_once __DIR__ . '/../class/Helper.php';
+
 try {
     if (!Helper::init()) {
-        echo "Kein gültige Lizenz?";
+        echo 'Kein gültige Lizenz?';
+
         return;
     }
 
@@ -14,11 +20,11 @@ try {
 
 
     $mollie = new MollieApiClient();
-    $mollie->setApiKey(Helper::getSetting("api_key"));
+    $mollie->setApiKey(Helper::getSetting('api_key'));
 
     $profile = $mollie->profiles->get('me');
     $methods = $mollie->methods->allAvailable([
-        'locale' => 'de_DE',
+        'locale'  => 'de_DE',
         'include' => 'pricing',
     ]);
 

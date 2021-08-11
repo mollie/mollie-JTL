@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2021 WebStollen GmbH
  * @link https://www.webstollen.de
@@ -209,11 +210,13 @@ class OrderCheckout extends AbstractCheckout
     {
         if (!$this->_payment && $search && $this->getMollie()) {
             foreach ($this->getMollie()->payments() as $payment) {
-                if (in_array($payment->status, [
+                if (
+                    in_array($payment->status, [
                     PaymentStatus::STATUS_AUTHORIZED,
                     PaymentStatus::STATUS_PAID,
                     PaymentStatus::STATUS_PENDING,
-                ], true)) {
+                    ], true)
+                ) {
                     $this->_payment = $payment;
 
                     break;
@@ -340,11 +343,13 @@ class OrderCheckout extends AbstractCheckout
         /** @var Payment $payment */
         /** @noinspection NullPointerExceptionInspection */
         foreach ($this->getMollie()->payments() as $payment) {
-            if (in_array(
-                $payment->status,
-                [PaymentStatus::STATUS_AUTHORIZED, PaymentStatus::STATUS_PAID],
-                true
-            )) {
+            if (
+                in_array(
+                    $payment->status,
+                    [PaymentStatus::STATUS_AUTHORIZED, PaymentStatus::STATUS_PAID],
+                    true
+                )
+            ) {
                 $this->setPayment($payment);
                 $data = (object)[
                     'fBetrag'  => (float)$payment->amount->value,

@@ -1,4 +1,8 @@
 <?php
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 use ws_mollie\Checkout\AbstractCheckout;
 use ws_mollie\Helper;
@@ -22,9 +26,6 @@ try {
     if (mt_rand(1, MOLLIE_REMINDER_PROP) % MOLLIE_REMINDER_PROP === 0) {
         AbstractCheckout::sendReminders();
     }
-
 } catch (Exception $e) {
     Helper::logExc($e);
 }
-
-

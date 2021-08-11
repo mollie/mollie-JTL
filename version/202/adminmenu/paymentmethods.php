@@ -1,4 +1,8 @@
 <?php
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 use Mollie\Api\MollieApiClient;
 use Mollie\Api\Resources\Method;
@@ -12,29 +16,30 @@ global $oPlugin;
 
 try {
     if (!Helper::init()) {
-        echo "Kein gültige Lizenz?";
+        echo 'Kein gültige Lizenz?';
+
         return;
     }
 
     $mollie = new MollieApiClient();
-    $mollie->setApiKey(Helper::getSetting("api_key"));
+    $mollie->setApiKey(Helper::getSetting('api_key'));
 
     $profile = $mollie->profiles->get('me');
 
-    $za = filter_input(INPUT_GET, 'za', FILTER_VALIDATE_BOOLEAN);
-    $active = filter_input(INPUT_GET, 'active', FILTER_VALIDATE_BOOLEAN);
-    $amount = filter_input(INPUT_GET, 'amount', FILTER_VALIDATE_FLOAT) ?: null;
-    $locale = filter_input(INPUT_GET, 'locale', FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/^[a-zA-Z]{2}_[a-zA-Z]{2}$/']]) ?: AbstractCheckout::getLocale();
+    $za       = filter_input(INPUT_GET, 'za', FILTER_VALIDATE_BOOLEAN);
+    $active   = filter_input(INPUT_GET, 'active', FILTER_VALIDATE_BOOLEAN);
+    $amount   = filter_input(INPUT_GET, 'amount', FILTER_VALIDATE_FLOAT) ?: null;
+    $locale   = filter_input(INPUT_GET, 'locale', FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/^[a-zA-Z]{2}_[a-zA-Z]{2}$/']]) ?: AbstractCheckout::getLocale();
     $currency = filter_input(INPUT_GET, 'currency', FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/^[a-zA-Z]{3}$/']]) ?: 'EUR';
 
 
     if ($za) {
-        Shop::Smarty()->assign('defaultTabbertab', Helper::getAdminmenu("Zahlungsarten"));
+        Shop::Smarty()->assign('defaultTabbertab', Helper::getAdminmenu('Zahlungsarten'));
     }
 
     $params = [
         'include' => 'pricing,issuers',
-        'locale' => $locale
+        'locale'  => $locale
     ];
     if ($amount && $currency) {
         $params['amount'] = ['value' => number_format($amount, 2, '.', ''), 'currency' => $currency];
@@ -55,17 +60,16 @@ try {
 
     /** @var Method $method */
     foreach ($_allMethods as $method) {
-
-        $id = $method->id === 'creditcard' ? 'kreditkarte' : $method->id;
+        $id  = $method->id === 'creditcard' ? 'kreditkarte' : $method->id;
         $key = "kPlugin_{$oPlugin->kPlugin}_mollie{$id}";
 
-        $class = null;
-        $shop = null;
+        $class  = null;
+        $shop   = null;
         $oClass = null;
 
         if (!in_array($id, ['voucher', 'giftcard', 'directdebit'], true) && array_key_exists($key, $oPlugin->oPluginZahlungsKlasseAssoc_arr)) {
             $class = $oPlugin->oPluginZahlungsKlasseAssoc_arr[$key];
-            include_once($oPlugin->cPluginPfad . 'paymentmethod/' . $class->cClassPfad);
+            include_once $oPlugin->cPluginPfad . 'paymentmethod/' . $class->cClassPfad;
             /** @var JTLMollie $oClass */
             $oClass = new $class->cClassName($id);
         }
@@ -74,17 +78,16 @@ try {
         }
 
 
-        $maxExpiryDays = $oClass ? $oClass->getExpiryDays() : null;
+        $maxExpiryDays           = $oClass ? $oClass->getExpiryDays() : null;
         $allMethods[$method->id] = (object)[
-            'mollie' => $method,
-            'class' => $class,
-            'oClass' => $oClass,
-            'shop' => $shop,
+            'mollie'        => $method,
+            'class'         => $class,
+            'oClass'        => $oClass,
+            'shop'          => $shop,
             'maxExpiryDays' => $oClass ? $maxExpiryDays : null,
-            'warning' => $oClass && ($maxExpiryDays * 24 * 60 * 60) > $sessionLife,
-            'session' => round($sessionLife / 60 / 60, 2) . 'h'
+            'warning'       => $oClass && ($maxExpiryDays * 24 * 60 * 60) > $sessionLife,
+            'session'       => round($sessionLife / 60 / 60, 2) . 'h'
         ];
-
     }
 
     Shop::Smarty()->assign('profile', $profile)

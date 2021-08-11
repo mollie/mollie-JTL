@@ -1,4 +1,8 @@
-<?php /* open */
+<?php
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 use ws_mollie\Helper;
 
@@ -9,20 +13,22 @@ try {
     switch (Helper::getSetting('load_styles')) {
         case 'Y':
             $selector = '#fieldset-payment [id*="_mollie"]';
-            $border = "";
+            $border   = '';
+
             break;
         case 'A':
             $selector = '#fieldset-payment';
-            $border = "border-bottom: 1px solid #ccc;";
+            $border   = 'border-bottom: 1px solid #ccc;';
+
             break;
         case 'N':
         default:
             return;
     }
 
-    $lh = "30px";
+    $lh = '30px';
     if (Helper::getSetting('paymentmethod_sync') === 'size2x') {
-        $lh = "40px";
+        $lh = '40px';
     }
 
 

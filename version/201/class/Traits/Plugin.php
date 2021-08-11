@@ -1,5 +1,8 @@
 <?php
-
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 namespace ws_mollie\Traits;
 
@@ -20,6 +23,7 @@ trait Plugin
         if (!(self::$oPlugin = \Plugin::getPluginById('ws_mollie'))) {
             throw new RuntimeException('Could not load Plugin!');
         }
+
         return self::$oPlugin;
     }
 }

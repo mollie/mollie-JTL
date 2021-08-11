@@ -1,4 +1,8 @@
 <?php
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 use ws_mollie\API;
 use ws_mollie\Checkout\AbstractCheckout;
@@ -10,7 +14,7 @@ class JTLMollieCreditCard extends JTLMollie
 {
     const METHOD = \Mollie\Api\Types\PaymentMethod::CREDITCARD;
 
-    const CACHE_TOKEN = 'creditcard:token';
+    const CACHE_TOKEN           = 'creditcard:token';
     const CACHE_TOKEN_TIMESTAMP = 'creditcard:token:timestamp';
 
     public function handleNotification($order, $hash, $args)
@@ -28,14 +32,14 @@ class JTLMollieCreditCard extends JTLMollie
     {
         $this->unsetCache(self::CACHE_TOKEN)
             ->unsetCache(self::CACHE_TOKEN_TIMESTAMP);
+
         return true;
     }
 
     public function handleAdditional($aPost_arr)
     {
-
         $components = self::Plugin()->oPluginEinstellungAssoc_arr[$this->moduleID . '_components'];
-        $profileId = self::Plugin()->oPluginEinstellungAssoc_arr['profileId'];
+        $profileId  = self::Plugin()->oPluginEinstellungAssoc_arr['profileId'];
 
         if ($components === 'N' || !$profileId || trim($profileId) === '') {
             return parent::handleAdditional($aPost_arr);
@@ -51,12 +55,13 @@ class JTLMollieCreditCard extends JTLMollie
         }
 
         try {
-            $trustBadge = (bool)self::Plugin()->oPluginEinstellungAssoc_arr[$this->moduleID . '_loadTrust'];
-            $locale = AbstractCheckout::getLocale($_SESSION['cISOSprache'], Session::getInstance()->Customer() ? Session::getInstance()->Customer()->cLand : null);
-            $mode = API::getMode();
+            $trustBadge   = (bool)self::Plugin()->oPluginEinstellungAssoc_arr[$this->moduleID . '_loadTrust'];
+            $locale       = AbstractCheckout::getLocale($_SESSION['cISOSprache'], Session::getInstance()->Customer() ? Session::getInstance()->Customer()->cLand : null);
+            $mode         = API::getMode();
             $errorMessage = json_encode(self::Plugin()->oPluginSprachvariableAssoc_arr['mcErrorMessage']);
         } catch (Exception $e) {
             Jtllog::writeLog($e->getMessage() . "\n" . print_r(['e' => $e], 1));
+
             return parent::handleAdditional($aPost_arr);
         }
 
@@ -117,12 +122,12 @@ class JTLMollieCreditCard extends JTLMollie
     {
         $this->addCache(self::CACHE_TOKEN, $token)
             ->addCache(self::CACHE_TOKEN_TIMESTAMP, time() + 3600);
+
         return true;
     }
 
     public function getPaymentOptions(Bestellung $order, $apiType)
     {
-
         $paymentOptions = [];
 
         if ($apiType === 'payment') {
@@ -138,7 +143,7 @@ class JTLMollieCreditCard extends JTLMollie
         if ((int)$this->getCache(self::CACHE_TOKEN_TIMESTAMP) > time() && ($token = trim($this->getCache(self::CACHE_TOKEN)))) {
             $paymentOptions['cardToken'] = $token;
         }
+
         return $paymentOptions;
     }
-
 }

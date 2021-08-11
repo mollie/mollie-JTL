@@ -1,14 +1,15 @@
 <?php
-
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 namespace ws_mollie\Traits;
 
-
 trait RequestData
 {
-
     /**
-     * @var array|null
+     * @var null|array
      */
     protected $requestData;
 
@@ -17,6 +18,7 @@ trait RequestData
         if (json_encode($this->requestData) === false) {
             throw new \RuntimeException(sprintf("JSON Encode Error: %s\n%s", json_last_error_msg(), print_r($this->requestData, 1)));
         }
+
         return $this->requestData;
     }
 
@@ -25,6 +27,7 @@ trait RequestData
         if (!$this->requestData) {
             $this->loadRequest();
         }
+
         return is_string($this->requestData[$name]) ? utf8_decode($this->requestData[$name]) : $this->requestData[$name];
     }
 
@@ -58,5 +61,4 @@ trait RequestData
     {
         return $this->requestData[$name] !== null;
     }
-
 }

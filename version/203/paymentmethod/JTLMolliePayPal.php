@@ -1,7 +1,9 @@
 <?php
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
-use Mollie\Api\Exceptions\ApiException;
-use Mollie\Api\Exceptions\IncompatiblePlatform;
 use ws_mollie\Checkout\Payment\Address;
 
 require_once __DIR__ . '/../../../vendor/autoload.php';
@@ -37,5 +39,4 @@ class JTLMolliePayPal extends JTLMollie
 
         return $paymentOptions;
     }
-
 }

@@ -1,5 +1,8 @@
 <?php
-
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 namespace ws_mollie\Model;
 
@@ -17,7 +20,6 @@ namespace ws_mollie\Model;
  */
 class Queue extends AbstractModel
 {
-
     const TABLE = 'xplugin_ws_mollie_queue';
 
     const PRIMARY = 'kId';
@@ -25,7 +27,8 @@ class Queue extends AbstractModel
     public function done($result, $date = null)
     {
         $this->cResult = $result;
-        $this->dDone = $date ?: date('Y-m-d H:i:s');
+        $this->dDone   = $date ?: date('Y-m-d H:i:s');
+
         return $this->save();
     }
 
@@ -35,7 +38,7 @@ class Queue extends AbstractModel
             $this->dCreated = date('Y-m-d H:i:s');
         }
         $this->dModified = date('Y-m-d H:i:s');
+
         return parent::save();
     }
-
 }

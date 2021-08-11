@@ -1,4 +1,8 @@
 <?php
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 namespace ws_mollie\Checkout\Exception;
 
@@ -7,12 +11,11 @@ use RuntimeException;
 
 class ResourceValidityException extends RuntimeException
 {
-
     const ERROR_REQUIRED = 'required';
 
     /**
      * @param $error
-     * @param array $fields
+     * @param array             $fields
      * @param null|BaseResource $resource
      * @return ResourceValidityException
      */

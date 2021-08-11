@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2021 WebStollen GmbH
  * @link https://www.webstollen.de
@@ -125,10 +126,12 @@ abstract class AbstractCheckout
                     $session = Session::getInstance(false);
                 }
 
-                if ((!isset($paymentSession->nBezahlt) || !$paymentSession->nBezahlt)
+                if (
+                    (!isset($paymentSession->nBezahlt) || !$paymentSession->nBezahlt)
                     && (!isset($paymentSession->kBestellung) || !$paymentSession->kBestellung)
                     && isset($_SESSION['Warenkorb']->PositionenArr)
-                    && count($_SESSION['Warenkorb']->PositionenArr)) {
+                    && count($_SESSION['Warenkorb']->PositionenArr)
+                ) {
                     $paymentSession->cNotifyID = $id;
                     $paymentSession->dNotify   = 'now()';
                     Shop::DB()->update('tzahlungsession', 'cZahlungsID', $sessionHash, $paymentSession);
@@ -433,9 +436,11 @@ abstract class AbstractCheckout
      */
     public function completlyPaid()
     {
-        if ($row = Shop::DB()->executeQueryPrepared('SELECT SUM(fBetrag) as fBetragSumme FROM tzahlungseingang WHERE kBestellung = :kBestellung', [
+        if (
+            $row = Shop::DB()->executeQueryPrepared('SELECT SUM(fBetrag) as fBetragSumme FROM tzahlungseingang WHERE kBestellung = :kBestellung', [
             ':kBestellung' => $this->getBestellung()->kBestellung
-        ], 1)) {
+            ], 1)
+        ) {
             return $row->fBetragSumme >= round($this->getBestellung()->fGesamtsumme * $this->getBestellung()->fWaehrungsFaktor, 2);
         }
 
@@ -841,17 +846,19 @@ abstract class AbstractCheckout
     {
         $oKunde = !$this->getBestellung()->oKunde && $this->PaymentMethod()->duringCheckout ? $_SESSION['Kunde'] : $this->getBestellung()->oKunde;
         if ($this->getBestellung()) {
-            if ($oKunde->nRegistriert
+            if (
+                $oKunde->nRegistriert
                 && (
                     $customer = $this->getCustomer(
-                    array_key_exists(
-                        'mollie_create_customer',
-                        $_SESSION['cPost_arr'] ?: []
-                    ) && $_SESSION['cPost_arr']['mollie_create_customer'] === 'Y',
-                    $oKunde
+                        array_key_exists(
+                            'mollie_create_customer',
+                            $_SESSION['cPost_arr'] ?: []
+                        ) && $_SESSION['cPost_arr']['mollie_create_customer'] === 'Y',
+                        $oKunde
+                    )
                 )
-                )
-                && isset($customer)) {
+                && isset($customer)
+            ) {
                 $options['customerId'] = $customer->id;
             }
             $this->amount      = Amount::factory($this->getBestellung()->fGesamtsummeKundenwaehrung, $this->getBestellung()->Waehrung->cISO, true);
@@ -913,7 +920,6 @@ abstract class AbstractCheckout
                 ];
 
                 if ($this->customer) { // UPDATE
-
                     $this->customer->name     = $customer['name'];
                     $this->customer->email    = $customer['email'];
                     $this->customer->locale   = $customer['locale'];
@@ -925,7 +931,6 @@ abstract class AbstractCheckout
                         $this->Log(sprintf("Fehler beim aktualisieren des Mollie Customers %s: %s\n%s", $this->customer->id, $e->getMessage(), print_r($customer, 1)), LOGLEVEL_ERROR);
                     }
                 } else { // create
-
                     try {
                         $this->customer            = $this->API()->Client()->customers->create($customer);
                         $customerModel->kKunde     = $oKunde->kKunde;
@@ -972,7 +977,8 @@ abstract class AbstractCheckout
         $artikelBestand = (float)$Artikel->fLagerbestand;
 
         if (isset($Artikel->cLagerBeachten) && $Artikel->cLagerBeachten === 'Y') {
-            if ($Artikel->cLagerVariation === 'Y' && is_array($WarenkorbPosEigenschaftArr) && count($WarenkorbPosEigenschaftArr) > 0
+            if (
+                $Artikel->cLagerVariation === 'Y' && is_array($WarenkorbPosEigenschaftArr) && count($WarenkorbPosEigenschaftArr) > 0
             ) {
                 foreach ($WarenkorbPosEigenschaftArr as $eWert) {
                     $EigenschaftWert = new EigenschaftWert($eWert->kEigenschaftWert);

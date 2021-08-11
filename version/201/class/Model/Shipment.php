@@ -1,8 +1,10 @@
 <?php
-
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 namespace ws_mollie\Model;
-
 
 /**
  * Class Shipment
@@ -20,9 +22,7 @@ namespace ws_mollie\Model;
  */
 class Shipment extends AbstractModel
 {
-
     const PRIMARY = 'kLieferschein';
 
     const TABLE = 'xplugin_ws_mollie_shipments';
-
 }

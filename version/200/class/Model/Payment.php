@@ -1,4 +1,8 @@
 <?php
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 namespace ws_mollie\Model;
 
@@ -39,9 +43,10 @@ class Payment extends AbstractModel
         if (!$this->dCreatedAt) {
             $this->dCreatedAt = date('Y-m-d H:i:s');
         }
-        if($this->new){
+        if ($this->new) {
             $this->dReminder = self::NULL;
         }
+
         return parent::save();
     }
 }

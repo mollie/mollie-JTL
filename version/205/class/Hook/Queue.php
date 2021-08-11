@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2021 WebStollen GmbH
  * @link https://www.webstollen.de
@@ -23,11 +24,13 @@ class Queue extends AbstractHook
      */
     public static function bestellungInDB(array $args_arr)
     {
-        if (array_key_exists('oBestellung', $args_arr)
+        if (
+            array_key_exists('oBestellung', $args_arr)
             && $_SESSION['Zahlungsart'] && (int)$_SESSION['Zahlungsart']->nWaehrendBestellung === 0
             && $args_arr['oBestellung']->fGesamtsumme > 0
             && self::Plugin()->oPluginEinstellungAssoc_arr['onlyPaid'] === 'Y'
-            && AbstractCheckout::isMollie((int)$args_arr['oBestellung']->kZahlungsart, true)) {
+            && AbstractCheckout::isMollie((int)$args_arr['oBestellung']->kZahlungsart, true)
+        ) {
             $args_arr['oBestellung']->cAbgeholt = 'Y';
             Jtllog::writeLog('Switch cAbgeholt for kBestellung: ' . print_r($args_arr['oBestellung']->kBestellung, 1), JTLLOG_LEVEL_NOTICE);
         }
@@ -108,8 +111,10 @@ class Queue extends AbstractHook
                 $checkout->getMollie(true);
                 $checkout->updateModel()->saveModel();
 
-                if (($checkout->getBestellung()->dBezahltDatum !== null && $checkout->getBestellung()->dBezahltDatum !== '0000-00-00')
-                    || in_array($checkout->getModel()->cStatus, ['completed', 'paid', 'authorized', 'pending'])) {
+                if (
+                    ($checkout->getBestellung()->dBezahltDatum !== null && $checkout->getBestellung()->dBezahltDatum !== '0000-00-00')
+                    || in_array($checkout->getModel()->cStatus, ['completed', 'paid', 'authorized', 'pending'])
+                ) {
                     throw new RuntimeException(self::Plugin()->oPluginSprachvariableAssoc_arr['errAlreadyPaid']);
                 }
 

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2021 WebStollen GmbH
  * @link https://www.webstollen.de
@@ -24,9 +25,7 @@ try {
 
     if (array_key_exists('action', $_REQUEST)) {
         switch ($_REQUEST['action']) {
-
             case 'reminder':
-
                 if (array_key_exists('kBestellung', $_REQUEST) && ($checkout = AbstractCheckout::fromBestellung((int)$_REQUEST['kBestellung']))) {
                     if (AbstractCheckout::sendReminder($checkout->getModel()->kID)) {
                         Helper::addAlert('Zahlungserinnerung wurde verschickt.', 'success', 'orders');
@@ -41,7 +40,6 @@ try {
                 break;
 
             case 'fetchable':
-
                 if (array_key_exists('kBestellung', $_REQUEST) && ($checkout = AbstractCheckout::fromBestellung((int)$_REQUEST['kBestellung']))) {
                     if (AbstractCheckout::makeFetchable($checkout->getBestellung(), $checkout->getModel())) {
                         Helper::addAlert('Bestellung kann jetzt von der WAWI abgeholt werden.', 'success', 'orders');
@@ -55,7 +53,6 @@ try {
                 break;
 
             case 'export':
-
                 try {
                     $export = [];
 

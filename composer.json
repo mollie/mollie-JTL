@@ -3,9 +3,9 @@
   "description": "Mollie",
   "type": "project",
   "scripts": {
-    "phpcbf": "phpcbf --standard=PSR12 --encoding=utf8 -p ./version/205",
+    "phpcbf": "phpcbf --standard=PSR12 --encoding=utf8 -p ./version",
     "php-cs-fixer": "php-cs-fixer fix",
-    "fix": "phpcbf --standard=PSR12 --encoding=utf8 -p ./version/205 && php-cs-fixer fix"
+    "fix": "phpcbf --standard=PSR12 --encoding=utf8 -p ./version; php-cs-fixer fix"
   },
   "require": {
     "ext-json": "*",

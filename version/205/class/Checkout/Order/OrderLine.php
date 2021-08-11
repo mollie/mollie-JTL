@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2021 WebStollen GmbH
  * @link https://www.webstollen.de
@@ -104,8 +105,10 @@ class OrderLine extends AbstractResource
         $resource->fill($oPosition, $currency);
 
         // Validity Check
-        if (!$resource->name || !$resource->quantity || !$resource->unitPrice || !$resource->totalAmount
-            || !$resource->vatRate || !$resource->vatAmount) {
+        if (
+            !$resource->name || !$resource->quantity || !$resource->unitPrice || !$resource->totalAmount
+            || !$resource->vatRate || !$resource->vatAmount
+        ) {
             throw ResourceValidityException::trigger(
                 ResourceValidityException::ERROR_REQUIRED,
                 ['name', 'quantity', 'unitPrice', 'totalAmount', 'vatRate', 'vatAmount'],
@@ -229,7 +232,6 @@ class OrderLine extends AbstractResource
                 $this->type = $positive ? OrderLineType::TYPE_SURCHARGE : OrderLineType::TYPE_DISCOUNT;
 
                 return $this;
-
         }
     }
 }

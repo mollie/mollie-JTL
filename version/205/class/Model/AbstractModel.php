@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2021 WebStollen GmbH
  * @link https://www.webstollen.de
@@ -41,11 +42,13 @@ abstract class AbstractModel implements JsonSerializable
      */
     public static function fromID($id, $col = 'kID', $failIfNotExists = false)
     {
-        if ($payment = Shop::DB()->executeQueryPrepared(
-            'SELECT * FROM ' . static::TABLE . " WHERE `$col` = :id",
-            [':id' => $id],
-            1
-        )) {
+        if (
+            $payment = Shop::DB()->executeQueryPrepared(
+                'SELECT * FROM ' . static::TABLE . " WHERE `$col` = :id",
+                [':id' => $id],
+                1
+            )
+        ) {
             return new static($payment);
         }
         if ($failIfNotExists) {

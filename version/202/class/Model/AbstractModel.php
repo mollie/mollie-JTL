@@ -1,4 +1,8 @@
 <?php
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 namespace ws_mollie\Model;
 
@@ -9,8 +13,7 @@ use stdClass;
 
 abstract class AbstractModel implements JsonSerializable
 {
-
-    const TABLE = null;
+    const TABLE   = null;
     const PRIMARY = null;
 
 
@@ -32,18 +35,24 @@ abstract class AbstractModel implements JsonSerializable
 
     public static function fromID($id, $col = 'kID', $failIfNotExists = false)
     {
-        if ($payment = Shop::DB()->executeQueryPrepared("SELECT * FROM " . static::TABLE . " WHERE {$col} = :id",
-            [':id' => $id], 1)) {
+        if (
+            $payment = Shop::DB()->executeQueryPrepared(
+                'SELECT * FROM ' . static::TABLE . " WHERE {$col} = :id",
+                [':id' => $id],
+                1
+            )
+        ) {
             return new static($payment);
         }
         if ($failIfNotExists) {
             throw new RuntimeException(sprintf('Model %s in %s nicht gefunden!', $id, static::TABLE));
         }
+
         return new static();
     }
 
     /**
-     * @return mixed|stdClass|null
+     * @return null|mixed|stdClass
      */
     public function jsonSerialize()
     {
@@ -55,6 +64,7 @@ abstract class AbstractModel implements JsonSerializable
         if (isset($this->data->$name)) {
             return $this->data->$name;
         }
+
         return null;
     }
 
@@ -83,10 +93,11 @@ abstract class AbstractModel implements JsonSerializable
         if ($this->new) {
             Shop::DB()->insert(static::TABLE, $this->data);
             $this->new = false;
+
             return true;
         }
         Shop::DB()->update(static::TABLE, static::PRIMARY, $this->data->{static::PRIMARY}, $this->data);
+
         return true;
     }
-
 }

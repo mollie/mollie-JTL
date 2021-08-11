@@ -1,5 +1,8 @@
 <?php
-
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 namespace ws_mollie\Checkout\Payment;
 
@@ -16,16 +19,14 @@ use ws_mollie\Checkout\Exception\ResourceValidityException;
  */
 class Amount extends AbstractResource
 {
-
     /**
-     * @param float $value
+     * @param float       $value
      * @param null|string $currency
-     * @param false $useRounding (is it total SUM => true [5 Rappen Rounding])
+     * @param false       $useRounding (is it total SUM => true [5 Rappen Rounding])
      * @return Amount
      */
     public static function factory($value, $currency = null, $useRounding = false)
     {
-
         if (!$currency) {
             $currency = static::FallbackCurrency()->cISO;
         }
@@ -42,6 +43,7 @@ class Amount extends AbstractResource
         if (!$resource->currency || !$resource->value) {
             throw ResourceValidityException::trigger(ResourceValidityException::ERROR_REQUIRED, ['currency', 'value'], $resource);
         }
+
         return $resource;
     }
 
@@ -56,17 +58,16 @@ class Amount extends AbstractResource
     /**
      * Check if 5 Rappen rounding is necessary
      *
+     * @param mixed $value
      * @return float
      */
     protected function round($value)
     {
-
         $conf = Shop::getSettings([CONF_KAUFABWICKLUNG]);
         if (isset($conf['kaufabwicklung']['bestellabschluss_runden5']) && (int)$conf['kaufabwicklung']['bestellabschluss_runden5'] === 1) {
             $value = round($value * 20) / 20;
         }
+
         return $value;
     }
-
-
 }

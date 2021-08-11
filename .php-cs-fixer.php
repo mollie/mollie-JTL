@@ -3,7 +3,7 @@
 use PhpCsFixer\Config;
 
 $finder = PhpCsFixer\Finder::create()
-    ->in(__DIR__.'/version/205');
+    ->in(__DIR__.'/version');
 
 return (new Config())
     ->setRiskyAllowed(true)

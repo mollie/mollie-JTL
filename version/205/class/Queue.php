@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2021 WebStollen GmbH
  * @link https://www.webstollen.de
@@ -181,9 +182,11 @@ class Queue
                         }
 
                         /** @var $method JTLMollie */
-                        if ((strpos($checkout->getModel()->kID, 'tr_') === false)
+                        if (
+                            (strpos($checkout->getModel()->kID, 'tr_') === false)
                             && $checkout->PaymentMethod()
-                            && $checkout->getMollie()) {
+                            && $checkout->getMollie()
+                        ) {
                             /** @var OrderCheckout $checkout */
                             $checkout->handleNotification();
                             if ($checkout->getMollie()->status === OrderStatus::STATUS_COMPLETED) {
