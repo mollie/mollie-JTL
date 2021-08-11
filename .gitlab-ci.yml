@@ -69,7 +69,7 @@ composer:
 
 pack:
   stage: release
-  needs: ["node", "composer"]
+  needs: ["composer"]
   only:
     - tags
     - master
