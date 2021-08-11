@@ -3,8 +3,8 @@ image: registry.webstollen.de/docker/jtl-plugin-ci:master
 stages:
   - test
   - build
-  - finalize
-  - publish
+  - release
+  - deploy
 
 sast:
   stage: test
@@ -39,42 +39,43 @@ composer:
     expire_in: 3 days
     untracked: true
 
-node:
-  stage: build
-  only:
-    - tags
-    - master
-  cache:
-    key:
-      files:
-        - adminmenu/app/yarn.lock
-    paths:
-      - adminmenu/app/node_modules
-      - adminmenu/app/.yarn-cache
-    policy: pull
-  script:
-    - npm config set "@fortawesome:registry" https://npm.fontawesome.com/
-    - npm config set "//npm.fontawesome.com/:_authToken" $FONT_AWESOME_TOKEN
-    - npm config set "@dash.bar:registry" https://gitlab.webstollen.de/api/v4/packages/npm/
-    - npm config set "@webstollen:registry" https://gitlab.webstollen.de/api/v4/packages/npm/
-    - npm config set "//gitlab.webstollen.de/api/v4/packages/npm/:_authToken" $CI_JOB_TOKEN
-    - npm config set "//gitlab.webstollen.de/api/v4/projects/444/packages/npm/:_authToken"
-      $CI_JOB_TOKEN
-    - if [ -f "adminmenu/app/package.json" ]; then cd adminmenu/app && yarn install --frozen-lockfile --cache-folder .yarn-cache && yarn build; else echo "Skipped Yarn build, no packages.json"; fi
-  artifacts:
-    expire_in: 3 days
-    untracked: false
-    paths:
-      - adminmenu/app/build
+#node:
+#  stage: build
+#  only:
+#    - tags
+#    - master
+#  cache:
+#    key:
+#      files:
+#        - adminmenu/app/yarn.lock
+#    paths:
+#      - adminmenu/app/node_modules
+#      - adminmenu/app/.yarn-cache
+#    policy: pull
+#  script:
+#    - npm config set "@fortawesome:registry" https://npm.fontawesome.com/
+#    - npm config set "//npm.fontawesome.com/:_authToken" $FONT_AWESOME_TOKEN
+#    - npm config set "@dash.bar:registry" https://gitlab.webstollen.de/api/v4/packages/npm/
+#    - npm config set "@webstollen:registry" https://gitlab.webstollen.de/api/v4/packages/npm/
+#    - npm config set "//gitlab.webstollen.de/api/v4/packages/npm/:_authToken" $CI_JOB_TOKEN
+#    - npm config set "//gitlab.webstollen.de/api/v4/projects/444/packages/npm/:_authToken"
+#      $CI_JOB_TOKEN
+#    - if [ -f "adminmenu/app/package.json" ]; then cd adminmenu/app && yarn install --frozen-lockfile --cache-folder .yarn-cache && yarn build; else echo "Skipped Yarn build, no packages.json"; fi
+#  artifacts:
+#    expire_in: 3 days
+#    untracked: false
+#    paths:
+#      - adminmenu/app/build
 
 pack:
-  stage: finalize
+  stage: release
+  needs: ["node", "composer"]
   only:
     - tags
     - master
   script:
     - rm -rf .git/ adminmenu/app/src/ adminmenu/app/test/ adminmenu/app/public/ tests/
-    - rm -f .gitlab-ci.yml phpunit.xml adminmenu/app/*.js* adminmenu/app/yarn.lock adminmenu/app/README.md adminmenu/cra.sh
+    - rm -f .gitlab-ci.yml phpunit.xml adminmenu/app/*.js* adminmenu/app/yarn.lock adminmenu/app/README.md adminmenu/cra.sh .php-cs-fixer.php
     - cd ..
     - if [[ $SKIP_COMPILE = 1 ]]; then echo "Skipped Compiler."; else compiler $CI_PROJECT_DIR $CI_PROJECT_DIR; fi
     - zip -r $CI_PROJECT_DIR/$CI_PROJECT_NAME-$CI_COMMIT_REF_NAME.zip $CI_PROJECT_NAME
@@ -84,7 +85,8 @@ pack:
       - $CI_PROJECT_NAME-$CI_COMMIT_REF_NAME.zip
 
 upload:
-  stage: publish
+  stage: deploy
+  needs: ["pack"]
   only:
     - tags
     - master
@@ -92,3 +94,4 @@ upload:
     - aws configure set region eu-central-1
     - if [[ $SKIP_COMPILE = 1 ]]; then export SRC_PREFIX="-src"; fi
     - if [[ $S3_BUCKET ]]; then aws s3 cp $CI_PROJECT_NAME-$CI_COMMIT_REF_NAME.zip s3://$S3_BUCKET/jtl-plugins/$CI_PROJECT_NAME/$CI_PROJECT_NAME-$CI_COMMIT_REF_NAME$SRC_PREFIX.zip; fi
+    - echo "DOWNLOAD URL https://ws-download.de/jtl-plugins/$CI_PROJECT_NAME/$CI_PROJECT_NAME-$CI_COMMIT_REF_NAME$SRC_PREFIX.zip"
