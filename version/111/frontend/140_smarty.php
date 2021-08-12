@@ -1,4 +1,8 @@
-<?php /* open */
+<?php
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 use ws_mollie\Helper;
 
@@ -9,18 +13,19 @@ try {
 
     if (array_key_exists('mollieStatus', $_REQUEST)) {
         $status = $_REQUEST['mollieStatus'];
-        $text = Helper::oPlugin()->oPluginSprachvariableAssoc_arr['error_' . $status];
+        $text   = Helper::oPlugin()->oPluginSprachvariableAssoc_arr['error_' . $status];
         pq('#fieldset-payment')->prepend('<div class="alert alert-danger">' . $text . '</div>');
     }
 
-    $applePayId = "kPlugin_" . Helper::oPlugin()->kPlugin . "_mollieapplepay";
+    $applePayId = 'kPlugin_' . Helper::oPlugin()->kPlugin . '_mollieapplepay';
     if (pq('#' . $applePayId)) {
         $selector = 'body';
         if (array_key_exists('isAjax', $_REQUEST)) {
             $selector = '#checkout';
         }
 
-        pq($selector)->append(<<<HTML
+        pq($selector)->append(
+            <<<HTML
 <script type="text/javascript" data-eucookie-name="mollie ApplePay Check" data-eucookie-category="required" data-eucookie-description="Prueft ob ApplePay verfuegbar ist.">
 // <!--
 if($('#{$applePayId}').length){
@@ -36,20 +41,22 @@ HTML
     switch (Helper::getSetting('load_styles')) {
         case 'Y':
             $selector = '#fieldset-payment [id*="_mollie"]';
-            $border = "";
+            $border   = '';
+
             break;
         case 'A':
             $selector = '#fieldset-payment';
-            $border = "border-bottom: 1px solid #ccc;";
+            $border   = 'border-bottom: 1px solid #ccc;';
+
             break;
         case 'N':
         default:
             return;
     }
 
-    $lh = "30px";
+    $lh = '30px';
     if (Helper::getSetting('paymentmethod_sync') === 'size2x') {
-        $lh = "40px";
+        $lh = '40px';
     }
 
     pq('head')->append(

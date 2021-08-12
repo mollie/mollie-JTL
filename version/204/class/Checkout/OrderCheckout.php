@@ -1,8 +1,10 @@
 <?php
-
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 namespace ws_mollie\Checkout;
-
 
 use DateTime;
 use DateTimeZone;
@@ -29,49 +31,49 @@ use ws_mollie\Shipment;
  * @property string $locale
  * @property Amount $amount
  * @property string $orderNumber
- * @property array|null $metadata
+ * @property null|array $metadata
  * @property string $redirectUrl
  * @property string $webhookUrl
- * @property string|null $method
+ * @property null|string $method
  * @property Address $billingAddress
- * @property Address|null $shippingAddress
- * @property string|null $consumerDateOfBirth
+ * @property null|Address $shippingAddress
+ * @property null|string $consumerDateOfBirth
  * @property OrderLine[] $lines
- * @property string|null $expiresAt
- * @property array|null $payment
+ * @property null|string $expiresAt
+ * @property null|array $payment
  */
 class OrderCheckout extends AbstractCheckout
 {
-
     /**
      * @var Order
      */
     protected $order;
 
     /**
-     * @var Payment|null
+     * @var null|Payment
      */
     protected $_payment;
 
     /**
      * @param OrderCheckout $checkout
-     * @return string
      * @throws ApiException
      * @throws IncompatiblePlatform
+     * @return string
      */
-    public static function capture(OrderCheckout $checkout)
+    public static function capture(self $checkout)
     {
         if ($checkout->getMollie()->status !== OrderStatus::STATUS_AUTHORIZED && $checkout->getMollie()->status !== OrderStatus::STATUS_SHIPPING) {
             throw new RuntimeException('Nur autorisierte Zahlungen können erfasst werden!');
         }
         $shipment = $checkout->API()->Client()->shipments->createFor($checkout->getMollie(), ['lines' => []]);
         $checkout->Log(sprintf('Bestellung wurde manuell erfasst/versandt: %s', $shipment->id));
+
         return $shipment->id;
     }
 
     /**
      * @param false $force
-     * @return Order|null
+     * @return null|Order
      */
     public function getMollie($force = false)
     {
@@ -82,13 +84,14 @@ class OrderCheckout extends AbstractCheckout
                 throw new RuntimeException(sprintf('Mollie-Order \'%s\' konnte nicht geladen werden: %s', $this->getModel()->kID, $e->getMessage()));
             }
         }
+
         return $this->order;
     }
 
     /**
      * @param OrderCheckout $checkout
-     * @return Order
      * @throws ApiException
+     * @return Order
      */
     public static function cancel($checkout)
     {
@@ -97,29 +100,32 @@ class OrderCheckout extends AbstractCheckout
         }
         $order = $checkout->getMollie()->cancel();
         $checkout->Log('Bestellung wurde manuell abgebrochen.');
+
         return $order;
     }
 
     /**
-     * @return array
      * @throws Exception
+     * @return array
      */
     public function getShipments()
     {
-        $shipments = [];
-        $lieferschien_arr = Shop::DB()->executeQueryPrepared("SELECT kLieferschein FROM tlieferschein WHERE kInetBestellung = :kBestellung", [
+        $shipments        = [];
+        $lieferschien_arr = Shop::DB()->executeQueryPrepared('SELECT kLieferschein FROM tlieferschein WHERE kInetBestellung = :kBestellung', [
             ':kBestellung' => $this->getBestellung()->kBestellung
         ], 2);
 
         foreach ($lieferschien_arr as $lieferschein) {
             $shipments[] = new Shipment($lieferschein->kLieferschein, $this);
         }
+
         return $shipments;
     }
 
     /**
-     * @return string
+     * @param mixed $force
      * @throws ApiException
+     * @return string
      */
     public function cancelOrRefund($force = false)
     {
@@ -128,15 +134,17 @@ class OrderCheckout extends AbstractCheckout
         }
         if ($force || (int)$this->getBestellung()->cStatus === BESTELLUNG_STATUS_STORNO) {
             if ($this->getMollie()->isCancelable) {
-                $res = $this->getMollie()->cancel();
+                $res    = $this->getMollie()->cancel();
                 $result = 'Order cancelled, Status: ' . $res->status;
             } else {
-                $res = $this->getMollie()->refundAll();
-                $result = "Order Refund initiiert, Status: " . $res->status;
+                $res    = $this->getMollie()->refundAll();
+                $result = 'Order Refund initiiert, Status: ' . $res->status;
             }
-            $this->PaymentMethod()->Log("OrderCheckout::cancelOrRefund: " . $result, $this->LogData());
+            $this->PaymentMethod()->Log('OrderCheckout::cancelOrRefund: ' . $result, $this->LogData());
+
             return $result;
         }
+
         throw new RuntimeException('Bestellung ist derzeit nicht storniert, Status: ' . $this->getBestellung()->cStatus);
     }
 
@@ -151,6 +159,7 @@ class OrderCheckout extends AbstractCheckout
                 $this->order = $this->API()->Client()->orders->get($this->getModel()->kID, ['embed' => 'payments']);
                 if (in_array($this->order->status, [OrderStatus::STATUS_COMPLETED, OrderStatus::STATUS_PAID, OrderStatus::STATUS_AUTHORIZED, OrderStatus::STATUS_PENDING], true)) {
                     $this->handleNotification();
+
                     throw new RuntimeException(self::Plugin()->oPluginSprachvariableAssoc_arr['errAlreadyPaid']);
                 }
                 if ($this->order->status === OrderStatus::STATUS_CREATED) {
@@ -159,6 +168,7 @@ class OrderCheckout extends AbstractCheckout
                         foreach ($this->order->payments() as $payment) {
                             if ($payment->status === PaymentStatus::STATUS_OPEN) {
                                 $this->setPayment($payment);
+
                                 break;
                             }
                         }
@@ -167,6 +177,7 @@ class OrderCheckout extends AbstractCheckout
                         $this->setPayment($this->API()->Client()->orderPayments->createForId($this->getModel()->kID, $paymentOptions));
                     }
                     $this->updateModel()->saveModel();
+
                     return $this->getMollie(true);
                 }
             } catch (RuntimeException $e) {
@@ -177,34 +188,41 @@ class OrderCheckout extends AbstractCheckout
         }
 
         try {
-            $req = $this->loadRequest($paymentOptions)->jsonSerialize();
+            $req         = $this->loadRequest($paymentOptions)->jsonSerialize();
             $this->order = $this->API()->Client()->orders->create($req);
             $this->Log(sprintf("Order für '%s' wurde erfolgreich angelegt: %s", $this->getBestellung()->cBestellNr, $this->order->id));
             $this->updateModel()->saveModel();
+
             return $this->order;
         } catch (Exception $e) {
             $this->Log(sprintf("OrderCheckout::create: Neue Order '%s' konnte nicht erstellt werden: %s.", $this->getBestellung()->cBestellNr, $e->getMessage()), LOGLEVEL_ERROR);
+
             throw new RuntimeException(sprintf("Order für '%s' konnte nicht angelegt werden: %s", $this->getBestellung()->cBestellNr, $e->getMessage()));
         }
     }
 
     /**
-     * @return Payment|null
+     * @param mixed $search
+     * @return null|Payment
      */
     public function getPayment($search = false)
     {
         if (!$this->_payment && $search && $this->getMollie()) {
             foreach ($this->getMollie()->payments() as $payment) {
-                if (in_array($payment->status, [
+                if (
+                    in_array($payment->status, [
                     PaymentStatus::STATUS_AUTHORIZED,
                     PaymentStatus::STATUS_PAID,
                     PaymentStatus::STATUS_PENDING,
-                ], true)) {
+                    ], true)
+                ) {
                     $this->_payment = $payment;
+
                     break;
                 }
             }
         }
+
         return $this->_payment;
     }
 
@@ -215,6 +233,7 @@ class OrderCheckout extends AbstractCheckout
     public function setPayment($payment)
     {
         $this->_payment = $payment;
+
         return $this;
     }
 
@@ -230,6 +249,7 @@ class OrderCheckout extends AbstractCheckout
             foreach ($this->getMollie()->payments() as $payment) {
                 if (in_array($payment->status, [PaymentStatus::STATUS_OPEN, PaymentStatus::STATUS_PENDING, PaymentStatus::STATUS_AUTHORIZED, PaymentStatus::STATUS_PAID], true)) {
                     $this->setPayment($payment);
+
                     break;
                 }
             }
@@ -239,9 +259,10 @@ class OrderCheckout extends AbstractCheckout
         }
         if ($this->getMollie()) {
             $this->getModel()->cCheckoutURL = $this->getMollie()->getCheckoutUrl();
-            $this->getModel()->cWebhookURL = $this->getMollie()->webhookUrl;
+            $this->getModel()->cWebhookURL  = $this->getMollie()->webhookUrl;
             $this->getModel()->cRedirectURL = $this->getMollie()->redirectUrl;
         }
+
         return $this;
     }
 
@@ -251,7 +272,6 @@ class OrderCheckout extends AbstractCheckout
      */
     public function loadRequest(&$options = [])
     {
-
         parent::loadRequest($options);
 
         $this->orderNumber = $this->getBestellung()->cBestellNr;
@@ -288,8 +308,9 @@ class OrderCheckout extends AbstractCheckout
 
         if ($dueDays = $this->PaymentMethod()->getExpiryDays()) {
             try {
-                $max = $this->method && strpos($this->method, 'klarna') !== false ? 28 : 100;
-                $date = new DateTime(sprintf("+%d DAYS", min($dueDays, $max)), new DateTimeZone('UTC'));
+                // #145
+                //$max = $this->method && strpos($this->method, 'klarna') !== false ? 28 : 100;
+                $date            = new DateTime(sprintf('+%d DAYS', $dueDays), new DateTimeZone('UTC'));
                 $this->expiresAt = $date->format('Y-m-d');
             } catch (Exception $e) {
                 $this->Log($e->getMessage(), LOGLEVEL_ERROR);
@@ -302,7 +323,7 @@ class OrderCheckout extends AbstractCheckout
     }
 
     /**
-     * @return object|null
+     * @return null|object
      */
     public function getIncomingPayment()
     {
@@ -310,10 +331,10 @@ class OrderCheckout extends AbstractCheckout
             return null;
         }
 
-        $cHinweis = sprintf("%s / %s", $this->getMollie()->id, $this->getPayment(true)->id);
+        $cHinweis = sprintf('%s / %s', $this->getMollie()->id, $this->getPayment(true)->id);
         if (Helper::getSetting('wawiPaymentID') === 'ord') {
             $cHinweis = $this->getMollie()->id;
-        } else if (Helper::getSetting('wawiPaymentID') === 'tr') {
+        } elseif (Helper::getSetting('wawiPaymentID') === 'tr') {
             $cHinweis = $this->getPayment(true)->id;
         }
 
@@ -321,21 +342,28 @@ class OrderCheckout extends AbstractCheckout
         /** @var Payment $payment */
         /** @noinspection NullPointerExceptionInspection */
         foreach ($this->getMollie()->payments() as $payment) {
-            if (in_array($payment->status,
-                [PaymentStatus::STATUS_AUTHORIZED, PaymentStatus::STATUS_PAID], true)) {
+            if (
+                in_array(
+                    $payment->status,
+                    [PaymentStatus::STATUS_AUTHORIZED, PaymentStatus::STATUS_PAID],
+                    true
+                )
+            ) {
                 $this->setPayment($payment);
                 $data = (object)[
-                    'fBetrag' => (float)$payment->amount->value,
-                    'cISO' => $payment->amount->currency,
-                    'cZahler' => $payment->details->paypalPayerId ?: $payment->customerId,
+                    'fBetrag'  => (float)$payment->amount->value,
+                    'cISO'     => $payment->amount->currency,
+                    'cZahler'  => $payment->details->paypalPayerId ?: $payment->customerId,
                     'cHinweis' => $payment->details->paypalReference ?: $cHinweis,
                 ];
                 if (isset($payment->details, $payment->details->paypalFee)) {
                     $data->fZahlungsgebuehr = $payment->details->paypalFee->value;
                 }
+
                 return $data;
             }
         }
+
         return null;
     }
 
@@ -347,12 +375,13 @@ class OrderCheckout extends AbstractCheckout
         try {
             if ($this->getMollie()) {
                 $this->getMollie()->orderNumber = $this->getBestellung()->cBestellNr;
-                $this->getMollie()->webhookUrl = Shop::getURL() . '/?mollie=1';
+                $this->getMollie()->webhookUrl  = Shop::getURL() . '/?mollie=1';
                 $this->getMollie()->update();
             }
         } catch (Exception $e) {
             $this->Log('OrderCheckout::updateOrderNumber:' . $e->getMessage(), LOGLEVEL_ERROR);
         }
+
         return $this;
     }
 
@@ -365,6 +394,7 @@ class OrderCheckout extends AbstractCheckout
         if ($model instanceof Order) {
             $this->order = $model;
         }
+
         return $this;
     }
 }

@@ -1,4 +1,8 @@
 <?php
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 use ws_mollie\Checkout\AbstractCheckout;
 
@@ -16,13 +20,14 @@ class JTLMollieBanktransfer extends JTLMollie
         $paymentOptions = [];
         if ($apiType === 'payment') {
             $paymentOptions['billingEmail'] = $order->oRechnungsadresse->cMail;
-            $paymentOptions['locale'] = AbstractCheckout::getLocale(Session::getInstance()->Language()->getIso(), $order->oRechnungsadresse->cLand);
+            $paymentOptions['locale']       = AbstractCheckout::getLocale(Session::getInstance()->Language()->getIso(), $order->oRechnungsadresse->cLand);
         }
 
         $dueDays = $this->getExpiryDays();
         if ($dueDays > 3) {
             $paymentOptions['dueDate'] = date('Y-m-d', strtotime("+{$dueDays} DAYS"));
         }
+
         return $paymentOptions;
     }
 }

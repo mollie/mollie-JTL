@@ -1,23 +1,28 @@
 <?php
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 use ws_mollie\Helper;
 
 require_once __DIR__ . '/../class/Helper.php';
+
 try {
     Helper::init();
 
-    if (array_key_exists("action", $_REQUEST) && $_REQUEST['action'] === 'update-plugin') {
+    if (array_key_exists('action', $_REQUEST) && $_REQUEST['action'] === 'update-plugin') {
         Shop::Smarty()->assign('defaultTabbertab', Helper::getAdminmenu('Info') + Helper::getAdminmenu('Support'));
         Helper::selfupdate();
     }
 
     $svgQuery = http_build_query([
-        'p' => Helper::oPlugin()->cPluginID,
-        'v' => Helper::oPlugin()->nVersion,
-        's' => defined('APPLICATION_VERSION') ? APPLICATION_VERSION : JTL_VERSION,
-        'b' => defined('JTL_MINOR_VERSION') ? JTL_MINOR_VERSION : '0',
-        'd' => Helper::getDomain(),
-        'm' => base64_encode(Helper::getMasterMail(true)),
+        'p'   => Helper::oPlugin()->cPluginID,
+        'v'   => Helper::oPlugin()->nVersion,
+        's'   => defined('APPLICATION_VERSION') ? APPLICATION_VERSION : JTL_VERSION,
+        'b'   => defined('JTL_MINOR_VERSION') ? JTL_MINOR_VERSION : '0',
+        'd'   => Helper::getDomain(),
+        'm'   => base64_encode(Helper::getMasterMail(true)),
         'php' => PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION . PHP_EXTRA_VERSION,
     ]);
 
@@ -45,7 +50,6 @@ try {
         if ((int)Helper::oPlugin()->nVersion < (int)$latestRelease->version) {
             Shop::Smarty()->assign('update', $latestRelease);
         }
-
     } catch (\Exception $e) {
     }
 
@@ -57,7 +61,6 @@ try {
         } catch (Exception $e) {
         }
     }
-    
 } catch (Exception $e) {
     echo "<div class='alert alert-danger'>Fehler: {$e->getMessage()}</div>";
     Helper::logExc($e);

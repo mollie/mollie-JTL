@@ -1,13 +1,19 @@
 <?php
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 use Mollie\Api\MollieApiClient;
 use ws_mollie\Helper;
 use ws_mollie\Mollie;
 
 require_once __DIR__ . '/../class/Helper.php';
+
 try {
     if (!Helper::init()) {
-        echo "Kein gltige Lizenz?";
+        echo 'Kein gltige Lizenz?';
+
         return;
     }
 
@@ -15,7 +21,7 @@ try {
 
 
     $mollie = new MollieApiClient();
-    $mollie->setApiKey(Helper::getSetting("api_key"));
+    $mollie->setApiKey(Helper::getSetting('api_key'));
 
     $profile = $mollie->profiles->get('me');
     /*    $methods = $mollie->methods->all([
@@ -23,14 +29,14 @@ try {
             'include' => 'pricing',
         ]);*/
 
-    $za = filter_input(INPUT_GET, 'za', FILTER_VALIDATE_BOOLEAN);
-    $active = filter_input(INPUT_GET, 'active', FILTER_VALIDATE_BOOLEAN);
-    $amount = filter_input(INPUT_GET, 'amount', FILTER_VALIDATE_FLOAT) ?: null;
-    $locale = filter_input(INPUT_GET, 'locale', FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/^[a-zA-Z]{2}_[a-zA-Z]{2}$/']]) ?: null;
+    $za       = filter_input(INPUT_GET, 'za', FILTER_VALIDATE_BOOLEAN);
+    $active   = filter_input(INPUT_GET, 'active', FILTER_VALIDATE_BOOLEAN);
+    $amount   = filter_input(INPUT_GET, 'amount', FILTER_VALIDATE_FLOAT) ?: null;
+    $locale   = filter_input(INPUT_GET, 'locale', FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/^[a-zA-Z]{2}_[a-zA-Z]{2}$/']]) ?: null;
     $currency = filter_input(INPUT_GET, 'currency', FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/^[a-zA-Z]{3}$/']]) ?: 'EUR';
 
     if ($za) {
-        Shop::Smarty()->assign('defaultTabbertab', Helper::getAdminmenu("Zahlungsarten"));
+        Shop::Smarty()->assign('defaultTabbertab', Helper::getAdminmenu('Zahlungsarten'));
     }
 
     $params = ['include' => 'pricing,issuers'];
@@ -39,7 +45,7 @@ try {
         $params['locale'] = $locale;
         if ($active) {
             $params['includeWallets'] = 'applepay';
-            $params['resource'] = 'orders';
+            $params['resource']       = 'orders';
         }
     }
 

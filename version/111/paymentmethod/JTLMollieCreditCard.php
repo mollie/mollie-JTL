@@ -1,4 +1,8 @@
 <?php
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 use ws_mollie\Helper;
 
@@ -10,9 +14,9 @@ class JTLMollieCreditCard extends JTLMollie
 
     public function handleAdditional($aPost_arr)
     {
-
-        if(array_key_exists('skip', $aPost_arr) && (int)$aPost_arr['skip']){
+        if (array_key_exists('skip', $aPost_arr) && (int)$aPost_arr['skip']) {
             unset($_SESSION['mollieCardToken'], $_SESSION['mollieCardTokenTS']);
+
             return true;
         }
 
@@ -20,16 +24,19 @@ class JTLMollieCreditCard extends JTLMollie
         if ($profileId === '' || strpos($profileId, 'pfl_') !== 0) {
             return true;
         }
-        if (array_key_exists('mollieCardTokenTS', $_SESSION) && (int)$_SESSION['mollieCardTokenTS'] > time()
-            && array_key_exists('mollieCardToken', $_SESSION) && trim($_SESSION['mollieCardToken']) !== '') {
+        if (
+            array_key_exists('mollieCardTokenTS', $_SESSION) && (int)$_SESSION['mollieCardTokenTS'] > time()
+            && array_key_exists('mollieCardToken', $_SESSION) && trim($_SESSION['mollieCardToken']) !== ''
+        ) {
             return true;
         }
 
         unset($_SESSION['mollieCardToken'], $_SESSION['mollieCardTokenTS']);
 
         if (array_key_exists('cardToken', $aPost_arr) && trim($aPost_arr['cardToken'])) {
-            $_SESSION['mollieCardToken'] = trim($aPost_arr['cardToken']);
+            $_SESSION['mollieCardToken']   = trim($aPost_arr['cardToken']);
             $_SESSION['mollieCardTokenTS'] = time() + 3600;
+
             return true;
         }
 
@@ -43,5 +50,4 @@ class JTLMollieCreditCard extends JTLMollie
 
         return false;
     }
-
 }

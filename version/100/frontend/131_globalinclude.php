@@ -1,4 +1,8 @@
 <?php
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 use Mollie\Api\Resources\Payment;
 use Mollie\Api\Types\PaymentStatus;
@@ -9,23 +13,24 @@ if (strpos($_SERVER['PHP_SELF'], 'bestellabschluss') === false) {
     return;
 }
 require_once __DIR__ . '/../class/Helper.php';
+
 try {
     Helper::init();
     // suppress any output, for redirect
     ob_start();
     if (array_key_exists('mollie', $_REQUEST)) {
-        $payment = Shop::DB()->executeQueryPrepared("SELECT * FROM " . \ws_mollie\Model\Payment::TABLE . " WHERE cHash = :cHash", [':cHash' => $_REQUEST['mollie']], 1);
+        $payment = Shop::DB()->executeQueryPrepared('SELECT * FROM ' . \ws_mollie\Model\Payment::TABLE . ' WHERE cHash = :cHash', [':cHash' => $_REQUEST['mollie']], 1);
         // Bestellung finalized, redirect to status/completion page
         if ((int)$payment->kBestellung) {
-            $logData = '$' . $payment->kID . '#' . $payment->kBestellung . "§" . $payment->cOrderNumber;
+            $logData = '$' . $payment->kID . '#' . $payment->kBestellung . '§' . $payment->cOrderNumber;
             Mollie::JTLMollie()->doLog('Bestellung finalized => redirect abschluss/status', $logData);
             $order = JTLMollie::API()->orders->get($payment->kID, ['embed' => 'payments']);
             Mollie::handleOrder($order, $payment->kBestellung);
             Mollie::getOrderCompletedRedirect($payment->kBestellung, true);
         } elseif ($payment) { // payment, but no order => finalize it
             require_once __DIR__ . '/../paymentmethod/JTLMollie.php';
-            $order = JTLMollie::API()->orders->get($payment->kID, ['embed' => 'payments']);
-            $logData = '$' . $order->id . '#' . $payment->kBestellung . "§" . $payment->cOrderNumber;
+            $order   = JTLMollie::API()->orders->get($payment->kID, ['embed' => 'payments']);
+            $logData = '$' . $order->id . '#' . $payment->kBestellung . '§' . $payment->cOrderNumber;
 
             // GET NEWEST PAYMENT:
             /** @var Payment $_payment */
@@ -35,6 +40,7 @@ try {
                 foreach ($order->payments() as $p) {
                     if (!$_payment) {
                         $_payment = $p;
+
                         continue;
                     }
                     if (strtotime($p->createdAt) > strtotime($_payment->createdAt)) {

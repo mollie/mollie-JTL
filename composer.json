@@ -1,16 +1,23 @@
 {
   "name": "webstollen/ws_mollie",
-  "description": "mollie",
+  "description": "Mollie",
   "type": "project",
+  "scripts": {
+    "phpcbf": "phpcbf --standard=PSR12 --encoding=utf8 -p ./version",
+    "php-cs-fixer": "php-cs-fixer fix",
+    "fix": "phpcbf --standard=PSR12 --encoding=utf8 -p ./version; php-cs-fixer fix"
+  },
   "require": {
     "ext-json": "*",
     "ext-curl": "*",
+    "ext-openssl": "*",
     "php": ">=5.6",
-    "mollie/mollie-api-php": "^v2.31.1",
-    "guzzlehttp/guzzle": "^6.5.5"
+    "mollie/mollie-api-php": "^v2.37.0"
   },
   "require-dev": {
-    "roave/security-advisories": "dev-latest"
+    "roave/security-advisories": "dev-latest",
+    "squizlabs/php_codesniffer": "3.*",
+    "friendsofphp/php-cs-fixer": "2.*"
   },
   "license": "Proprietary",
   "authors": [

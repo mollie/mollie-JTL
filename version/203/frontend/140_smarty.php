@@ -1,4 +1,8 @@
-<?php /* open */
+<?php
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 use ws_mollie\Helper;
 use ws_mollie\Hook\ApplePay;
@@ -9,15 +13,17 @@ try {
 
     ApplePay::execute(isset($args_arr) ? $args_arr : []);
 
-// TODO STYLES
+    // TODO STYLES
     switch (Helper::getSetting('load_styles')) {
         case 'Y':
             $selector = '#fieldset-payment [id*="_mollie"]';
-            $border = "";
+            $border   = '';
+
             break;
         case 'A':
             $selector = '#fieldset-payment';
-            $border = "border-bottom: 1px solid #ccc;";
+            $border   = 'border-bottom: 1px solid #ccc;';
+
             break;
         case 'N':
         default:
@@ -52,7 +58,6 @@ try {
 	</style>
 HTML
     );
-
 } catch (Exception $e) {
     Helper::logExc($e);
 }

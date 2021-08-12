@@ -1,4 +1,8 @@
 <?php
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 use ws_mollie\Helper;
 
@@ -20,10 +24,11 @@ class JTLMollieCreditCard extends JTLMollie
 
         if (array_key_exists('cardToken', $aPost_arr) && trim($aPost_arr['cardToken'])) {
             $_SESSION['mollieCardToken'] = trim($aPost_arr['cardToken']);
+
             return true;
         }
 
-        Shop::Smarty()->assign('profileId',$profileId)
+        Shop::Smarty()->assign('profileId', $profileId)
             ->assign('locale', self::getLocale($_SESSION['cISOSprache'], $_SESSION['Kunde']->cLand))
             ->assign('testmode', strpos(Helper::getSetting('api_key'), 'test_') === 0)
             ->assign('mollieLang', Helper::oPlugin()->oPluginSprachvariableAssoc_arr)
@@ -31,6 +36,4 @@ class JTLMollieCreditCard extends JTLMollie
 
         return false;
     }
-
-
 }

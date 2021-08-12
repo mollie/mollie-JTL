@@ -1,4 +1,8 @@
 <?php
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 use Mollie\Api\Exceptions\ApiException;
 use Mollie\Api\Exceptions\IncompatiblePlatform;
@@ -12,6 +16,7 @@ class JTLMolliePayPal extends JTLMollie
     const METHOD = \Mollie\Api\Types\PaymentMethod::PAYPAL;
 
     /**
+     * @param mixed $apiType
      * @throws ApiException
      * @throws IncompatiblePlatform
      */
@@ -32,5 +37,4 @@ class JTLMolliePayPal extends JTLMollie
 
         return $paymentOptions;
     }
-
 }

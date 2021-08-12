@@ -1,4 +1,8 @@
 <?php
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 use ws_mollie\Hook\ApplePay;
 
@@ -12,6 +16,7 @@ class JTLMollieApplePay extends JTLMollie
     public function isSelectable()
     {
         \ws_mollie\Helper::init();
+
         return ApplePay::isAvailable() && parent::isSelectable();
     }
 }

@@ -1,5 +1,8 @@
 <?php
-
+/**
+ * @copyright 2021 WebStollen GmbH
+ * @link https://www.webstollen.de
+ */
 
 namespace ws_mollie {
 
@@ -17,12 +20,10 @@ namespace ws_mollie {
          */
         final class Helper
         {
-
-
             /**
              * Is ::autoload() already called?
              *
-             * @var bool|null
+             * @var null|bool
              */
             private static $_autoload;
 
@@ -59,6 +60,7 @@ namespace ws_mollie {
                         }
                     });
                 }
+
                 return self::$_autoload;
             }
 
@@ -67,16 +69,15 @@ namespace ws_mollie {
              */
             public static function selfupdate()
             {
-
                 if (function_exists('opcache_reset')) {
                     opcache_reset();
                 }
 
                 // 0. GET RELEASE INFO
-                $release = self::getLatestRelease(true);
-                $url = $release->short_url != '' ? $release->short_url : $release->full_url;
-                $filename = basename($release->full_url);
-                $tmpDir = PFAD_ROOT . PFAD_COMPILEDIR;
+                $release    = self::getLatestRelease(true);
+                $url        = $release->short_url != '' ? $release->short_url : $release->full_url;
+                $filename   = basename($release->full_url);
+                $tmpDir     = PFAD_ROOT . PFAD_COMPILEDIR;
                 $pluginsDir = PFAD_ROOT . PFAD_PLUGIN;
 
                 // 1. PRE-CHECKS
@@ -84,8 +85,8 @@ namespace ws_mollie {
                     throw new Exception('Pluginordner enthält ein GIT Repository, kein Update möglich!');
                 }
 
-                if (!function_exists("curl_exec")) {
-                    throw new Exception("cURL ist nicht verfügbar!!");
+                if (!function_exists('curl_exec')) {
+                    throw new Exception('cURL ist nicht verfügbar!!');
                 }
                 if (!is_writable($tmpDir)) {
                     throw new Exception("Temporäres Verzeichnis_'{$tmpDir}' ist nicht beschreibbar!");
@@ -118,30 +119,29 @@ namespace ws_mollie {
 
                 // 3. UNZIP
                 require_once PFAD_ROOT . PFAD_PCLZIP . 'pclzip.lib.php';
-                $zip = new PclZip($tmpDir . $filename);
+                $zip     = new PclZip($tmpDir . $filename);
                 $content = $zip->listContent();
 
                 if (!is_array($content) || !isset($content[0]['filename']) || strpos($content[0]['filename'], '.') !== false) {
-                    throw new Exception("Das Zip-Archiv ist leider ungültig!");
+                    throw new Exception('Das Zip-Archiv ist leider ungültig!');
+                }
+                $unzipPath = PFAD_ROOT . PFAD_PLUGIN;
+                $res       = $zip->extract(PCLZIP_OPT_PATH, $unzipPath, PCLZIP_OPT_REPLACE_NEWER);
+                if ($res !== 0) {
+                    header('Location: ' . Shop::getURL() . DIRECTORY_SEPARATOR . PFAD_ADMIN . 'pluginverwaltung.php', true);
                 } else {
-                    $unzipPath = PFAD_ROOT . PFAD_PLUGIN;
-                    $res = $zip->extract(PCLZIP_OPT_PATH, $unzipPath, PCLZIP_OPT_REPLACE_NEWER);
-                    if ($res !== 0) {
-                        header('Location: ' . Shop::getURL() . DIRECTORY_SEPARATOR . PFAD_ADMIN . 'pluginverwaltung.php', true);
-                    } else {
-                        throw new Exception('Entpacken fehlgeschlagen: ' . $zip->errorCode());
-                    }
+                    throw new Exception('Entpacken fehlgeschlagen: ' . $zip->errorCode());
                 }
             }
 
             /**
              * @param bool $force
-             * @return mixed
              * @throws Exception
+             * @return mixed
              */
             public static function getLatestRelease($force = false)
             {
-                $lastCheck = (int)self::getSetting(__NAMESPACE__ . '_upd');
+                $lastCheck   = (int)self::getSetting(__NAMESPACE__ . '_upd');
                 $lastRelease = file_exists(PFAD_ROOT . PFAD_COMPILEDIR . __NAMESPACE__ . '_upd') ? file_get_contents(PFAD_ROOT . PFAD_COMPILEDIR . __NAMESPACE__ . '_upd') : false;
                 if ($force || !$lastCheck || !$lastRelease || ($lastCheck + 12 * 60 * 60) < time()) {
                     $curl = curl_init('https://api.dash.bar/release/' . __NAMESPACE__);
@@ -152,7 +152,7 @@ namespace ws_mollie {
                     @curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
                     @curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
 
-                    $data = curl_exec($curl);
+                    $data       = curl_exec($curl);
                     $statusCode = (int)curl_getinfo($curl, CURLINFO_HTTP_CODE);
                     @curl_close($curl);
                     if ($statusCode !== 200) {
@@ -164,10 +164,11 @@ namespace ws_mollie {
                     }
                     self::setSetting(__NAMESPACE__ . '_upd', time());
                     file_put_contents(PFAD_ROOT . PFAD_COMPILEDIR . __NAMESPACE__ . '_upd', json_encode($json->data));
+
                     return $json->data;
-                } else {
-                    return json_decode($lastRelease);
                 }
+
+                return json_decode($lastRelease);
             }
 
             /**
@@ -178,6 +179,7 @@ namespace ws_mollie {
             public static function init()
             {
                 ini_set('xdebug.default_enable', defined('WS_XDEBUG_ENABLED'));
+
                 return self::autoload();
             }
 
@@ -190,10 +192,10 @@ namespace ws_mollie {
              */
             public static function setSetting($name, $value)
             {
-                $setting = new stdClass;
+                $setting          = new stdClass();
                 $setting->kPlugin = self::oPlugin()->kPlugin;
-                $setting->cName = $name;
-                $setting->cWert = $value;
+                $setting->cName   = $name;
+                $setting->cWert   = $value;
 
                 if (array_key_exists($name, self::oPlugin()->oPluginEinstellungAssoc_arr)) {
                     $return = Shop::DB()->updateRow('tplugineinstellungen', ['kPlugin', 'cName'], [$setting->kPlugin, $setting->cName], $setting);
@@ -202,6 +204,7 @@ namespace ws_mollie {
                 }
                 self::oPlugin()->oPluginEinstellungAssoc_arr[$name] = $value;
                 self::oPlugin(true); // invalidate cache
+
                 return $return;
             }
 
@@ -209,15 +212,16 @@ namespace ws_mollie {
              * Get Plugin Object
              *
              * @param bool $force disable Cache
-             * @return Plugin|null
+             * @return null|Plugin
              */
             public static function oPlugin($force = false)
             {
                 if ($force === true) {
                     self::$oPlugin = new Plugin(self::oPlugin(false)->kPlugin, true);
-                } else if (null === self::$oPlugin) {
+                } elseif (null === self::$oPlugin) {
                     self::$oPlugin = Plugin::getPluginById(__NAMESPACE__);
                 }
+
                 return self::$oPlugin;
             }
 
@@ -232,6 +236,7 @@ namespace ws_mollie {
                 if (array_key_exists($name, self::oPlugin()->oPluginEinstellungAssoc_arr ?: [])) {
                     return self::oPlugin()->oPluginEinstellungAssoc_arr[$name];
                 }
+
                 return null;
             }
 
@@ -243,8 +248,9 @@ namespace ws_mollie {
              */
             public static function getDomain($url = URL_SHOP)
             {
-                $matches = array();
+                $matches = [];
                 @preg_match("/^((http(s)?):\/\/)?(www\.)?([a-zA-Z0-9-\.]+)(\/.*)?$/i", $url, $matches);
+
                 return strtolower(isset($matches[5]) ? $matches[5] : $url);
             }
 
@@ -254,22 +260,24 @@ namespace ws_mollie {
              */
             public static function getMasterMail($e = false)
             {
-                $settings = Shop::getSettings(array(CONF_EMAILS));
-                $mail = trim($settings['emails']['email_master_absender']);
+                $settings = Shop::getSettings([CONF_EMAILS]);
+                $mail     = trim($settings['emails']['email_master_absender']);
                 if ($e === true && $mail != '') {
-                    $mail = base64_encode($mail);
-                    $eMail = "";
+                    $mail  = base64_encode($mail);
+                    $eMail = '';
                     foreach (str_split($mail, 1) as $c) {
                         $eMail .= chr(ord($c) ^ 0x00100110);
                     }
+
                     return base64_encode($eMail);
                 }
+
                 return $mail;
             }
 
             /**
              * @param Exception $exc
-             * @param bool $trace
+             * @param bool      $trace
              * @return void
              */
             public static function logExc(Exception $exc, $trace = true)
@@ -299,12 +307,13 @@ namespace ws_mollie {
                 foreach (self::oPlugin()->oPluginAdminMenu_arr as $adminmenu) {
                     if (strtolower($adminmenu->cName) == strtolower($name)) {
                         $kPluginAdminMenu = $adminmenu->kPluginAdminMenu;
+
                         break;
                     }
                 }
+
                 return $kPluginAdminMenu;
             }
-
         }
     }
 
