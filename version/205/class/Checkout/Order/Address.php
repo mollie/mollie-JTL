@@ -27,7 +27,7 @@ class Address extends \ws_mollie\Checkout\Payment\Address
     {
         $resource = parent::factory($address);
 
-        $resource->title      = trim(($address->cAnrede === 'm' ? Shop::Lang()->get('mr') : Shop::Lang()->get('mrs')) . ' ' . $address->cTitel) ?: null;
+        $resource->title      = substr(trim(($address->cAnrede === 'm' ? Shop::Lang()->get('mr') : Shop::Lang()->get('mrs')) . ' ' . $address->cTitel) ?: null, 0 , 20);
         $resource->givenName  = $address->cVorname;
         $resource->familyName = $address->cNachname;
         $resource->email      = $address->cMail ?: null;
