@@ -113,7 +113,7 @@ class Queue
         if (!defined('MOLLIE_HOOK_DELAY')) {
             define('MOLLIE_HOOK_DELAY', 3);
         }
-        $open = Shop::DB()->executeQueryPrepared(sprintf("SELECT * FROM %s WHERE dDone IS NULL AND `bLock` IS NULL AND (cType LIKE 'webhook:%%' OR (cType LIKE 'hook:%%') AND dCreated < DATE_SUB(NOW(), INTERVAL " . (int)MOLLIE_HOOK_DELAY . ' MINUTE)) ORDER BY dCreated DESC LIMIT 0, :LIMIT;', QueueModel::TABLE), [
+        $open = Shop::DB()->executeQueryPrepared(sprintf("SELECT * FROM %s WHERE (dDone IS NULL OR dDone = '0000-00-00 00:00:00') AND `bLock` IS NULL AND (cType LIKE 'webhook:%%' OR (cType LIKE 'hook:%%') AND dCreated < DATE_SUB(NOW(), INTERVAL " . (int)MOLLIE_HOOK_DELAY . ' MINUTE)) ORDER BY dCreated DESC LIMIT 0, :LIMIT;', QueueModel::TABLE), [
             ':LIMIT' => $limit
         ], 2);
 
@@ -212,7 +212,7 @@ class Queue
                                     $result = $e->getMessage() . "\n" . $e->getFile() . ':' . $e->getLine() . "\n" . $e->getTraceAsString();
                                 }
                             } else {
-                                $result = sprintf('Unerwarteter Mollie Status "%s" für %s', $checkout->getMollie()->status, $checkout->getBestellung()->cBestellNr);
+                                $result = sprintf('Unerwarteter Mollie Status "%s" fÃ¼r %s', $checkout->getMollie()->status, $checkout->getBestellung()->cBestellNr);
                             }
                         } else {
                             $result = 'Nothing to do.';
