@@ -50,7 +50,6 @@ try {
     if (mt_rand(1, MOLLIE_REMINDER_PROP) % MOLLIE_REMINDER_PROP === 0) {
         $lock = new \ws_mollie\ExclusiveLock('mollie_reminder', PFAD_ROOT . PFAD_COMPILEDIR);
         if ($lock->lock()) {
-            // TODO: Doku!
 
             AbstractCheckout::sendReminders();
             Queue::storno((int)Helper::getSetting('autoStorno'));
