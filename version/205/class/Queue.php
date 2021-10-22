@@ -166,6 +166,8 @@ class Queue
             switch ($hook) {
                 case HOOK_BESTELLUNGEN_XML_BESTELLSTATUS:
                     if ((int)$data['kBestellung']) {
+
+                        // TODO: #158 What happens when API requests fail?
                         $checkout = AbstractCheckout::fromBestellung($data['kBestellung']);
 
                         $status = array_key_exists('status', $data) ? (int)$data['status'] : 0;

@@ -1102,7 +1102,7 @@
                     <ContentHtml><![CDATA[{includeMailTemplate template=header type=html}
                     Guten Tag {$Kunde->cVorname} {$Kunde->cNachname},<br>vielen Dank für Ihre Bestellung bei {$Einstellungen.global.global_shopname}.<br><br><p>Leider konnten wir für die Bestellung <b>{$oPluginMail->Bestellung->cBestellNr}</b> bisher keinen Zahlungseingang feststellen.</p><p>Sollte es bei der Zahlung zu Problemen gekommen sein, können Sie diese über den folgenden Link einfach erneut versuchen.</p><p>Zu zahlender Betrag: {$oPluginMail->Amount}</p><p>Jetzt bezahlen: <a href="{$oPluginMail->PayURL}">{$oPluginMail->PayURL}</a></p>
                     {includeMailTemplate template=footer type=html}]]></ContentHtml>
-                    <ContentText><![CDATA[{{includeMailTemplate template=header type=text}
+                    <ContentText><![CDATA[{includeMailTemplate template=header type=text}
                     Guten Tag {$Kunde->cVorname} {$Kunde->cNachname},
 
                     vielen Dank für Ihre Bestellung bei {$Einstellungen.global.global_shopname}.
