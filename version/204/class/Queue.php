@@ -1,6 +1,6 @@
 <?php
 /**
- * @copyright 2021 WebStollen GmbH
+ * @copyright 2022 WebStollen GmbH
  * @link https://www.webstollen.de
  */
 
@@ -77,7 +77,7 @@ class Queue
                 continue;
             }
 
-            if ((list($type, $id) = explode(':', $todo->cType))) {
+            if (([$type, $id] = explode(':', $todo->cType))) {
                 try {
                     switch ($type) {
                         case 'webhook':

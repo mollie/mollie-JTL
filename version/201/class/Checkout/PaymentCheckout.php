@@ -1,6 +1,6 @@
 <?php
 /**
- * @copyright 2021 WebStollen GmbH
+ * @copyright 2022 WebStollen GmbH
  * @link https://www.webstollen.de
  */
 
@@ -151,8 +151,8 @@ class PaymentCheckout extends AbstractCheckout
             $this->getBestellung()->oKunde->nRegistriert
             && (
                 $customer = $this->getCustomer(
-                array_key_exists('mollie_create_customer', $_SESSION['cPost_arr'] ?: []) && $_SESSION['cPost_arr']['mollie_create_customer'] === 'Y'
-            )
+                    array_key_exists('mollie_create_customer', $_SESSION['cPost_arr'] ?: []) && $_SESSION['cPost_arr']['mollie_create_customer'] === 'Y'
+                )
             )
             && isset($customer)
         ) {

@@ -1,6 +1,6 @@
 <?php
 /**
- * @copyright 2021 WebStollen GmbH
+ * @copyright 2022 WebStollen GmbH
  * @link https://www.webstollen.de
  */
 

@@ -1,6 +1,6 @@
 <?php
 /**
- * @copyright 2021 WebStollen GmbH
+ * @copyright 2022 WebStollen GmbH
  * @link https://www.webstollen.de
  */
 
@@ -704,12 +704,12 @@ abstract class AbstractCheckout
                 $oKunde->nRegistriert
                 && (
                     $customer = $this->getCustomer(
-                    array_key_exists(
-                        'mollie_create_customer',
-                        $_SESSION['cPost_arr'] ?: []
-                    ) && $_SESSION['cPost_arr']['mollie_create_customer'] === 'Y',
-                    $oKunde
-                )
+                        array_key_exists(
+                            'mollie_create_customer',
+                            $_SESSION['cPost_arr'] ?: []
+                        ) && $_SESSION['cPost_arr']['mollie_create_customer'] === 'Y',
+                        $oKunde
+                    )
                 )
                 && isset($customer)
             ) {
