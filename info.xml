@@ -60,6 +60,13 @@
             <Hook id="181">181_sync.php</Hook>
             <Hook id="210">210_storno.php</Hook>
         </Hooks>
+        <JS>
+            <file>
+                <name>applePay.js</name>
+                <priority>5</priority>
+                <position>body</position>
+            </file>
+        </JS>
         <Adminmenu>
             <Customlink sort="10">
                 <Name>Bestellungen</Name>

@@ -31,8 +31,14 @@ class ApplePay extends AbstractHook
         }
 
         if (!array_key_exists('ws_mollie_applepay_available', $_SESSION)) {
-            Shop::Smarty()->assign('applePayCheckURL', json_encode(self::Plugin()->cFrontendPfadURLSSL . 'applepay.php'));
-            pq('body')->append(Shop::Smarty()->fetch(self::Plugin()->cFrontendPfad . 'tpl/applepay.tpl'));
+            // TODO DOKU
+            if (defined('MOLLIE_APPLEPAY_TPL') && MOLLIE_APPLEPAY_TPL) {
+                Shop::Smarty()->assign('applePayCheckURL', json_encode(self::Plugin()->cFrontendPfadURLSSL . 'applepay.php'));
+                pq('body')->append(Shop::Smarty()->fetch(self::Plugin()->cFrontendPfad . 'tpl/applepay.tpl'));
+            } else {
+                $checkUrl = self::Plugin()->cFrontendPfadURLSSL . 'applepay.php';
+                pq('head')->append("<script>window.MOLLIE_APPLEPAY_CHECK_URL = '$checkUrl';</script>");
+            }
         }
     }
 
