@@ -78,7 +78,7 @@ class Queue
                 continue;
             }
 
-            if (([$type, $id] = explode(':', $todo->cType))) {
+            if ((list($type, $id) = explode(':', $todo->cType))) {
                 try {
                     switch ($type) {
                         case 'webhook':
