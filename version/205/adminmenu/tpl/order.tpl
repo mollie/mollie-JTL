@@ -153,7 +153,7 @@
     {/if}
     {if !$order->amountRefunded || ($order->amount->value > $order->amountRefunded->value)}
         <a href="plugin.php?kPlugin={$oPlugin->kPlugin}&action=refund&id={$order->id}"
-           onclick="return confirm('Zahlung wirklich zurck erstatten?');" class="btn btn-warning"><i
+           onclick="return confirm('Zahlung wirklich zur&uuml;ckerstatten?');" class="btn btn-warning"><i
                     class="fa fa-thumbs-down"></i> R&uuml;ckerstatten<sup>2</sup>
         </a>
     {/if}
@@ -229,7 +229,7 @@
                         </a>
                     {/if}
                     {if $line->quantity > $line->quantityRefunded}
-                        <a onclick="return confirm('Position wirklich zurck erstatten?');" title="Rckersatttung"
+                        <a onclick="return confirm('Position wirklich zur&uuml;ckerstatten?');" title="Rckersatttung"
                            href="plugin.php?kPlugin={$oPlugin->kPlugin}&action=refundline&id={$line->id}order={$order->id}">
                             <i class="fa fa-thumbs-down"></i>
                         </a>
@@ -257,7 +257,7 @@
     </table>
     <div style="font-size: 10px">
         <sup>1</sup> = Bestellung wird bei Mollie als versandt markiert. WAWI wird <b>nicht</b> informiert.<br/>
-        <sup>2</sup> = Bezahlter Betrag wird dem Kunden rckerstattet. WAWI wird <b>nicht</b> informiert.<br/>
+        <sup>2</sup> = Bezahlter Betrag wird dem Kunden r&uuml;ckerstattet. WAWI wird <b>nicht</b> informiert.<br/>
         <sup>3</sup> = Bestellung wird bei Mollie storniert. WAWI wird <b>nicht</b> informiert.<br/>
     </div>
 {/if}
