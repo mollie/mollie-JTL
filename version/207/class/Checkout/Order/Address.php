@@ -27,13 +27,13 @@ class Address extends \ws_mollie\Checkout\Payment\Address
     {
         $resource = parent::factory($address);
 
-        $resource->title      = substr(trim(($address->cAnrede === 'm' ? Shop::Lang()->get('mr') : Shop::Lang()->get('mrs')) . ' ' . $address->cTitel) ?: null, 0, 20);
-        $resource->givenName  = $address->cVorname;
-        $resource->familyName = $address->cNachname;
-        $resource->email      = $address->cMail ?: null;
+        $resource->title      = html_entity_decode(substr(trim(($address->cAnrede === 'm' ? Shop::Lang()->get('mr') : Shop::Lang()->get('mrs')) . ' ' . $address->cTitel) ?: null, 0, 20));
+        $resource->givenName  = html_entity_decode($address->cVorname);
+        $resource->familyName = html_entity_decode($address->cNachname);
+        $resource->email      = html_entity_decode($address->cMail) ?: null;
 
         if ($organizationName = trim($address->cFirma)) {
-            $resource->organizationName = $organizationName;
+            $resource->organizationName = html_entity_decode($organizationName);
         }
 
         // Validity-Check

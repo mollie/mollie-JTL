@@ -29,16 +29,16 @@ class Address extends AbstractResource
     public static function factory($address)
     {
         $resource                  = new static();
-        $resource->streetAndNumber = $address->cStrasse . ' ' . $address->cHausnummer;
-        $resource->postalCode      = $address->cPLZ;
-        $resource->city            = $address->cOrt;
-        $resource->country         = $address->cLand;
+        $resource->streetAndNumber = html_entity_decode($address->cStrasse . ' ' . $address->cHausnummer);
+        $resource->postalCode      = html_entity_decode($address->cPLZ);
+        $resource->city            = html_entity_decode($address->cOrt);
+        $resource->country         = html_entity_decode($address->cLand);
 
         if (
             isset($address->cAdressZusatz)
             && trim($address->cAdressZusatz) !== ''
         ) {
-            $resource->streetAdditional = trim($address->cAdressZusatz);
+            $resource->streetAdditional = html_entity_decode(trim($address->cAdressZusatz));
         }
 
         // Validity-Check
