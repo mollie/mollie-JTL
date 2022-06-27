@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @copyright 2021 WebStollen GmbH
+ * @copyright 2022 WebStollen GmbH
  * @link https://www.webstollen.de
  */
 
@@ -78,7 +78,7 @@ class Queue
                 continue;
             }
 
-            if ((list($type, $id) = explode(':', $todo->cType))) {
+            if (([$type, $id] = explode(':', $todo->cType))) {
                 try {
                     switch ($type) {
                         case 'webhook':
@@ -109,7 +109,6 @@ class Queue
      */
     private static function getOpen($limit)
     {
-        // TODO: DOKU!
         if (!defined('MOLLIE_HOOK_DELAY')) {
             define('MOLLIE_HOOK_DELAY', 3);
         }
@@ -167,6 +166,7 @@ class Queue
             switch ($hook) {
                 case HOOK_BESTELLUNGEN_XML_BESTELLSTATUS:
                     if ((int)$data['kBestellung']) {
+                        // TODO: #158 What happens when API requests fail?
                         $checkout = AbstractCheckout::fromBestellung($data['kBestellung']);
 
                         $status = array_key_exists('status', $data) ? (int)$data['status'] : 0;
@@ -212,7 +212,7 @@ class Queue
                                     $result = $e->getMessage() . "\n" . $e->getFile() . ':' . $e->getLine() . "\n" . $e->getTraceAsString();
                                 }
                             } else {
-                                $result = sprintf('Unerwarteter Mollie Status "%s" fÃ¼r %s', $checkout->getMollie()->status, $checkout->getBestellung()->cBestellNr);
+                                $result = sprintf('Unerwarteter Mollie Status "%s" für %s', $checkout->getMollie()->status, $checkout->getBestellung()->cBestellNr);
                             }
                         } else {
                             $result = 'Nothing to do.';
