@@ -5,7 +5,7 @@
   "scripts": {
     "phpcbf": "phpcbf --standard=PSR12 --encoding=utf8 -p ./version",
     "php-cs-fixer": "php-cs-fixer fix",
-    "fix": "phpcbf --standard=PSR12 --encoding=utf8 -p ./version; php-cs-fixer fix"
+    "fix": "php-cs-fixer fix; phpcbf --standard=PSR12 --encoding=utf8 -p ./version"
   },
   "require": {
     "ext-json": "*",

@@ -1,6 +1,7 @@
 <?php
+
 /**
- * @copyright 2021 WebStollen GmbH
+ * @copyright 2022 WebStollen GmbH
  * @link https://www.webstollen.de
  */
 
@@ -671,7 +672,6 @@ class JTLMollie extends PaymentMethod
     {
         if (array_key_exists('mollieDeleteToken', $_REQUEST) && (int)$_REQUEST['mollieDeleteToken'] === 1) {
             unset($_SESSION['mollieCardToken'], $_SESSION['mollieCardTokenTS']);
-
         }
 
         /** @var Warenkorb $wk */
