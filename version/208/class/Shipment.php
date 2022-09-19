@@ -258,7 +258,7 @@ class Shipment extends AbstractResource
                 'carrier' => utf8_encode($oVersand->getLogistik()),
                 'code'    => utf8_encode($oVersand->getIdentCode()),
             ];
-            if ($oVersand->getLogistikVarUrl()) {
+            if ($oVersand->getLogistikVarUrl() && (Helper::getSetting('trackingActive') === 'Y')) {
                 $tracking['url'] = utf8_encode($oVersand->getLogistikURL());
             }
             $this->tracking = $tracking;
