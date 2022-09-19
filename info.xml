@@ -54,6 +54,9 @@
         <Version nr="207">
             <CreateDate>2022-06-10</CreateDate>
         </Version>
+        <Version nr="208">
+            <CreateDate>2022-09-19</CreateDate>
+        </Version>
         <Hooks>
             <Hook id="75">75_bestellungInDb.php</Hook>
             <Hook id="131">131_globalinclude.php</Hook>
@@ -186,6 +189,19 @@
                         <Option value="N" sort="3"><![CDATA[Nein, ich mache alles manuell.]]></Option>
                     </SelectboxOptions>
                 </Setting>
+                <Setting type="selectbox" initialValue="N" sort="52" conf="Y">
+                    <Name>Tracking URL den Versandinformationen anfügen?</Name>
+                    <Description>
+                        <![CDATA[Soll die Tracking URL für OrderAPI Methoden an Mollie gesendet werden?
+                        Achtung wenn die Tracking URL nicht im korrekt URL Format ist, wird dies von mollie abgelehnt. In diesem Fall kann der gesamte Versandstatus nicht an mollie übergeben werden.]]>
+                    </Description>
+                    <ValueName>trackingActive</ValueName>
+                    <SelectboxOptions>
+                        <Option value="N" sort="1"><![CDATA[Nein]]></Option>
+                        <Option value="Y" sort="2"><![CDATA[Ja]]></Option>
+                    </SelectboxOptions>
+                </Setting>
+
                 <Setting type="selectbox" initialValue="N" sort="40" conf="Y">
                     <Name>Bestellungen automatisch stornieren</Name>
                     <Description>Wenn diese Einstellung aktiviert ist, werden komplett Stornierte Bestellungen auch bei
