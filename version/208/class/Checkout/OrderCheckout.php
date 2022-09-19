@@ -373,6 +373,23 @@ class OrderCheckout extends AbstractCheckout
      */
     protected function updateOrderNumber()
     {
+        //update only order number
+        try {
+            if ($order = $this->getMollie()) {
+                $body = [
+                    'orderNumber' => $this->getBestellung()->cBestellNr
+                ];
+                $this->API()->Client()->orders->update($order->id, $body);
+            }
+            if ($this->getModel()->cTransactionId) {
+                $this->API()->Client()->payments->update($this->getModel()->cTransactionId, [
+                    'description' => $this->getDescription()
+                ]);
+            }
+        } catch (Exception $e) {
+            $this->Log('Update only orderNumber nOrderCheckout::updateOrderNumber:' . $e->getMessage(), LOGLEVEL_ERROR);
+        }
+
         try {
             if ($this->getMollie()) {
                 $this->getMollie()->orderNumber = $this->getBestellung()->cBestellNr;
