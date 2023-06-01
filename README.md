@@ -7,7 +7,7 @@
 
 Download the [Mollie](https://www.mollie.com/) module for JTL-Shop. Mollie is a payment service provider (PSP) which provides your online store with the most popular online payment methods. 
 
-Receive payments from European customers with ease. Mollie provides payment methods at higly competitive rates. Only pay per transaction and no hidden fees.
+Receive payments from European customers with ease. Mollie provides payment methods at highly competitive rates. Only pay per transaction and no hidden fees.
 
 Choose the best payment provider available for your online JTL-Shop. Create your merchant account at [Mollie.com](https://www.mollie.com/). 
 Download and install the Mollie JTL-Shop payment module and start receiving online payments now!
@@ -31,7 +31,7 @@ If you have no experience with this, then leave the installation of this module 
 
 ## Installation from Source ##
 
-1. Download latest Release or clone the latest version of the module (the '.zip' file) via the [Clone or donwload](https://github.com/mollie/mollie-JTL/archive/master.zip) button
+1. Download latest Release or clone the latest version of the module (the '.zip' file) via the [Clone or download](https://github.com/mollie/mollie-JTL/archive/master.zip) button
 2. Upload the file via backend, as described above or upload the unzipped plugin via your FTP client to `SHOP_ROOT/includes/plugins`
 3. If you downloaded the sourcecode, you have th install the dependencies manually via SSH and [Composer](https://getcomposer.org/): `cd SHOP_ROOT/includes/plugins/ws_mollie && composer install` 
 4. After that, follow Steps 5.-7. from above.
@@ -84,7 +84,7 @@ iDEAL is a Dutch payment system which links customers directly to their online b
 [Mollie](https://www.mollie.com/) makes it easy to connect with iDEAL,  without the usual technical and administrative hassle.
 Mollie gives you access to your transaction overviews and other statistics at any time. It is also possible to receive a notification by e-mail or SMS after every successful payment.
 
-[Mollie](https://www.mollie.com/) is the perfect partner for recieving iDEAL payments and it is not surprising that [Mollie](https://www.mollie.com/) provides iDEAL payments 
+[Mollie](https://www.mollie.com/) is the perfect partner for receiving iDEAL payments and it is not surprising that [Mollie](https://www.mollie.com/) provides iDEAL payments 
 for more than 40,000 websites.
 
 ### Bancontact
